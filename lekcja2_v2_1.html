@@ -500,9 +500,10 @@ function speak(id) {
   // ------------------------ 
   
   currentAudio.onended = () => { 
-    if (btn) { btn.classList.remove('pl'); 
-              btn.textContent = '🔊 Wymowa'; 
-             } 
+    if (btn) { 
+      btn.classList.remove('pl'); 
+      btn.textContent = '🔊 Wymowa'; 
+    } 
   }; 
   
   currentAudio.onerror = (e) => { 
