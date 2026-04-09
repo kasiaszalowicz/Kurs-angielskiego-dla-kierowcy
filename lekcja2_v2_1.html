@@ -474,7 +474,7 @@ function qa(btn,correct) {
 function nextQ(){renderQ();}
 
 function speak(id) { 
-  const word = words.find(w => w.id === id); \
+  const word = words.find(w => w.id === id);
   if (!word || !word.file) return; 
   
   if (currentAudio) { 
