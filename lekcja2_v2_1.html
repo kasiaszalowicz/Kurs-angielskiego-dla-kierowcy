@@ -473,7 +473,49 @@ function qa(btn,correct) {
 }
 function nextQ(){renderQ();}
 
-function speak(id) { const word = words.find(w => w.id === id); if (!word || !word.file) return; if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; } const btn = document.getElementById('asSound'); if (btn) { btn.classList.add('pl'); btn.textContent = '🔊 Odtwarzam...'; } // --- POPRAWKA ŚCIEŻKI --- // Pobieramy lokalizację pliku HTML const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1); // Kodujemy nazwę pliku (zamiana spacji na %20) const encodedFileName = encodeURIComponent(word.file); // Łączymy w pełny adres URL const audioUrl = currentPath + encodedFileName; currentAudio = new Audio(audioUrl); // ------------------------ currentAudio.onended = () => { if (btn) { btn.classList.remove('pl'); btn.textContent = '🔊 Wymowa'; } }; currentAudio.onerror = (e) => { console.error("Błąd ładowania pliku:", audioUrl); if (btn) { btn.classList.remove('pl'); btn.textContent = '❌ Błąd audio'; } }; currentAudio.play().catch(err => { console.warn("Autoplay zablokowany. Kliknij interfejs najpierw.", err); }); }
+function speak(id) { 
+  const word = words.find(w => w.id === id); \
+  if (!word || !word.file) return; 
+  
+  if (currentAudio) { 
+    currentAudio.pause(); 
+    currentAudio.currentTime = 0; 
+  } 
+  
+  const btn = document.getElementById('asSound'); 
+  
+  if (btn) { 
+    btn.classList.add('pl'); btn.textContent = '🔊 Odtwarzam...'; 
+  } 
+  
+  // --- POPRAWKA ŚCIEŻKI --- // Pobieramy lokalizację pliku HTML 
+  const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1); 
+  
+  // Kodujemy nazwę pliku (zamiana spacji na %20) 
+  const encodedFileName = encodeURIComponent(word.file); 
+  
+  // Łączymy w pełny adres URL 
+  const audioUrl = currentPath + encodedFileName; currentAudio = new Audio(audioUrl); 
+  
+  // ------------------------ 
+  
+  currentAudio.onended = () => { 
+    if (btn) { btn.classList.remove('pl'); 
+              btn.textContent = '🔊 Wymowa'; 
+             } 
+  }; 
+  
+  currentAudio.onerror = (e) => { 
+    console.error("Błąd ładowania pliku:", audioUrl); 
+    
+    if (btn) { 
+      btn.classList.remove('pl'); 
+      btn.textContent = '❌ Błąd audio'; 
+    } 
+  }; currentAudio.play().catch(err => { 
+    console.warn("Autoplay zablokowany. Kliknij interfejs najpierw.", err); 
+  }); 
+}
 
 /* INIT */
 buildGrid();
