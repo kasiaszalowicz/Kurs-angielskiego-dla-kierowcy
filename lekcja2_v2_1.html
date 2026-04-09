@@ -427,6 +427,8 @@ function speak(id) {
   const audioUrl = encodeURI(word.file); 
   currentAudio = new Audio(audioUrl);
 
+  concole.log(currentAudio);
+
   currentAudio.onended = () => {
     if (btn) {
       btn.classList.remove('pl');
