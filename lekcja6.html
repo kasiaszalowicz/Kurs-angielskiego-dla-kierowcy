@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 6 — Podpisanie CMR</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --accent:#15803d;--accent-light:#f0fdf4;--accent-border:#86efac;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:900px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#0891b2);border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* LAYOUT */
+.main{display:grid;grid-template-columns:1fr 290px;gap:14px;margin-bottom:14px;}
+
+/* CMR DOCUMENT */
+.cmr-wrap{
+  background:var(--white);
+  border:1.5px solid var(--border);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.cmr-top{
+  background:var(--navy);padding:8px 16px;
+  font-size:0.6rem;font-weight:900;
+  color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;
+}
+
+/* Sam formularz CMR */
+.cmr{
+  padding:16px;
+  font-family:'Courier Prime',monospace;
+}
+
+/* Nagłówek CMR */
+.cmr-header{
+  display:flex;align-items:center;justify-content:space-between;
+  border:2px solid var(--navy);border-radius:4px;
+  margin-bottom:8px;overflow:hidden;
+}
+.cmr-title{
+  background:var(--navy);color:#fff;
+  padding:8px 16px;
+  font-size:0.85rem;font-weight:700;letter-spacing:3px;
+  flex-shrink:0;
+}
+.cmr-subtitle{
+  padding:8px 16px;
+  font-size:0.65rem;color:var(--muted);
+  line-height:1.4;
+}
+.cmr-num{
+  padding:8px 16px;
+  font-size:0.7rem;font-weight:700;color:var(--navy);
+  border-left:1px solid var(--border);
+  white-space:nowrap;
+}
+
+/* Sekcje CMR */
+.cmr-section{
+  display:grid;gap:0;
+  border:1.5px solid var(--navy);
+  border-radius:4px;
+  margin-bottom:6px;
+  overflow:hidden;
+}
+.cmr-section.cols2{grid-template-columns:1fr 1fr;}
+.cmr-section.cols3{grid-template-columns:1fr 1fr 1fr;}
+.cmr-section.cols4{grid-template-columns:1fr 1fr 1fr 1fr;}
+
+/* Pole CMR */
+.cmr-field{
+  border-right:1px solid #c8c0b0;
+  border-bottom:1px solid #c8c0b0;
+  padding:0;
+  cursor:pointer;
+  transition:all 0.15s;
+  position:relative;
+  min-height:52px;
+}
+.cmr-field:last-child{border-right:none;}
+.cmr-field:hover{background:var(--accent-light);}
+.cmr-field.active{background:var(--accent-light);outline:2px solid var(--accent);z-index:2;}
+.cmr-field.seen{background:#f8fff8;}
+.cmr-field.full{grid-column:1/-1;}
+.cmr-field.half{grid-column:span 2;}
+
+.cf-label{
+  font-size:0.55rem;font-weight:900;
+  color:var(--muted);text-transform:uppercase;
+  letter-spacing:1px;
+  padding:4px 8px 2px;
+  display:block;
+  border-bottom:1px dashed #e0d8cc;
+}
+.cmr-field.active .cf-label{color:var(--accent);}
+
+.cf-content{
+  padding:4px 8px 6px;
+  font-size:0.75rem;font-weight:700;
+  color:var(--navy);line-height:1.4;
+  font-family:'Courier Prime',monospace;
+}
+.cf-content.muted{color:#aaa;font-style:italic;font-size:0.68rem;}
+
+/* Numery pól CMR */
+.cf-num{
+  position:absolute;bottom:3px;right:5px;
+  font-size:0.55rem;color:#ccc;font-weight:700;
+}
+
+/* Pole klikalne z akcją */
+.cf-action{
+  position:absolute;top:3px;right:5px;
+  width:16px;height:16px;border-radius:50%;
+  background:var(--accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.55rem;font-weight:900;
+  opacity:0;transition:opacity 0.15s;
+  font-family:'Nunito',sans-serif;
+}
+.cmr-field:hover .cf-action{opacity:1;}
+.cmr-field.active .cf-action{opacity:1;}
+.cmr-field.seen .cf-action{background:var(--green);opacity:0.7;}
+
+/* Sekcja podpisu i pieczątki */
+.sign-section{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;
+  border:1.5px solid var(--navy);border-radius:4px;
+  margin-bottom:6px;overflow:hidden;
+}
+.sign-box{
+  border-right:1px solid #c8c0b0;
+  padding:8px;min-height:70px;
+  cursor:pointer;transition:all 0.15s;position:relative;
+}
+.sign-box:last-child{border-right:none;}
+.sign-box:hover{background:var(--accent-light);}
+.sign-box.active{background:var(--accent-light);outline:2px solid var(--accent);z-index:2;}
+.sign-box.seen{background:#f8fff8;}
+.sb-label{font-size:0.55rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block;}
+.sign-box.active .sb-label{color:var(--accent);}
+.sb-line{height:2px;background:#d0c8b8;border-radius:1px;margin-top:12px;}
+.sb-sublabel{font-size:0.55rem;color:#bbb;margin-top:4px;display:block;font-family:'Nunito',sans-serif;}
+
+/* Pieczątka wizualna */
+.stamp-visual{
+  width:44px;height:44px;border-radius:50%;
+  border:3px solid #c0b8a8;
+  display:flex;align-items:center;justify-content:center;
+  margin:4px auto;
+  font-size:0.5rem;color:#c0b8a8;text-align:center;
+  line-height:1.2;font-family:'Nunito',sans-serif;font-weight:700;
+}
+.sign-box.active .stamp-visual{border-color:var(--accent);color:var(--accent);}
+
+/* PRAWY PANEL */
+.right-col{display:flex;flex-direction:column;gap:12px;}
+
+.active-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.ac-head{padding:8px 14px;font-size:0.6rem;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;background:var(--accent);color:#fff;}
+.ac-body{padding:13px 15px;}
+.ac-empty{font-size:0.75rem;color:var(--muted);font-weight:700;text-align:center;padding:14px 0;line-height:1.7;}
+.ac-num{display:inline-block;background:rgba(21,128,61,0.1);color:var(--accent);font-size:0.58rem;font-weight:900;padding:2px 9px;border-radius:99px;letter-spacing:1px;margin-bottom:7px;}
+.ac-en{font-family:'Courier Prime',monospace;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:3px;line-height:1.3;}
+.ac-pl{font-size:0.73rem;font-weight:700;color:var(--muted);margin-bottom:10px;}
+.ac-phrase-label{font-size:0.58rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px;}
+.ac-phrase{font-family:'Courier Prime',monospace;font-size:0.82rem;font-weight:700;color:var(--navy);padding:8px 11px;background:var(--bg);border-radius:7px;border-left:2.5px solid var(--accent);line-height:1.5;margin-bottom:4px;}
+.ac-phrase-pl{font-size:0.65rem;color:var(--muted);font-style:italic;margin-bottom:8px;}
+.ac-sound{width:100%;background:none;border:1.5px solid var(--accent-border);border-radius:7px;padding:7px;font-family:'Nunito',sans-serif;font-size:0.72rem;font-weight:700;color:var(--accent);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.ac-sound:hover{background:var(--accent-light);}
+.ac-sound.pl{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* Słownik */
+.vocab-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.vc-head{background:var(--navy);padding:8px 14px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;}
+.vc-body{padding:8px 12px;}
+.v-row{display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:5px;cursor:pointer;transition:all 0.13s;margin-bottom:2px;}
+.v-row:hover{background:var(--bg);}
+.v-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+.v-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);font-size:0.7rem;}
+.v-pl{font-size:0.62rem;color:var(--muted);font-weight:700;margin-left:auto;}
+
+/* QUIZ */
+.quiz-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:14px;}
+.qc-head{background:var(--red);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;}
+.qc-title{font-size:0.65rem;font-weight:900;color:#fff;letter-spacing:1.5px;text-transform:uppercase;}
+.qc-prog{font-size:0.62rem;color:rgba(255,255,255,0.6);font-weight:700;}
+.qc-body{padding:13px 14px;}
+.q-q{font-size:0.82rem;font-weight:700;line-height:1.5;margin-bottom:10px;padding:8px 11px;background:var(--bg);border-radius:7px;border-left:2.5px solid var(--accent);}
+.q-opt{background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.78rem;font-weight:700;cursor:pointer;margin-bottom:6px;width:100%;text-align:left;color:var(--navy);display:flex;align-items:center;gap:9px;transition:all 0.13s;font-family:'Nunito',sans-serif;}
+.q-opt:last-child{margin-bottom:0;}
+.q-opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-light);}
+.q-opt.ok{background:#f0fdf4;border-color:var(--green);color:var(--green);}
+.q-opt.no{background:#fef2f2;border-color:var(--red);color:var(--red);}
+.q-opt:disabled{cursor:default;}
+.q-ltr{width:20px;height:20px;border-radius:50%;background:rgba(21,128,61,0.1);display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:900;color:var(--accent);flex-shrink:0;transition:all 0.13s;}
+.q-opt.ok .q-ltr{background:var(--green);color:#fff;}
+.q-opt.no .q-ltr{background:var(--red);color:#fff;}
+.q-fb{font-size:0.72rem;font-weight:700;margin-top:8px;padding:7px 10px;border-radius:7px;display:none;line-height:1.5;}
+.q-fb.show{display:block;}
+.q-fb.ok{background:#f0fdf4;border:1px solid #86efac;color:var(--green);}
+.q-fb.no{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);}
+.q-next{margin-top:8px;width:100%;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:10px;font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:900;cursor:pointer;display:none;transition:all 0.15s;}
+.q-next:hover{background:#2a4a6a;}
+.q-next.show{display:block;}
+.q-done{background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:12px;text-align:center;font-size:0.8rem;font-weight:700;color:var(--green);display:none;}
+.q-done.show{display:block;}
+
+/* FOOTER */
+.footer{display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+
+@media(max-width:660px){.main{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Podpisanie CMR</div>
+    <div class="h-sub">Lekcja 6 · Moduł 1 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">6 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">0 / 10 pól odkrytych</div>
+</div>
+
+<div class="main">
+
+  <!-- CMR -->
+  <div class="cmr-wrap">
+    <div class="cmr-top">Kliknij pole na dokumencie CMR — poznaj frazę</div>
+    <div class="cmr">
+
+      <!-- Nagłówek -->
+      <div class="cmr-header">
+        <div class="cmr-title">CMR</div>
+        <div class="cmr-subtitle">International Consignment Note<br>Lettre de voiture internationale</div>
+        <div class="cmr-num">No. PL-2026-003142</div>
+      </div>
+
+      <!-- Sekcja 1 — Nadawca / Odbiorca -->
+      <div class="cmr-section cols2">
+        <div class="cmr-field" id="f1" onclick="activate(1)">
+          <span class="cf-label">1. Sender (name, address)</span>
+          <div class="cf-content">Crosshaul Sp. z o.o.<br>ul. Szczecińska 67, Szczecin PL</div>
+          <div class="cf-num">1</div>
+          <div class="cf-action">→</div>
+        </div>
+        <div class="cmr-field" id="f2" onclick="activate(2)">
+          <span class="cf-label">2. Consignee (name, address)</span>
+          <div class="cf-content">Hans Schmidt GmbH<br>Industriestr. 45, Hamburg DE</div>
+          <div class="cf-num">2</div>
+          <div class="cf-action">→</div>
+        </div>
+      </div>
+
+      <!-- Sekcja 2 — Towar -->
+      <div class="cmr-section cols3">
+        <div class="cmr-field" id="f3" onclick="activate(3)">
+          <span class="cf-label">6. Marks and numbers</span>
+          <div class="cf-content">PL-HH-2026-03</div>
+          <div class="cf-num">6</div>
+          <div class="cf-action">→</div>
+        </div>
+        <div class="cmr-field" id="f4" onclick="activate(4)">
+          <span class="cf-label">11. Gross weight (kg)</span>
+          <div class="cf-content">24 500 kg</div>
+          <div class="cf-num">11</div>
+          <div class="cf-action">→</div>
+        </div>
+        <div class="cmr-field" id="f5" onclick="activate(5)">
+          <span class="cf-label">12. Volume (m³)</span>
+          <div class="cf-content">38.5 m³</div>
+          <div class="cf-num">12</div>
+          <div class="cf-action">→</div>
+        </div>
+      </div>
+
+      <!-- Sekcja 3 — Data i oryginał -->
+      <div class="cmr-section cols2">
+        <div class="cmr-field" id="f6" onclick="activate(6)">
+          <span class="cf-label">21. Date — established at</span>
+          <div class="cf-content muted">Click to learn: "Please write today's date."</div>
+          <div class="cf-num">21</div>
+          <div class="cf-action">→</div>
+        </div>
+        <div class="cmr-field" id="f7" onclick="activate(7)">
+          <span class="cf-label">Original / Copy / Duplicate</span>
+          <div class="cf-content">☑ Original &nbsp; ☐ Copy 1 &nbsp; ☐ Copy 2</div>
+          <div class="cf-num">—</div>
+          <div class="cf-action">→</div>
+        </div>
+      </div>
+
+      <!-- Sekcja 4 — Uwagi / Receipt -->
+      <div class="cmr-section">
+        <div class="cmr-field full" id="f8" onclick="activate(8)" style="min-height:44px;">
+          <span class="cf-label">18. Reservations and observations — Receipt</span>
+          <div class="cf-content muted">Click to learn: "Please confirm receipt." / "I do not sign this."</div>
+          <div class="cf-action">→</div>
+        </div>
+      </div>
+
+      <!-- Sekcja 5 — Podpisy i pieczątki -->
+      <div class="sign-section">
+
+        <div class="sign-box" id="f9" onclick="activate(9)">
+          <span class="sb-label">23. Sender's signature & stamp</span>
+          <div class="stamp-visual">STAMP<br>HERE</div>
+          <div class="sb-line"></div>
+          <span class="sb-sublabel">Click: "I need your company stamp."</span>
+        </div>
+
+        <div class="sign-box" id="f10" onclick="activate(10)">
+          <span class="sb-label">24. Carrier's signature & stamp</span>
+          <div class="stamp-visual">STAMP<br>HERE</div>
+          <div class="sb-line"></div>
+          <span class="sb-sublabel">Click: "Sign here please." / "Please stamp here."</span>
+        </div>
+
+        <div class="sign-box" id="f11" onclick="activate(11)">
+          <span class="sb-label">25. Consignee's signature</span>
+          <div style="height:32px;"></div>
+          <div class="sb-line"></div>
+          <span class="sb-sublabel">Click: "Can I get a signed copy back?"</span>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PRAWY PANEL -->
+  <div class="right-col">
+    <div class="active-card">
+      <div class="ac-head" id="acHead">Aktywne pole</div>
+      <div class="ac-body" id="acBody">
+        <div class="ac-empty">← Kliknij pole<br>na formularzu CMR</div>
+      </div>
+    </div>
+    <div class="vocab-card">
+      <div class="vc-head">Słownik — Lekcja 6</div>
+      <div class="vc-body">
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">sign</div><div class="v-pl">podpisać</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">signature</div><div class="v-pl">podpis</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">stamp</div><div class="v-pl">pieczątka</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">original</div><div class="v-pl">oryginał</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">copy / duplicate</div><div class="v-pl">kopia</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">date</div><div class="v-pl">data</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">receipt</div><div class="v-pl">pokwitowanie</div></div>
+        <div class="v-row"><div class="v-dot" style="background:var(--red)"></div><div class="v-en">I do not sign this</div><div class="v-pl">nie podpisuję</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">please stamp here</div><div class="v-pl">proszę pieczątkę</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">can I get a copy back?</div><div class="v-pl">czy mogę kopię?</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="quiz-card">
+  <div class="qc-head">
+    <div class="qc-title">Quiz</div>
+    <div class="qc-prog" id="qprog">1 / 5</div>
+  </div>
+  <div class="qc-body">
+    <div class="q-q" id="qq"></div>
+    <div id="qopts"></div>
+    <div class="q-fb" id="qfb"></div>
+    <button class="q-next" id="qnext" onclick="nextQ()">DALEJ →</button>
+    <div class="q-done" id="qdone">✅ Lekcja 6 ukończona! Znasz terminologię CMR.</div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d on"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div>
+<script>
+const FIELDS = {
+  1:{num:'POLE 1',en:'Sender',pl:'nadawca',phrase:'"Who is the sender on this CMR?"',phrasePl:'Kto jest nadawcą na tym CMR?'},
+  2:{num:'POLE 2',en:'Consignee',pl:'odbiorca',phrase:'"Who is the consignee?"',phrasePl:'Kto jest odbiorcą?'},
+  3:{num:'POLE 6',en:'Marks and numbers',pl:'znaki i numery',phrase:'"Please check the marks and numbers."',phrasePl:'Proszę sprawdzić znaki i numery.'},
+  4:{num:'POLE 11',en:'Gross weight',pl:'waga brutto',phrase:'"The gross weight is twenty-four thousand five hundred kilograms."',phrasePl:'Waga brutto to 24 500 kg.'},
+  5:{num:'POLE 12',en:'Volume',pl:'objętość',phrase:'"The volume is thirty-eight point five cubic metres."',phrasePl:'Objętość to 38,5 m³.'},
+  6:{num:'POLE 21',en:'Date',pl:'data',phrase:'"Please write today\'s date."',phrasePl:'Proszę napisać dzisiejszą datę.'},
+  7:{num:'KOPIA',en:'Original / Copy / Duplicate',pl:'oryginał / kopia',phrase:'"I need the original, not the copy."',phrasePl:'Potrzebuję oryginału, nie kopii.'},
+  8:{num:'POLE 18',en:'Receipt / Reservation',pl:'pokwitowanie / zastrzeżenie',phrase:'"Please confirm receipt." / "I do not sign this."',phrasePl:'Proszę potwierdzić odbiór. / Nie podpisuję tego.'},
+  9:{num:'POLE 23',en:'Stamp',pl:'pieczątka',phrase:'"I need your company stamp here."',phrasePl:'Potrzebuję pieczątki Twojej firmy tutaj.'},
+  10:{num:'POLE 24',en:'Sign / Signature',pl:'podpis kierowcy',phrase:'"Sign here please." / "Please stamp here."',phrasePl:'Proszę podpisać tutaj. / Proszę przystawić pieczątkę tutaj.'},
+  11:{num:'POLE 25',en:'Can I get a copy back?',pl:'czy mogę dostać kopię?',phrase:'"Can I get a signed copy back?"',phrasePl:'Czy mogę dostać podpisaną kopię?'},
+};
+
+let seen = new Set();
+let currentId = null;
+
+function activate(id) {
+  if(currentId) {
+    document.getElementById('f'+currentId)?.classList.remove('active');
+  }
+  currentId = id;
+  document.getElementById('f'+id)?.classList.add('active');
+  if(!seen.has(id)){
+    seen.add(id);
+    document.getElementById('f'+id)?.classList.add('seen');
+    updateProgress();
+  }
+  const f = FIELDS[id];
+  // W przypadku pola 8 i 10, gdzie mamy dwie frazy oddzielone ukośnikiem, 
+  // bierzemy tylko pierwszą część przed ukośnikiem (bez znaków "/"), żeby dopasować do mapy.
+  let cleanPhrase = f.phrase.split('/')[0].trim().replace(/"/g, ''); 
+  
+  document.getElementById('acBody').innerHTML = `
+    <div class="ac-num">${f.num}</div>
+    <div class="ac-en">${f.en}</div>
+    <div class="ac-pl">${f.pl}</div>
+    <div class="ac-phrase-label">Co mówisz</div>
+    <div class="ac-phrase">${f.phrase}</div>
+    <div class="ac-phrase-pl">${f.phrasePl}</div>
+    <button class="ac-sound" id="acSnd" onclick="speak('${cleanPhrase.replace(/'/g,"\\'")}')">🔊 Posłuchaj wymowy</button>
+  `;
+}
+
+function updateProgress(){
+  const pct=(seen.size/11)*100; // Było 10, mamy 11 pól
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progTxt').textContent=`${seen.size} / 11 pól odkrytych`;
+}
+
+// Dodajemy obsługę kliknięć dla Słownika po prawej
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".vocab-card .v-row").forEach(row => {
+        let enWord = row.querySelector(".v-en").textContent;
+        row.style.cursor = "pointer";
+        row.onclick = () => speakWord(enWord);
+    });
+});
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  'Who is the sender on this CMR?': 'audio/L6/who_is_the_sender_on_this_cmr_l6.mp3',
+  'Who is the consignee?': 'audio/L6/who_is_the_consignee_l6.mp3',
+  'Please check the marks and numbers.': 'audio/L6/check_the_marks_and_numbers_l6.mp3',
+  'The gross weight is twenty-four thousand five hundred kilograms.': 'audio/L6/the_gross_weight_is_24500_kg_l6.mp3',
+  'The volume is thirty-eight point five cubic metres.': 'audio/L6/the_volume_is_l6.mp3',
+  'Please write today\'s date.': 'audio/L6/please_write_todays_date_l6.mp3',
+  'I need the original, not the copy.': 'audio/L6/i_need_the_original_not_copy_l6.mp3',
+  'Please confirm receipt.': 'audio/L6/please_confirm_receipt_l6.mp3',
+  'I need your company stamp here.': 'audio/L6/i_need_your_company_stamp_l6.mp3',
+  'Sign here please.': 'audio/L6/sign_here_please_l6.mp3',
+  'Can I get a signed copy back?': 'audio/L6/can_i_get_a_signed_copy_back_l6.mp3',
+  'I need your signature.': 'audio/L6/i_need_your_signature_l6.mp3',
+  'I do not sign this.': 'audio/L6/i_do_not_sign_this_l6.mp3',
+  'Please stamp here.': 'audio/L6/please_stamp_here_l6.mp3',
+  
+  // Słownik
+  'sign': 'sign_here_please_l6.mp3',
+  'signature': 'i_need_your_signature_l6.mp3',
+  'stamp': 'i_need_your_company_stamp_l6.mp3',
+  'original': 'i_need_the_original_not_copy_l6.mp3',
+  'copy / duplicate': 'can_i_get_a_signed_copy_back_l6.mp3',
+  'date': 'please_write_todays_date_l6.mp3',
+  'receipt': 'please_confirm_receipt_l6.mp3',
+  'I do not sign this': 'i_do_not_sign_this_l6.mp3',
+  'please stamp here': 'please_stamp_here_l6.mp3',
+  'can I get a copy back?': 'can_i_get_a_signed_copy_back_l6.mp3'
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  // Oczyszczamy text, np z cudzysłowów czy zbędnych spacji, jak to mieliśmy w poprzednich lekcjach
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g,'').trim();
+  
+  if(_ap){ 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '🔊 Posłuchaj wymowy';
+
+  if (btn) {
+    btn.classList.add('pl');
+    btn.textContent = '⌛ Ładowanie...';
+  }
+
+  if (mp3) {
+    // Smart Path + Cache Busting
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    // Watchdog
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("pl")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('pl');
+        btn.textContent = lbl;
+      }
+    }
+
+    _ap.onplay = () => {
+      if (btn) btn.textContent = '🔊 Odtwarzam...';
+    };
+
+    _ap.onended = resetBtn;
+
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3:", audioUrl, "Próba fallbacku WebSpeech.");
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany, fallback:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    // Jeśli nie ma w mapie, od razu WebSpeech
+    console.warn("Brak pliku MP3 dla:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) {
+      if(btn) { btn.classList.remove('pl'); btn.textContent = "❌ Brak audio"; }
+      return;
+  }
+  window.speechSynthesis.cancel();
+  const lbl = label || '🔊 Posłuchaj wymowy';
+  
+  if(btn){ 
+      btn.classList.add('pl'); 
+      btn.textContent='🔊 Odtwarzam...'; 
+  }
+  
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend  = ()=>{ if(btn){ btn.classList.remove('pl'); btn.textContent=lbl; } };
+    u.onerror= ()=>{ if(btn){ btn.classList.remove('pl'); btn.textContent=lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+function speak(text){
+  const btn = document.getElementById('acSnd');
+  _playAudio(text, btn, '🔊 Posłuchaj wymowy');
+}
+
+function speakWord(word){
+  _playAudio(word, null, null);
+}
+
+/* QUIZ */
+const qs=[
+  {q:'Hans mówi: "I need your signature." Co robi Mareczek?',
+   opts:['Pokazuje prawo jazdy','Podpisuje dokument','Prosi o kopię','Wpisuje datę'],
+   and:1,tip:'Signature = podpis. I need your signature = potrzebuję Twojego podpisu. Sign here = podpisz tutaj.'},
+  {q:'Co znaczy "I do not sign this"?',
+   opts:['Proszę podpisać tutaj','Potrzebuję oryginału','Nie podpisuję tego','Proszę o kopię'],
+   and:2,tip:'"I do not sign this" = nie podpisuję tego. Używane gdy document zawiera błędy lub jest niekompletny.'},
+  {q:'Hans prosi o "company stamp". Co potrzebuje?',
+   opts:['Podpisu kierowcy','Kopii dokumentu','Daty wystawienia','Pieczątki firmowej'],
+   and:3,tip:'Stamp = pieczątka. Company stamp = pieczątka firmowa. Please stamp here = proszę przystawić pieczątkę tutaj.'},
+  {q:'Co to "original" w kontekście CMR?',
+   opts:['Kopia dokumentu','Oryginał dokumentu','Podpis nadawcy','Numer referencyjny'],
+   and:1,tip:'Original = oryginał. I need the original, not the copy = potrzebuję oryginału, nie kopii.'},
+  {q:'Podpisałeś CMR. Jak prosisz o kopię dla siebie?',
+   opts:['"Please confirm receipt."','"Sign here please."','"Can I get a signed copy back?"','"Please write today\'s date."'],
+   and:2,tip:'"Can I get a signed copy back?" = Czy mogę dostać podpisaną kopię? Zawsze bierz kopię CMR dla siebie!'},
+];
+let qi=0;
+
+function renderQ(){
+  if(qi>=qs.length){
+    document.getElementById('qq').style.display='none';
+    document.getElementById('qopts').innerHTML='';
+    document.getElementById('qfb').className='q-fb';
+    document.getElementById('qnext').classList.remove('show');
+    document.getElementById('qprog').textContent='';
+    document.getElementById('qdone').classList.add('show');
+    return;
+  }
+  const q=qs[qi];
+  document.getElementById('qprog').textContent=`${qi+1} / ${qs.length}`;
+  document.getElementById('qq').textContent=q.q;
+  document.getElementById('qfb').className='q-fb';
+  document.getElementById('qnext').classList.remove('show');
+  document.getElementById('qopts').innerHTML=q.opts.map((o,i)=>`
+    <button class="q-opt" onclick="qa(this,${i===q.and})">
+      <div class="q-ltr">${['A','B','C','D'][i]}</div>${o}
+    </button>
+  `).join('');
+}
+function qa(btn,c){
+  document.querySelectorAll('.q-opt').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('qfb');
+  if(c){btn.classList.add('ok');fb.className='q-fb show ok';fb.textContent='✅ '+qs[qi].tip;}
+  else{btn.classList.add('no');document.querySelectorAll('.q-opt')[qs[qi].and].classList.add('ok');fb.className='q-fb show no';fb.textContent='❌ '+qs[qi].tip;}
+  qi++;document.getElementById('qnext').classList.add('show');
+}
+function nextQ(){renderQ();}
+renderQ();
+</script>
+</html>

@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 4 — Teczka Mareczka</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f0e8d8;font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;}
+.wrap{max-width:980px;margin:0 auto;}
+
+/* ── TECZKA HEADER ── */
+.briefcase{
+  background:#8b5e2a;
+  border-radius:16px 16px 0 0;
+  padding:0;
+  position:relative;
+  overflow:hidden;
+}
+/* Faktura skóry */
+.briefcase::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(
+    135deg,
+    rgba(255,255,255,0.03) 0,rgba(255,255,255,0.03) 1px,
+    transparent 1px,transparent 8px
+  );
+}
+/* Uchwyt teczki */
+.handle-wrap{display:flex;justify-content:center;padding-top:0;}
+.handle{
+  width:120px;height:28px;
+  background:transparent;
+  border:4px solid #6a4418;
+  border-bottom:none;
+  border-radius:20px 20px 0 0;
+  position:relative;top:4px;
+}
+.case-top{
+  padding:16px 24px 18px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.case-left{display:flex;align-items:center;gap:14px;}
+.case-icon{
+  width:52px;height:52px;
+  background:#6a4418;
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,0.3);
+}
+.case-title{font-size:1.3rem;font-weight:900;color:#f5e8c8;}
+.case-sub{font-size:0.72rem;color:rgba(245,232,200,0.55);margin-top:2px;}
+.case-badge{
+  background:rgba(245,232,200,0.12);
+  border:1px solid rgba(245,232,200,0.25);
+  color:#f5e8c8;font-size:0.68rem;font-weight:700;
+  padding:5px 14px;border-radius:20px;letter-spacing:1px;
+}
+
+/* Zamki teczki */
+.locks{
+  display:flex;justify-content:space-between;
+  padding:0 32px;margin-top:-4px;
+}
+.lock{
+  width:28px;height:14px;
+  background:#c8a040;
+  border-radius:4px 4px 0 0;
+  border:2px solid #a08020;
+  position:relative;
+}
+.lock::after{
+  content:'';
+  position:absolute;top:3px;left:50%;transform:translateX(-50%);
+  width:8px;height:6px;
+  background:#8a6010;border-radius:2px;
+}
+
+/* ── PROGRESS ── */
+.prog-strip{
+  background:#6a4418;
+  padding:8px 24px;
+  display:flex;align-items:center;gap:12px;
+}
+.prog-label{font-size:0.62rem;font-weight:900;color:rgba(245,232,200,0.6);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;}
+.prog-bar{flex:1;height:5px;background:rgba(0,0,0,0.3);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,#c8a040,#f5e8c8);border-radius:99px;width:0%;transition:width 0.5s;}
+.prog-count{font-size:0.7rem;font-weight:900;color:#f5e8c8;white-space:nowrap;}
+
+/* ── CIAŁO TECZKI ── */
+.case-body{
+  background:#f5efe4;
+  border-radius:0 0 16px 16px;
+  padding:22px;
+  border:4px solid #8b5e2a;
+  border-top:none;
+}
+
+/* TABS — zakładki dokumentów */
+.tabs-wrap{display:flex;gap:4px;margin-bottom:-1px;flex-wrap:wrap;}
+.tab{
+  padding:6px 14px;
+  background:#d4c4a8;
+  border-radius:8px 8px 0 0;
+  font-size:0.65rem;font-weight:700;
+  color:#6a4418;letter-spacing:0.5px;
+  cursor:pointer;border:1px solid #c0b090;
+  border-bottom:none;transition:all 0.15s;
+  white-space:nowrap;
+}
+.tab:hover{background:#e8d8b8;}
+.tab.active{background:#fff;color:#1a2e4a;border-color:#d0c8b8;}
+
+/* PANEL DOKUMENTÓW */
+.docs-panel{
+  background:#fff;
+  border-radius:0 12px 12px 12px;
+  border:1px solid #d0c8b8;
+  padding:20px;
+  margin-bottom:18px;
+}
+
+/* KARTY FLASH DOKUMENTÓW */
+.docs-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+}
+
+.doc-card{
+  height:160px;
+  cursor:pointer;
+  perspective:700px;
+}
+.doc-inner{
+  width:100%;height:100%;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+.doc-card.flipped .doc-inner{transform:rotateY(180deg);}
+.snd-btn{
+  position:absolute;top:7px;right:7px;
+  background:none;border:1.5px solid rgba(255,255,255,0.3);
+  border-radius:6px;padding:2px 8px;
+  font-size:0.62rem;font-weight:700;
+  color:rgba(255,255,255,0.75);
+  cursor:pointer;transition:all 0.15s;
+  font-family:'Nunito',sans-serif;
+  z-index:10;line-height:1.6;
+}
+.snd-btn:hover{background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.6);}
+.snd-btn.playing{background:rgba(255,255,255,0.2);color:#fff;}
+
+.doc-front,.doc-back{
+  position:absolute;inset:0;
+  backface-visibility:hidden;
+  border-radius:10px;
+  padding:12px;
+}
+
+/* PRZÓD — wygląd jak prawdziwy document */
+.doc-front{
+  background:#fefdf8;
+  border:1.5px solid #d0c8b8;
+  box-shadow:2px 3px 0 #c0b8a0, 4px 6px 0 rgba(0,0,0,0.06);
+  display:flex;flex-direction:column;
+}
+.doc-front:hover{border-color:#8b5e2a;box-shadow:2px 3px 0 #8b5e2a,4px 6px 0 rgba(139,94,42,0.15);}
+
+.doc-stripe{height:4px;border-radius:2px;margin:-12px -12px 8px;border-radius:8px 8px 0 0;}
+.doc-name-en{
+  font-family:'Courier Prime',monospace;
+  font-size:0.82rem;font-weight:700;color:#1a2e4a;
+  margin-bottom:2px;line-height:1.3;
+}
+.doc-name-pl{font-size:0.62rem;color:#8b5e2a;font-weight:700;margin-bottom:6px;}
+.doc-lines{flex:1;}
+.doc-line{height:2px;background:#e8e0d0;border-radius:1px;margin-bottom:4px;}
+.doc-line.s{width:55%}.doc-line.m{width:78%}.doc-line.l{width:100%}.doc-line.xs{width:35%}
+.doc-stamp{
+  position:absolute;right:8px;bottom:8px;
+  font-size:0.38rem;font-family:'Courier Prime',monospace;
+  font-weight:700;letter-spacing:0.5px;
+  padding:2px 5px;border-radius:2px;
+  transform:rotate(-8deg);text-align:center;line-height:1.4;
+}
+.doc-flip-hint{
+  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  font-size:0.55rem;color:#bbb;letter-spacing:1px;white-space:nowrap;
+}
+
+/* TYŁ — informacje o dokumencie */
+.doc-back{
+  background:#1a2e4a;
+  border:1.5px solid #1a2e4a;
+  transform:rotateY(180deg);
+  display:flex;flex-direction:column;
+  box-shadow:2px 3px 0 #0d1a2e;
+}
+.db-name{font-family:'Courier Prime',monospace;font-size:0.78rem;font-weight:700;color:#f5c842;margin-bottom:4px;}
+.db-pl{font-size:0.65rem;color:rgba(255,255,255,0.55);margin-bottom:8px;font-style:italic;}
+.db-phrase{font-family:'Courier Prime',monospace;font-size:0.68rem;color:#fff;margin-bottom:2px;line-height:1.4;}
+.db-phrase-pl{font-size:0.6rem;color:rgba(255,255,255,0.4);margin-bottom:6px;}
+.db-tip{font-size:0.6rem;color:rgba(245,200,66,0.7);line-height:1.4;padding:5px 6px;background:rgba(245,200,66,0.08);border-radius:4px;border-left:2px solid rgba(245,200,66,0.4);margin-top:auto;}
+
+/* DÓŁ PANELU */
+.panel-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:12px;border-top:1px dashed #d8d0c0;margin-top:4px;
+}
+.pf-hint{font-size:0.65rem;color:#999;font-style:italic;}
+.pf-reset{font-size:0.65rem;color:#8b5e2a;font-weight:700;cursor:pointer;background:none;border:none;font-family:'Nunito',sans-serif;text-decoration:underline;}
+
+/* ── SŁOWNIK + QUIZ ── */
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px;}
+
+.vocab-card{
+  background:#fff;border-radius:12px;
+  border:1.5px solid #d0c8b8;
+  overflow:hidden;
+  box-shadow:0 3px 0 #c0b8a0;
+}
+.vc-head{background:#8b5e2a;padding:8px 13px;font-size:0.63rem;font-weight:900;color:#f5e8c8;letter-spacing:1px;text-transform:uppercase;}
+.vc-body{padding:10px 12px;}
+.v-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #f0ebe0;font-size:0.75rem;}
+.v-row:last-child{border-bottom:none;}
+.v-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.v-en{font-family:'Courier Prime',monospace;font-weight:700;color:#1a2e4a;font-size:0.73rem;}
+.v-pl{font-size:0.65rem;color:#aaa;margin-left:auto;}
+.v-row.lit .v-en{color:#8b5e2a;}
+.v-row.lit .v-dot{background:#8b5e2a!important;}
+
+.hans-card{
+  background:#fff;border-radius:12px;
+  border:1.5px solid #d0c8b8;overflow:hidden;
+  box-shadow:0 3px 0 #c0b8a0;
+}
+.hc-head{background:#1a2e4a;padding:8px 13px;font-size:0.63rem;font-weight:900;color:#f5c842;letter-spacing:1px;text-transform:uppercase;}
+.hc-body{padding:10px 12px;}
+.h-bub{background:#f0f4f8;border-radius:6px 6px 6px 2px;padding:8px 10px;border-left:3px solid #1a2e4a;margin-bottom:6px;transition:all 0.2s;}
+.h-bub:last-child{margin-bottom:0;}
+.h-en{font-family:'Courier Prime',monospace;font-size:0.75rem;font-weight:700;color:#1a2e4a;}
+.h-pl{font-size:0.63rem;color:#aaa;margin-top:2px;font-style:italic;}
+
+.quiz-card{
+  background:#fff;border-radius:12px;
+  border:1.5px solid #d0c8b8;overflow:hidden;
+  box-shadow:0 3px 0 #c0b8a0;
+}
+.qc-head{background:#c32020;padding:8px 13px;font-size:0.63rem;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;}
+.qc-prog{font-size:0.6rem;color:rgba(255,255,255,0.55);}
+.qc-body{padding:10px 12px;}
+.q-q{font-size:0.78rem;font-weight:700;color:#1a2e4a;line-height:1.5;margin-bottom:8px;padding:7px 10px;background:#f5efe4;border-radius:6px;border-left:3px solid #1a2e4a;}
+.q-opt{
+  background:#f5efe4;border:1.5px solid #d0c8b8;
+  border-radius:7px;padding:8px 10px;
+  font-size:0.75rem;cursor:pointer;margin-bottom:5px;
+  width:100%;text-align:left;color:#1a2e4a;
+  font-weight:600;font-family:'Nunito',sans-serif;
+  display:flex;align-items:center;gap:8px;
+  transition:all 0.15s;line-height:1.4;
+}
+.q-opt:hover{border-color:#1a2e4a;background:#dce8f5;color:#1a2e4a;}
+.q-opt.ok{background:#c8f0c8;border-color:#15803d;color:#1a3a1a;}
+.q-opt.no{background:#ffd8d8;border-color:#c32020;color:#5a1a1a;}
+.q-opt:disabled{cursor:default;}
+.q-letter{width:20px;height:20px;border-radius:50%;background:#1a2e4a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:700;flex-shrink:0;}
+.q-opt.ok .q-letter{background:#15803d;}
+.q-opt.no .q-letter{background:#c32020;}
+.q-fb{font-size:0.7rem;margin-top:5px;padding:7px 9px;border-radius:6px;display:none;line-height:1.5;font-weight:600;color:#1a2e4a;}
+.q-fb.show{display:block;}
+.q-fb.ok{background:#c8f0c8;border:1px solid #15803d;}
+.q-fb.no{background:#ffd8d8;border:1px solid #c32020;}
+.q-next{margin-top:6px;width:100%;background:#1a2e4a;color:#fff;border:none;border-radius:7px;padding:9px;font-size:0.72rem;font-weight:700;cursor:pointer;letter-spacing:1px;display:none;font-family:'Nunito',sans-serif;}
+.q-next:hover{background:#2a4a6a;}
+.q-next.show{display:block;}
+.q-done{background:#c8f0c8;border:1px solid #15803d;border-radius:7px;padding:10px;text-align:center;font-size:0.75rem;color:#1a3a1a;font-weight:700;display:none;}
+.q-done.show{display:block;}
+
+/* FOOTER TECZKI */
+.case-footer{
+  background:#8b5e2a;
+  border-radius:12px;
+  padding:10px 22px;
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:4px;
+}
+.cf-txt{font-size:0.62rem;color:rgba(245,232,200,0.35);letter-spacing:1px;}
+.cf-dots{display:flex;gap:5px;}
+.cf-d{width:7px;height:7px;border-radius:50%;background:rgba(245,232,200,0.2);}
+.cf-d.on{background:#f5c842;}
+
+@media(max-width:700px){
+  .docs-grid{grid-template-columns:1fr 1fr;}
+  .bottom-grid{grid-template-columns:1fr;}
+  .tabs-wrap{gap:2px;}
+  .tab{padding:5px 9px;font-size:0.58rem;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- TECZKA HEADER -->
+<div class="briefcase">
+  <div class="handle-wrap"><div class="handle"></div></div>
+  <div class="case-top">
+    <div class="case-left">
+      <div class="case-icon">💼</div>
+      <div>
+        <div class="case-title">Teczka Mareczka</div>
+        <div class="case-sub">Lekcja 4 — Podstawowe dokumenty — Angielski z Mareczkiem · Crosshaul</div>
+      </div>
+    </div>
+    <div class="case-badge">4 / 30</div>
+  </div>
+  <div class="locks"><div class="lock"></div><div class="lock"></div></div>
+</div>
+
+<!-- PROGRESS -->
+<div class="prog-strip">
+  <div class="prog-label">Dokumenty przejrzane</div>
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-count" id="progCount">0 / 8</div>
+</div>
+
+<!-- CIAŁO TECZKI -->
+<div class="case-body">
+
+  <!-- ZAKŁADKI -->
+  <div class="tabs-wrap">
+    <div class="tab active" onclick="switchTab(this,'all')">Wszystkie dokumenty</div>
+    <div class="tab" onclick="switchTab(this,'transport')">Transport</div>
+    <div class="tab" onclick="switchTab(this,'customs')">Celne</div>
+    <div class="tab" onclick="switchTab(this,'special')">Specjalne</div>
+  </div>
+
+  <!-- PANEL DOKUMENTÓW -->
+  <div class="docs-panel">
+    <div class="docs-grid" id="docsGrid">
+
+      <!-- 1. CMR -->
+      <div class="doc-card" data-cat="transport" onclick="flip(this,0)">
+        <div class="doc-inner">
+          <div class="doc-front">
+            <div class="doc-stripe" style="background:linear-gradient(90deg,#1a2e4a,#2c5f8a)"></div>
+            <div class="doc-name-en">CMR</div>
+            <button class="snd-btn" onclick="event.stopPropagation();speakText('CMR',this)">🔊</button>
+            <div class="doc-name-pl">List przewozowy</div>
+            <div class="doc-lines">
+              <div class="doc-line l"></div><div class="doc-line m"></div>
+              <div class="doc-line s"></div><div class="doc-line l"></div>
+              <div class="doc-line xs"></div>
+            </div>
+            <div class="doc-stamp" style="border:1.5px solid rgba(180,30,30,0.6);color:rgba(180,30,30,0.7);">ORIGINAL<br>1ST COPY</div>
+            <div class="doc-flip-hint">↻ kliknij</div>
+          </div>
+          <div class="doc-back">
+            <div class="db-name">CMR</div>
+            <div class="db-pl">list przewozowy</div>
+            <button class="snd-btn" onclick="event.stopPropagation();speakPhrases(['Here is my CMR.','Please sign the CMR.'],this)">🔊 frazy</button>
+            <div class="db-phrase">"Here is my CMR."</div>
+            <div class="db-phrase-pl">Proszę, oto mój list przewozowy.</div>
+            <div class="db-phrase">"Please sign the CMR."</div>
+            <div class="db-phrase-pl">Proszę podpisać list przewozowy.</div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Packing List -->
+      <div class="doc-card" data-cat="transport" onclick="flip(this,1)">
+        <div class="doc-inner">
+          <div class="doc-front">
+            <div class="doc-stripe" style="background:linear-gradient(90deg,#8b5e2a,#c8902a)"></div>
+            <div class="doc-name-en">Packing List</div>
+            <button class="snd-btn" onclick="event.stopPropagation();speakText('Packing List',this)">🔊</button>
+            <div class="doc-name-pl">Lista pakowania</div>
+            <div class="doc-lines">
+              <div class="doc-line l"></div><div class="doc-line s"></div>
+              <div class="doc-line m"></div><div class="doc-line l"></div>
+              <div class="doc-line s"></div>
+            </div>
+            <div class="doc-stamp" style="border:1.5px solid rgba(30,80,160,0.5);color:rgba(30,80,160,0.65);">VERIFIED<br>OK</div>
+            <div class="doc-flip-hint">↻ kliknij</div>
+          </div>
+          <div class="doc-back">
+            <div class="db-name">Packing List</div>
+            <div class="db-pl">lista pakowania</div>
+            <button class="snd-btn" onclick="event.stopPropagation();speakPhrases(['The packing list is attached.','Check the packing list please.'],this)">🔊 frazy</button>
+            <div class="db-phrase">"The packing list is attached."</div>
+            <div class="db-phrase-pl">Lista pakowania jest dołączona.</div>
+            <div class="db-phrase">"Check the packing list please."</div>
+            <div class="db-phrase-pl">Proszę sprawdzić listę pakowania.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Invoice -->
+      <div class="doc-card" data-cat="customs" onclick="flip(this,2)">
+        <div class="doc-inner">
+          <div class="doc-front">
+            <div class="doc-stripe" style="background:linear-gradient(90deg,#c32020,#e03030)"></div>
+            <div class="doc-name-en">Invoice</div>
+            <button class="snd-btn" onclick="event.stopPropagation();speakText('Invoice',this)">🔊</button>
+            <div class="doc-name-pl">Faktura</div>
+            <div class="doc-lines">
+              <div class="doc-line l"></div><div class="doc-line m"></div>
+              <div class="doc-line l"></div><div class="doc-line s"></div>
+              <div class="doc-line m"></div>
+            </div>
+            <div class="doc-stamp" style="border:1.5px solid rgba(180,30,30,0.6);color:rgba(180,30,30,0.7);">PAID<br>BEZAHLT</div>
+            <div class="doc-flip-hint">↻ kliknij</div>
+          </div>
+          <div class="doc-back">
+            <div class="db-name">Invoice</div>
+            <div class="db-pl">faktura</div>
+            <button class="snd-btn" onclick="event.stopPropagation();speakPhrases(['Here is the invoice.','The invoice value is 5000 euros.'],this)">🔊 frazy</button>
+            <div class="db-phrase">"Here is the invoice."</div>
+            <div class="db-phrase-pl">Proszę, oto faktura.</div>
+            <div class="db-phrase">"The invoice value is 5000 euros."</div>
+            <div class="db-phrase-pl">Wartość faktury to 5000 euro.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Delivery Note -->
+      <div class="doc-card" data-cat="transport" onclick="flip(this,3)">
+        <div class="doc-inner">
+          <div class="doc-front">
+            <div class="doc-stripe" style="background:linear-gradient(90deg,#15803d,#22c55e)"></div>
+            <div class="doc-name-en">Delivery Note</div>
+            <button class="snd-btn" onclick="event.stopPropagation();speakText('Delivery Note',this)">🔊</button>
+            <div class="doc-name-pl">Dowód dostawy / WZ</div>
+            <div class="doc-lines">
+              <div class="doc-line m"></div><div class="doc-line l"></div>
+              <div class="doc-line s"></div><div class="doc-line m"></div>
+              <div class="doc-line l"></div>
+            </div>
+            <div class="doc-stamp" style="border:1.5px solid rgba(30,80,160,0.5);color:rgba(30,80,160,0.65);">DELIVERED<br>OK</div>
+            <div class="doc-flip-hint">↻ kliknij</div>
+          </div>
+          <div class="doc-back">
+            <div class="db-name">Delivery Note</div>
+            <div class="db-pl">dowód dostawy / WZ</div>
+            <button class="snd-btn" onclick="event.stopPropagation();speakPhrases(['Please sign the delivery note.','I need the delivery note back.'],this)">🔊 frazy</button>
+            <div class="db-phrase">"Please sign the delivery note."</div>
+            <div class="db-phrase-pl">Proszę podpisać dowód dostawy.</div>
+            <div class="db-phrase">"I need the delivery note back."</div>
+            <div class="db-phrase-pl">Potrzebuję zwrotu dowodu dostawy.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Transport Order -->
+      <div class="doc-card" data-cat="transport" onclick="flip(this,4)">
+        <div class="doc-inner">
+          <div class="doc-front">
+            <div class="doc-stripe" style="background:linear-gradient(90deg,#7c3aed,#9333ea)"></div>
+            <div class="doc-name-en">Transport Order</div>
+            <button class="snd-btn" onclick="event.stopPropagation();speakText('Transport Order',this)">🔊</button>
+            <div class="doc-name-pl">Zlecenie transportowe</div>
+            <div class="doc-lines">
+              <div class="doc-line l"></div><div class="doc-line l"></div>
+              <div class="doc-line m"></div><div class="doc-line s"></div>
+              <div class="doc-line xs"></div>
+            </div>
+            <div class="doc-stamp" style="border:1.5px solid rgba(30,80,160,0.5);color:rgba(30,80,160,0.65);">REF: 2025<br>-0312</div>
+            <div class="doc-flip-hint">↻ kliknij</div>
+          </div>
+          <div class="doc-back">
+            <div class="db-name">Transport Order</div>
+            <div class="db-pl">zlecenie transportowe</div>
+            <button class="snd-btn" onclick="event.stopPropagation();speakPhrases(['My loading number is on the order.','I have the order from my dispatcher.'],this)">🔊 frazy</button>
+            <div class="db-phrase">"My loading number is on the order."</div>
+            <div class="db-phrase-pl">Number załadunku jest na zleceniu.</div>
+            <div class="db-phrase">"I have the order from my dispatcher."</div>
+            <div class="db-phrase-pl">Mam zlecenie od dyspozytora.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Customs Declaration -->
+      <div class="doc-card" data-cat="customs" onclick="flip(this,5)">
+        <div class="doc-inner">
+          <div class="doc-front">
+            <div class="doc-stripe" style="background:linear-gradient(90deg,#0891b2,#06b6d4)"></div>
+            <div class="doc-name-en">Customs Declaration</div>
+            <button class="snd-btn" onclick="event.stopPropagation();speakText('Customs Declaration',this)">🔊</button>
+            <div class="doc-name-pl">Deklaracja celna</div>
+            <div class="doc-lines">
+              <div class="doc-line l"></div><div class="doc-line s"></div>
+              <div class="doc-line m"></div><div class="doc-line xs"></div>
+              <div class="doc-line l"></div>
+            </div>
+            <div class="doc-stamp" style="border:1.5px solid rgba(180,30,30,0.6);color:rgba(180,30,30,0.7);">CLEARED<br>CUSTOMS</div>
+            <div class="doc-flip-hint">↻ kliknij</div>
+          </div>
+          <div class="doc-back">
+            <div class="db-name">Customs Declaration</div>
+            <div class="db-pl">deklaracja celna</div>
+            <button class="snd-btn" onclick="event.stopPropagation();speakPhrases(['Here is the customs declaration.','The goods are cleared for export.'],this)">🔊 frazy</button>
+            <div class="db-phrase">"Here is the customs declaration."</div>
+            <div class="db-phrase-pl">Proszę, oto deklaracja celna.</div>
+            <div class="db-phrase">"The goods are cleared for export."</div>
+            <div class="db-phrase-pl">Towar jest odprawiony do eksportu.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Waybill -->
+      <div class="doc-card" data-cat="transport" onclick="flip(this,6)">
+        <div class="doc-inner">
+          <div class="doc-front">
+            <div class="doc-stripe" style="background:linear-gradient(90deg,#d97706,#f59e0b)"></div>
+            <div class="doc-name-en">Waybill</div>
+            <button class="snd-btn" onclick="event.stopPropagation();speakText('Waybill',this)">🔊</button>
+            <div class="doc-name-pl">List drogi</div>
+            <div class="doc-lines">
+              <div class="doc-line s"></div><div class="doc-line l"></div>
+              <div class="doc-line m"></div><div class="doc-line l"></div>
+              <div class="doc-line s"></div>
+            </div>
+            <div class="doc-stamp" style="border:1.5px solid rgba(30,80,160,0.5);color:rgba(30,80,160,0.65);">COPY 2<br>SHIPPER</div>
+            <div class="doc-flip-hint">↻ kliknij</div>
+          </div>
+          <div class="doc-back">
+            <div class="db-name">Waybill</div>
+            <div class="db-pl">list drogi</div>
+            <button class="snd-btn" onclick="event.stopPropagation();speakPhrases(['Do you have the waybill number?','The waybill reference is on top.'],this)">🔊 frazy</button>
+            <div class="db-phrase">"Do you have the waybill number?"</div>
+            <div class="db-phrase-pl">Czy masz number listu drogi?</div>
+            <div class="db-phrase">"The waybill reference is on top."</div>
+            <div class="db-phrase-pl">Number referencyjny jest na górze.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. ADR -->
+      <div class="doc-card" data-cat="special" onclick="flip(this,7)">
+        <div class="doc-inner">
+          <div class="doc-front">
+            <div class="doc-stripe" style="background:linear-gradient(90deg,#dc2626,#f97316)"></div>
+            <div class="doc-name-en">ADR / DGD</div>
+            <button class="snd-btn" onclick="event.stopPropagation();speakText('ADR   DGD',this)">🔊</button>
+            <div class="doc-name-pl">Dok. towarów niebezp.</div>
+            <div class="doc-lines">
+              <div class="doc-line l"></div><div class="doc-line m"></div>
+              <div class="doc-line l"></div><div class="doc-line s"></div>
+              <div class="doc-line m"></div>
+            </div>
+            <div class="doc-stamp" style="border:1.5px solid rgba(180,30,30,0.6);color:rgba(180,30,30,0.7);">DANGER<br>WARNING</div>
+            <div class="doc-flip-hint">↻ kliknij</div>
+          </div>
+          <div class="doc-back">
+            <div class="db-name">ADR / DGD</div>
+            <div class="db-pl">towary niebezpieczne</div>
+            <button class="snd-btn" onclick="event.stopPropagation();speakPhrases(['I am carrying ADR goods.','Here is the DGD declaration.'],this)">🔊 frazy</button>
+            <div class="db-phrase">"I am carrying ADR goods."</div>
+            <div class="db-phrase-pl">Przewożę towary ADR.</div>
+            <div class="db-phrase">"Here is the DGD declaration."</div>
+            <div class="db-phrase-pl">Proszę, oto deklaracja DGD.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="panel-footer">
+      <div class="pf-hint">Kliknij kartę żeby zobaczyć frazę po angielsku</div>
+      <button class="pf-reset" onclick="resetAll()">↺ odwróć wszystkie</button>
+    </div>
+  </div>
+
+  <!-- SŁOWNIK + HANS + QUIZ -->
+  <div class="bottom-grid">
+
+    <div class="vocab-card">
+      <div class="vc-head">Słownik dokumentów</div>
+      <div class="vc-body">
+        <div class="v-row" id="v0"><div class="v-dot" style="background:#1a2e4a"></div><div class="v-en">CMR</div><div class="v-pl">list przewozowy</div></div>
+        <div class="v-row" id="v1"><div class="v-dot" style="background:#8b5e2a"></div><div class="v-en">Packing List</div><div class="v-pl">lista pakowania</div></div>
+        <div class="v-row" id="v2"><div class="v-dot" style="background:#c32020"></div><div class="v-en">Invoice</div><div class="v-pl">faktura</div></div>
+        <div class="v-row" id="v3"><div class="v-dot" style="background:#15803d"></div><div class="v-en">Delivery Note</div><div class="v-pl">dowód dostawy</div></div>
+        <div class="v-row" id="v4"><div class="v-dot" style="background:#7c3aed"></div><div class="v-en">Transport Order</div><div class="v-pl">zlecenie transportowe</div></div>
+        <div class="v-row" id="v5"><div class="v-dot" style="background:#0891b2"></div><div class="v-en">Customs Declaration</div><div class="v-pl">deklaracja celna</div></div>
+        <div class="v-row" id="v6"><div class="v-dot" style="background:#d97706"></div><div class="v-en">Waybill</div><div class="v-pl">list drogi</div></div>
+        <div class="v-row" id="v7"><div class="v-dot" style="background:#dc2626"></div><div class="v-en">ADR / DGD</div><div class="v-pl">towary niebezpieczne</div></div>
+      </div>
+    </div>
+
+    <div class="hans-card">
+      <div class="hc-head">Hans pyta o dokumenty</div>
+      <div class="hc-body">
+        <div class="h-bub">
+          <div class="h-en">"Do you have the CMR?"</div>
+          <div class="h-pl">Czy masz list przewozowy?</div>
+        </div>
+        <div class="h-bub">
+          <div class="h-en">"I need to see the invoice."</div>
+          <div class="h-pl">Muszę zobaczyć fakturę.</div>
+        </div>
+        <div class="h-bub">
+          <div class="h-en">"Sign the delivery note here."</div>
+          <div class="h-pl">Podpisz tutaj dowód dostawy.</div>
+        </div>
+        <div class="h-bub">
+          <div class="h-en">"Are you carrying dangerous goods?"</div>
+          <div class="h-pl">Czy przewozisz towary niebezpieczne?</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="quiz-card">
+      <div class="qc-head">
+        <span>Quiz — teczka</span>
+        <span class="qc-prog" id="qprog">1 / 5</span>
+      </div>
+      <div class="qc-body">
+        <div class="q-q" id="qq"></div>
+        <div id="qopts"></div>
+        <div class="q-fb" id="qfb"></div>
+        <button class="q-next" id="qnext" onclick="nextQ()">NASTĘPNY DOCUMENT →</button>
+        <div class="q-done" id="qdone">Teczka sprawdzona! Mareczek gotowy na trasę! 💼</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="case-footer">
+  <div class="cf-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL · SZCZECIN</div>
+  <div class="cf-dots">
+    <div class="cf-d on"></div><div class="cf-d"></div><div class="cf-d"></div><div class="cf-d"></div><div class="cf-d"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+let flipped = new Set();
+
+function flip(card, idx) {
+  card.classList.toggle('flipped');
+  if(card.classList.contains('flipped')) {
+    flipped.add(idx);
+    document.getElementById('v'+idx)?.classList.add('lit');
+  } else {
+    flipped.delete(idx);
+    document.getElementById('v'+idx)?.classList.remove('lit');
+  }
+  const pct = (flipped.size / 8) * 100;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progCount').textContent = flipped.size + ' / 8';
+}
+
+function resetAll() {
+  document.querySelectorAll('.doc-card').forEach(c => c.classList.remove('flipped'));
+  document.querySelectorAll('.v-row').forEach(r => r.classList.remove('lit'));
+  flipped.clear();
+  document.getElementById('progFill').style.width = '0%';
+  document.getElementById('progCount').textContent = '0 / 8';
+}
+
+function switchTab(tab, cat) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  document.querySelectorAll('.doc-card').forEach(c => {
+    if(cat === 'all' || c.dataset.cat === cat) {
+      c.style.display = '';
+    } else {
+      c.style.display = 'none';
+    }
+  });
+}
+
+const qs = [
+  {q:"Hans pyta: 'Do you have the CMR?' Co to jest CMR?",opts:["Faktura","List przewozowy","Deklaracja celna","Lista pakowania"],and:1,tip:"CMR = list przewozowy. Najważniejszy document w transporcie międzynarodowym!"},
+  {q:"Celnik mówi: 'I need to see the invoice.' Co chce zobaczyć?",opts:["List drogi","Dowód dostawy","Fakturę","Zlecenie transportowe"],and:2,tip:"Invoice = faktura. Celnik sprawdza wartość towaru na fakturze."},
+  {q:"Magazyn prosi: 'Sign the delivery note.' Co podpisujesz?",opts:["CMR","Packing List","Transport Order","Dowód dostawy / WZ"],and:3,tip:"Delivery Note = dowód dostawy. Podpisany przez odbiorcę = dostawa potwierdzona!"},
+  {q:"Hans pyta: 'Are you carrying dangerous goods?' Jaki document?",opts:["Waybill","ADR / DGD","Invoice","CMR"],and:1,tip:"ADR = dokumenty dla towarów niebezpiecznych. DGD = Dangerous Goods Declaration."},
+  {q:"Dyspozytor daje Ci 'Transport Order'. Co to jest?",opts:["Faktura za transport","Customs Declaration","Zlecenie transportowe","Packing List"],and:2,tip:"Transport Order = zlecenie transportowe od firmy spedycyjnej z numerem referencyjnym."},
+];
+let qi = 0;
+
+function renderQ() {
+  if(qi >= qs.length) {
+    document.getElementById('qq').style.display = 'none';
+    document.getElementById('qopts').innerHTML = '';
+    document.getElementById('qfb').className = 'q-fb';
+    document.getElementById('qnext').classList.remove('show');
+    document.getElementById('qprog').textContent = '';
+    document.getElementById('qdone').classList.add('show');
+    return;
+  }
+  const q = qs[qi];
+  document.getElementById('qprog').textContent = (qi+1) + ' / ' + qs.length;
+  document.getElementById('qq').textContent = q.q;
+  document.getElementById('qfb').className = 'q-fb';
+  document.getElementById('qnext').classList.remove('show');
+  document.getElementById('qopts').innerHTML = q.opts.map((o,i) =>
+    `<button class="q-opt" onclick="qa(this,${i===q.and})"><div class="q-letter">${['A','B','C','D'][i]}</div>${o}</button>`
+  ).join('');
+}
+
+function qa(btn, correct) {
+  document.querySelectorAll('.q-opt').forEach(b => { b.disabled = true; });
+  const fb = document.getElementById('qfb');
+  if(correct) {
+    btn.classList.add('ok');
+    fb.className = 'q-fb show ok';
+    fb.textContent = '✅ ' + qs[qi].tip;
+  } else {
+    btn.classList.add('no');
+    document.querySelectorAll('.q-opt')[qs[qi].and].classList.add('ok');
+    fb.className = 'q-fb show no';
+    fb.textContent = '❌ ' + qs[qi].tip;
+  }
+  qi++;
+  document.getElementById('qnext').classList.add('show');
+}
+
+function nextQ() { renderQ(); }
+renderQ();
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE)
+════════════════════════════════════════════════════════════ */
+var currentAudio = null;
+
+// Tłumacz: Łączy text z przycisku z konkretnym plikiem MP3
+var AUDIO_MAP = {
+  // PRZÓD (Nazwy dokumentów)
+  "CMR": "audio/L4/cmr.mp3",
+  "Packing List": "audio/L4/packing_list.mp3",
+  "Invoice": "audio/L4/invoice.mp3",
+  "Delivery Note": "audio/L4/delivery_note.mp3",
+  "Transport Order": "audio/L4/transport_order.mp3",
+  "Customs Declaration": "audio/L4/customs_declaration.mp3",
+  "Waybill": "audio/L4/waybill.mp3",
+  "ADR   DGD": "audio/L4/adr_dgd.mp3",
+
+  // TYŁ (Frazy - przypisujemy po PIERWSZYM zdaniu na karcie)
+  "Here is my CMR.": "cmr_phrases.mp3",
+  "The packing list is attached.": "packing_list_phrases.mp3",
+  "Here is the invoice.": "invoice_phrases.mp3",
+  "Please sign the delivery note.": "delivery_note_phrases.mp3",
+  "My loading number is on the order.": "transport_order_phrases.mp3",
+  "Here is the customs declaration.": "customs_declaration_phrases.mp3",
+  "Do you have the waybill number?": "waybill_phrases.mp3",
+  "I am carrying ADR goods.": "adr_phrases.mp3"
+};
+
+function playAudioFile(fileName, btn) {
+  if (!fileName) {
+    console.warn("Brak pliku MP3 dla tego słowa/frazy.");
+    return;
+  }
+
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+  }
+
+  // Zapamiętujemy oryginalny text przycisku ("🔊" lub "🔊 frazy")
+  var originalText = "🔊";
+  if (btn) {
+    originalText = btn.textContent;
+    btn.classList.add("playing");
+    btn.textContent = "⌛";
+  }
+
+  // Smart Path + Cache Busting
+  var currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+  var timestamp = new Date().getTime(); 
+  var audioUrl = currentPath + encodeURIComponent(fileName) + "?v=" + timestamp;
+
+  currentAudio = new Audio(audioUrl);
+
+  // Zabezpieczenie przed zawieszeniem (Watchdog - 4 sekundy)
+  var watchdog = setTimeout(function() {
+    if (btn && btn.classList.contains("playing")) {
+      resetBtn();
+    }
+  }, 4000);
+
+  function resetBtn() {
+    clearTimeout(watchdog);
+    if (btn) {
+      btn.classList.remove("playing");
+      btn.textContent = originalText;
+    }
+  }
+
+  currentAudio.onplay = function() {
+    if (btn) btn.textContent = originalText.includes("frazy") ? "🔊 ...":"🔊 ...";
+  };
+
+  currentAudio.onended = resetBtn;
+
+  currentAudio.onerror = function() {
+    console.error("Błąd ładowania pliku:", audioUrl);
+    resetBtn();
+    if (btn) btn.textContent = "❌";
+  };
+
+  currentAudio.play().catch(function(err) {
+    console.warn("Autoplay zablokowany:", err);
+    resetBtn();
+  });
+}
+
+// Zastępujemy stare funkcje czytające z HTML
+function speakText(t, btn) {
+  var file = AUDIO_MAP[t];
+  playAudioFile(file, btn);
+}
+
+function speakPhrases(list, btn) {
+  // Bierzemy pierwsze zdanie z tablicy jako identyfikator
+  var key = list[0];
+  var file = AUDIO_MAP[key];
+  playAudioFile(file, btn);
+}
+</script></body>
+</html>

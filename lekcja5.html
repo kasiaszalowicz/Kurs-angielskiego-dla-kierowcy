@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 5 — Na granicy</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --orange:#e07820;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:720px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--navy),var(--orange));border-radius:99px;transition:width 0.6s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* SCENA */
+.scene-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);margin-bottom:12px;}
+.scene-bar{height:5px;background:linear-gradient(90deg,var(--navy),var(--orange));}
+.scene-head{background:var(--navy);padding:10px 18px;display:flex;align-items:center;justify-content:space-between;}
+.sh-num{background:rgba(255,255,255,0.12);color:#fff;font-size:0.65rem;font-weight:900;padding:3px 10px;border-radius:99px;letter-spacing:1px;}
+.sh-loc{font-size:0.62rem;color:rgba(255,255,255,0.35);font-family:'Courier Prime',monospace;}
+
+/* CABIN VIEW */
+.cabin-section{padding:16px;background:var(--navy);}
+.cabin-label{font-size:0.58rem;font-weight:900;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;text-align:center;}
+
+.window-wrap{
+  max-width:360px;margin:0 auto;
+  border-radius:10px;
+  border:7px solid #2a4a6a;
+  overflow:hidden;
+  box-shadow:0 4px 16px rgba(0,0,0,0.4);
+}
+.window-svg{width:100%;display:block;}
+
+/* Przycisk dźwięku pod oknem */
+.btn-listen{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  margin:10px auto 0;
+  background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,255,255,0.2);
+  border-radius:8px;padding:7px 18px;
+  font-family:'Nunito',sans-serif;font-size:0.72rem;font-weight:700;
+  color:rgba(255,255,255,0.75);cursor:pointer;transition:all 0.15s;
+  width:fit-content;
+}
+.btn-listen:hover{background:rgba(255,255,255,0.15);color:#fff;}
+.btn-listen.playing{background:rgba(255,255,255,0.2);color:#fff;}
+
+/* OPCJE */
+.choice-section{border-top:1px solid var(--border);padding:14px 20px;background:#faf8f4;}
+.choice-label{font-size:0.62rem;font-weight:900;color:var(--navy);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.choice-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.opt{background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;transition:all 0.15s;width:100%;text-align:left;margin-bottom:7px;}
+.opt:last-child{margin-bottom:0;}
+.opt:hover:not(:disabled){border-color:var(--navy);background:#f0f4f8;}
+.opt.correct{border-color:var(--green);background:#f0fdf4;animation:pop 0.25s ease;}
+.opt.wrong{border-color:var(--red);background:#fef2f2;animation:shake 0.3s ease;}
+.opt:disabled{cursor:default;}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.01)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.opt-letter{width:24px;height:24px;border-radius:50%;background:rgba(26,46,74,0.08);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:900;flex-shrink:0;transition:all 0.15s;margin-top:1px;}
+.opt.correct .opt-letter{background:var(--green);color:#fff;}
+.opt.wrong .opt-letter{background:var(--red);color:#fff;}
+.opt-en{font-family:'Courier Prime',monospace;font-size:0.85rem;font-weight:700;color:var(--navy);line-height:1.4;}
+.opt-pl{font-size:0.63rem;color:var(--muted);margin-top:2px;font-style:italic;}
+.opt.correct .opt-en{color:var(--green);}
+.opt.wrong .opt-en{color:var(--red);}
+
+/* FEEDBACK */
+.feedback{margin:10px 20px 0;padding:10px 13px;border-radius:8px;font-size:0.77rem;font-weight:700;line-height:1.6;display:none;}
+.feedback.show{display:block;}
+.feedback.ok{background:#f0fdf4;border:1.5px solid #86efac;color:var(--green);}
+.feedback.no{background:#fef2f2;border:1.5px solid #fca5a5;color:var(--red);}
+.feedback .kw{font-family:'Courier Prime',monospace;background:rgba(26,46,74,0.07);padding:1px 5px;border-radius:4px;color:var(--navy);}
+
+/* DALEJ */
+.btn-next{display:none;width:calc(100% - 40px);margin:12px 20px;background:var(--navy);color:#fff;border:none;border-radius:10px;padding:12px;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:900;cursor:pointer;transition:all 0.15s;}
+.btn-next:hover{background:#2a4a6a;}
+.btn-next.show{display:block;}
+
+/* DOTS */
+.scene-dots{display:flex;align-items:center;justify-content:center;gap:5px;padding:10px 0 14px;}
+.sd{width:7px;height:7px;border-radius:50%;background:rgba(26,46,74,0.15);transition:all 0.3s;}
+.sd.on{background:var(--navy);width:18px;border-radius:99px;}
+
+/* KONIEC */
+.end-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:26px 22px;text-align:center;display:none;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.end-card.show{display:block;}
+.end-bar{height:5px;background:linear-gradient(90deg,var(--navy),var(--orange));border-radius:99px;margin-bottom:20px;}
+.end-icon{font-size:2.8rem;margin-bottom:10px;}
+.end-title{font-size:1.2rem;font-weight:900;color:var(--navy);margin-bottom:5px;}
+.end-sub{font-size:0.8rem;color:var(--muted);margin-bottom:18px;}
+.score-row{display:flex;justify-content:center;gap:14px;margin-bottom:18px;}
+.score-box{background:var(--bg);border-radius:10px;padding:12px 20px;text-align:center;border:1.5px solid var(--border);}
+.sb-num{font-size:1.6rem;font-weight:900;color:var(--navy);}
+.sb-lbl{font-size:0.6rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.vocab-box{background:var(--bg);border-radius:10px;padding:14px;text-align:left;margin-bottom:18px;}
+.vb-title{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:9px;}
+.vb-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.vb-row{display:flex;align-items:center;gap:7px;font-size:0.73rem;cursor:pointer;padding:3px 4px;border-radius:5px;transition:all 0.13s;}
+.vb-row:hover{background:rgba(26,46,74,0.05);}
+.vb-dot{width:6px;height:6px;border-radius:50%;background:var(--navy);flex-shrink:0;}
+.vb-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);}
+.vb-pl{font-size:0.63rem;color:var(--muted);}
+.btn-restart{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:12px 32px;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:900;cursor:pointer;transition:all 0.15s;}
+.btn-restart:hover{background:#2a4a6a;}
+
+/* FOOTER */
+.footer{margin-top:12px;display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Na granicy</div>
+    <div class="h-sub">Lekcja 5 · Moduł 1 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">5 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">Scena 1 / 6</div>
+</div>
+
+<!-- SCENA -->
+<div class="scene-card" id="sceneCard">
+  <div class="scene-bar"></div>
+  <div class="scene-head">
+    <div class="sh-num" id="shNum">SCENA 1</div>
+    <div class="sh-loc" id="shLoc">📍 Przejście graniczne DE/PL</div>
+  </div>
+
+  <div class="cabin-section">
+    <div class="cabin-label">Widok z kabiny Mareczka</div>
+    <div class="window-wrap">
+      <svg id="sceneSvg" class="window-svg" viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="220" fill="#87CEEB"/>
+  <rect y="155" width="300" height="65" fill="#5a8a3a"/>
+  <rect y="172" width="300" height="48" fill="#777"/>
+  <line x1="0" y1="187" x2="300" y2="187" stroke="white" stroke-width="1.5" stroke-dasharray="15,10" opacity="0.4"/>
+  <rect x="28" y="102" width="10" height="58" fill="#5a3a10"/>
+  <ellipse cx="33" cy="97" rx="26" ry="20" fill="#2d6a1a"/>
+  <ellipse cx="33" cy="90" rx="19" ry="15" fill="#3a8a22"/>
+  <rect x="242" y="107" width="10" height="53" fill="#5a3a10"/>
+  <ellipse cx="247" cy="102" rx="24" ry="19" fill="#2d6a1a"/>
+  <ellipse cx="247" cy="95" rx="17" ry="13" fill="#3a8a22"/>
+  <rect x="195" y="102" width="68" height="68" fill="#e8e0d0" stroke="#c8b898" stroke-width="1.5"/>
+  <rect x="195" y="102" width="68" height="14" fill="#1a2e4a"/>
+  <rect x="210" y="126" width="20" height="24" fill="#87CEEB" stroke="#aaa" stroke-width="1"/>
+  <rect x="245" y="132" width="11" height="38" fill="#c8b898"/>
+  <rect x="122" y="118" width="42" height="52" rx="4" fill="#2a3a6a"/>
+  <rect x="143" y="124" width="10" height="8" rx="2" fill="#f0c040"/>
+  <rect x="109" y="120" width="15" height="30" rx="4" fill="#2a3a6a"/>
+  <rect x="162" y="120" width="15" height="30" rx="4" fill="#2a3a6a"/>
+  <rect x="136" y="108" width="16" height="13" rx="3" fill="#e8c89a"/>
+  <ellipse cx="144" cy="100" rx="21" ry="22" fill="#e8c89a" stroke="#c8a070" stroke-width="1"/>
+  <rect x="123" y="82" width="42" height="8" rx="2" fill="#1a2e4a"/>
+  <rect x="127" y="74" width="34" height="10" rx="2" fill="#1a2e4a"/>
+  <line x1="123" y1="82" x2="165" y2="82" stroke="#f0c040" stroke-width="1.5"/>
+  <ellipse cx="136" cy="98" rx="4" ry="4.5" fill="white" stroke="#aaa" stroke-width="0.5"/>
+  <ellipse cx="152" cy="98" rx="4" ry="4.5" fill="white" stroke="#aaa" stroke-width="0.5"/>
+  <circle cx="137" cy="99" r="2.5" fill="#3a2a1a"/>
+  <circle cx="153" cy="99" r="2.5" fill="#3a2a1a"/>
+  <circle cx="138" cy="98" r="1" fill="white"/>
+  <circle cx="154" cy="98" r="1" fill="white"/>
+  <ellipse cx="144" cy="106" rx="3" ry="2" fill="#d4a870"/>
+  <path d="M138,112 Q144,116 150,112" stroke="#a0806a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M132,93 Q136,91 140,93" stroke="#5a3a10" stroke-width="1.5" fill="none"/>
+  <path d="M148,93 Q152,91 156,93" stroke="#5a3a10" stroke-width="1.5" fill="none"/>
+  <rect x="8" y="8" width="125" height="52" rx="8" fill="white" opacity="0.95"/>
+  <polygon points="38,60 54,60 46,70" fill="white" opacity="0.95"/>
+  <text x="16" y="26" font-size="7" font-weight="bold" fill="#d63528" font-family="Arial" letter-spacing="1">CELNIK</text>
+  <text id="copLine1" x="16" y="40" font-size="8" font-weight="bold" fill="#1a2e4a" font-family="Courier Prime, monospace">Good morning.</text>
+  <text id="copLine2" x="16" y="53" font-size="8" font-weight="bold" fill="#1a2e4a" font-family="Courier Prime, monospace">Documents please."</text>
+</svg>
+    </div>
+    <div style="display:flex;justify-content:center;">
+      <button class="btn-listen" id="btnListen" onclick="speakCop()">🔊 Posłuchaj</button>
+    </div>
+  </div>
+
+  <div class="choice-section">
+    <div class="choice-label">Mareczek odpowiada</div>
+    <div id="opts"></div>
+  </div>
+  <div class="feedback" id="feedback"></div>
+  <button class="btn-next" id="btnNext" onclick="nextStep()">DALEJ →</button>
+
+  <div class="scene-dots" id="sceneDots"></div>
+</div>
+
+<!-- KONIEC -->
+<div class="end-card" id="endCard">
+  <div class="end-bar"></div>
+  <div class="end-icon" id="endIcon">🛂</div>
+  <div class="end-title" id="endTitle">Granica przekroczona!</div>
+  <div class="end-sub" id="endSub">Mareczek przeszedł kontrolę graniczną.</div>
+  <div class="score-row">
+    <div class="score-box"><div class="sb-num" id="scoreNum">0/6</div><div class="sb-lbl">Poprawnych</div></div>
+  </div>
+  <div class="vocab-box">
+    <div class="vb-title">Słownik — Lekcja 5</div>
+    <div class="vb-grid" id="vocabGrid"></div>
+  </div>
+  <button class="btn-restart" onclick="restart()">↺ Zagraj jeszcze raz</button>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d on"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div>
+<script>
+const SCENES = [
+  {
+    num:'SCENA 1', loc:'📍 Przejście graniczne DE/PL',
+    cop:'"Good morning. Documents please."',
+    opts:[
+      {en:'"Good morning. Here are my documents."', pl:'Dzień dobry. Proszę moje dokumenty.', ok:true},
+      {en:'"What do you want?"', pl:'Czego Pan chce?', ok:false},
+      {en:'"I do not speak English."', pl:'Nie mówię po angielsku.', ok:false},
+    ],
+    fb:'<span class="kw">Documents please</span> = proszę dokumenty. <span class="kw">Here are my documents</span> = proszę, oto moje dokumenty.',
+    vocab:{en:'documents', pl:'dokumenty'},
+  },
+  {
+    num:'SCENA 2', loc:'📍 Przejście graniczne DE/PL',
+    cop:'"What is the purpose of your visit?"',
+    opts:[
+      {en:'"Tourism."', pl:'Turystyka.', ok:false},
+      {en:'"I am delivering goods to Hamburg."', pl:'Dostarczam towar do Hamburga.', ok:true},
+      {en:'"I am just passing through."', pl:'Tylko przejeżdżam.', ok:false},
+    ],
+    fb:'<span class="kw">Purpose of your visit</span> = cel podróży. <span class="kw">I am delivering goods</span> = dostarczam towar.',
+    vocab:{en:'purpose of visit', pl:'cel podróży'},
+  },
+  {
+    num:'SCENA 3', loc:'📍 Przejście graniczne DE/PL',
+    cop:'"What are you carrying?"',
+    opts:[
+      {en:'"Nothing special."', pl:'Nic szczególnego.', ok:false},
+      {en:'"I am not sure."', pl:'Nie jestem pewien.', ok:false},
+      {en:'"I am carrying automotive parts. Here is the CMR."', pl:'Przewożę części samochodowe. Proszę CMR.', ok:true},
+    ],
+    fb:'<span class="kw">What are you carrying?</span> = co Pan przewozi? <span class="kw">I am carrying</span> = przewożę.',
+    vocab:{en:'carrying', pl:'przewożę'},
+  },
+  {
+    num:'SCENA 4', loc:'📍 Przejście graniczne DE/PL',
+    cop:'"Do you have anything to declare?"',
+    opts:[
+      {en:'"No, nothing to declare."', pl:'Nie, nic do oclenia.', ok:true},
+      {en:'"I have some goods."', pl:'Mam trochę towaru.', ok:false},
+      {en:'"What does declare mean?"', pl:'Co znaczy declare?', ok:false},
+    ],
+    fb:'<span class="kw">Anything to declare?</span> = coś do oclenia? <span class="kw">Nothing to declare</span> = nic do oclenia.',
+    vocab:{en:'declare', pl:'oclić / deklarować'},
+  },
+  {
+    num:'SCENA 5', loc:'📍 Przejście graniczne DE/PL',
+    cop:'"Please pull over for inspection."',
+    opts:[
+      {en:'"Why? I did nothing wrong."', pl:'Dlaczego? Nic złego nie zrobiłem.', ok:false},
+      {en:'"Of course. Where should I go?"', pl:'Oczywiście. Gdzie mam jechać?', ok:true},
+      {en:'"I am in a hurry."', pl:'Spieszę się.', ok:false},
+    ],
+    fb:'<span class="kw">Pull over for inspection</span> = proszę zjechać na kontrolę. <span class="kw">Where should I go?</span> = gdzie mam jechać?',
+    vocab:{en:'inspection', pl:'kontrola'},
+  },
+  {
+    num:'SCENA 6', loc:'📍 Przejście graniczne DE/PL',
+    cop:'"Everything is in order. You may proceed."',
+    opts:[
+      {en:'"Finally!"', pl:'Nareszcie!', ok:false},
+      {en:'"Thank you. Have a good day."', pl:'Dziękuję. Dobrego dnia.', ok:true},
+      {en:'"Can I go now?"', pl:'Czy mogę już jechać?', ok:false},
+    ],
+    fb:'<span class="kw">You may proceed</span> = może Pan jechać. <span class="kw">Have a good day</span> = dobrego dnia.',
+    vocab:{en:'proceed', pl:'jechać dalej'},
+    last:true,
+  },
+];
+
+const VOCAB = [
+  {en:'documents',      pl:'dokumenty'},
+  {en:'purpose',        pl:'cel podróży'},
+  {en:'carrying',       pl:'przewożę'},
+  {en:'declare',        pl:'oclić'},
+  {en:'inspection',     pl:'kontrola'},
+  {en:'proceed',        pl:'jechać dalej'},
+  {en:'pull over',      pl:'zjechać na bok'},
+  {en:'in order',       pl:'w porządku'},
+];
+
+let cur=0, score=0, answered=false;
+
+/* ── SVG SCENA ── */
+function drawScene(copText) {
+  var clean = copText.replace(/"/g, "");
+  var words = clean.split(" ");
+  var mid = Math.ceil(words.length / 2);
+  var line1 = document.getElementById("copLine1");
+  var line2 = document.getElementById("copLine2");
+  if (line1) line1.textContent = '"' + words.slice(0, mid).join(" ");
+  if (line2) line2.textContent = words.slice(mid).join(" ") + '"';
+}
+
+/* ── RENDER ── */
+function render() {
+  const s = SCENES[cur];
+  answered = false;
+  document.getElementById('shNum').textContent = s.num;
+  document.getElementById('shLoc').textContent = s.loc;
+  document.getElementById('progFill').style.width = ((cur/SCENES.length)*100)+'%';
+  document.getElementById('progTxt').textContent = 'Scena '+(cur+1)+' / '+SCENES.length;
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btnNext').className = 'btn-next';
+  document.getElementById('btnListen').className = 'btn-listen';
+  document.getElementById('btnListen').textContent = '🔊 Posłuchaj';
+
+  drawScene(s.cop);
+
+  const dots = document.getElementById('sceneDots');
+  dots.innerHTML = SCENES.map((_,i) =>
+    '<div class="sd '+(i===cur?'on':'')+'"></div>'
+  ).join('');
+
+  document.getElementById('opts').innerHTML = s.opts.map((o,i) => `
+    <button class="opt" onclick="choose(${i})" id="opt${i}">
+      <div class="opt-letter">${['A','B','C'][i]}</div>
+      <div>
+        <div class="opt-en">${o.en}</div>
+        <div class="opt-pl">${o.pl}</div>
+      </div>
+    </button>
+  `).join('');
+}
+
+function choose(idx) {
+  if(answered) return;
+  answered = true;
+  const s = SCENES[cur];
+  document.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+  const btn = document.getElementById('opt'+idx);
+  const fb  = document.getElementById('feedback');
+  if(s.opts[idx].ok){
+    btn.classList.add('correct');
+    fb.className='feedback show ok';
+    fb.innerHTML='✅ '+s.fb;
+    score++;
+  } else {
+    btn.classList.add('wrong');
+    const ci = s.opts.findIndex(o=>o.ok);
+    document.getElementById('opt'+ci).classList.add('correct');
+    fb.className='feedback show no';
+    fb.innerHTML='❌ '+s.fb;
+  }
+  cur++;
+  const nb = document.getElementById('btnNext');
+  nb.className='btn-next show';
+  nb.textContent = cur<SCENES.length ? 'DALEJ →' : 'WYNIKI →';
+}
+
+function nextStep() {
+  if(cur>=SCENES.length){showEnd();return;}
+  const card = document.getElementById('sceneCard');
+  card.style.opacity='0';card.style.transition='opacity 0.2s';
+  setTimeout(()=>{render();card.style.opacity='1';},200);
+}
+
+function showEnd() {
+  document.getElementById('sceneCard').style.display='none';
+  document.getElementById('endCard').classList.add('show');
+  document.getElementById('progFill').style.width='100%';
+  document.getElementById('progTxt').textContent='Ukończono!';
+  document.getElementById('scoreNum').textContent=score+'/'+SCENES.length;
+  if(score>=5){
+    document.getElementById('endIcon').textContent='✅';
+    document.getElementById('endTitle').textContent='Granica przekroczona!';
+    document.getElementById('endSub').textContent='Mareczek przeszedł kontrolę jak zawodowiec.';
+  } else if(score>=4){
+    document.getElementById('endIcon').textContent='🥈';
+    document.getElementById('endTitle').textContent='Dobrze poszło!';
+    document.getElementById('endSub').textContent='Prawie idealnie — powtórz trudniejsze sceny.';
+  } else {
+    document.getElementById('endIcon').textContent='💪';
+    document.getElementById('endTitle').textContent='Ćwicz dalej!';
+    document.getElementById("endSub").textContent="Zagraj jeszcze raz!";
+  }
+  
+  // Zaktualizowano o funkcję click do odtwarzania słówek
+  document.getElementById('vocabGrid').innerHTML = VOCAB.map(v=>`
+    <div class="vb-row" onclick="speakWord('${v.en}')">
+      <div class="vb-dot"></div>
+      <div class="vb-en">${v.en}</div>
+      <div class="vb-pl">— ${v.pl}</div>
+    </div>
+  `).join('');
+}
+
+function restart(){
+  cur=0;score=0;answered=false;
+  document.getElementById('sceneCard').style.display='block';
+  document.getElementById('sceneCard').style.opacity='1';
+  document.getElementById('endCard').classList.remove('show');
+  document.getElementById('progFill').style.width='0%';
+  render();
+}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE)
+════════════════════════════════════════════════════════════ */
+var currentAudio = null;
+
+var AUDIO_MAP = {
+  // Wypowiedzi Celnika (Sceny 1-6)
+  "Good morning. Documents please.": "audio/L5/scene1_cop.mp3",
+  "What is the purpose of your visit?": "audio/L5/scene2_cop.mp3",
+  "What are you carrying?": "audio/L5/scene3_cop.mp3",
+  "Do you have anything to declare?": "audio/L5/scene4_cop.mp3",
+  "Please pull over for inspection.": "audio/L5/scene5_cop.mp3",
+  "Everything is in order. You may proceed.": "audio/L5/scene6_cop.mp3",
+
+  // Słowniczek na ekranie końcowym
+  "documents": "documents.mp3",
+  "purpose": "purpose.mp3",
+  "carrying": "carrying.mp3",
+  "declare": "declare.mp3",
+  "inspection": "inspection.mp3",
+  "proceed": "proceed.mp3",
+  "pull over": "pull_over.mp3",
+  "in order": "in_order.mp3"
+};
+
+function playAudioFile(fileName, btn, defaultText) {
+  if (!fileName) {
+    console.warn("Brak pliku MP3 dla tej frazy.");
+    return;
+  }
+
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+  }
+
+  if (btn) {
+    btn.classList.add("playing");
+    btn.textContent = "⌛ Ładowanie...";
+  }
+
+  var currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+  var timestamp = new Date().getTime(); 
+  var audioUrl = currentPath + encodeURIComponent(fileName) + "?v=" + timestamp;
+
+  currentAudio = new Audio(audioUrl);
+
+  var watchdog = setTimeout(function() {
+    if (btn && btn.classList.contains("playing")) {
+      resetBtn();
+    }
+  }, 4000);
+
+  function resetBtn() {
+    clearTimeout(watchdog);
+    if (btn) {
+      btn.classList.remove("playing");
+      btn.textContent = defaultText;
+    }
+  }
+
+  currentAudio.onplay = function() {
+    if (btn) btn.textContent = "🔊 Odtwarzam...";
+  };
+
+  currentAudio.onended = resetBtn;
+
+  currentAudio.onerror = function() {
+    console.error("Błąd ładowania pliku:", audioUrl);
+    resetBtn();
+    if (btn) btn.textContent = "❌ Błąd";
+  };
+
+  currentAudio.play().catch(function(err) {
+    console.warn("Autoplay zablokowany:", err);
+    resetBtn();
+  });
+}
+
+function speakCop() {
+  // Czyścimy text celnika z cudzysłowów, żeby pasował do kluczy w AUDIO_MAP
+  const rawText = SCENES[cur].cop.replace(/["""„]/g,'').trim();
+  const file = AUDIO_MAP[rawText];
+  const btn = document.getElementById('btnListen');
+  playAudioFile(file, btn, '🔊 Posłuchaj');
+}
+
+function speakWord(word) {
+  const file = AUDIO_MAP[word];
+  // Przekazujemy null, bo słówka w słowniku nie mają osobnego przycisku (klika się cały wiersz)
+  playAudioFile(file, null, null);
+}
+
+render();
+</script>
+</body>
+</html>
