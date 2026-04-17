@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 1 — Twoja ciężarówka po angielsku</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--navy:#1a2e4a;--red:#d63528;--green:#15803d;--bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;--orange:#e07820;}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:760px;margin:0 auto;}
+
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-left{display:flex;flex-direction:column;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;}
+
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--navy),var(--orange));border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* Instrukcja */
+.intro{background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:11px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:0.78rem;font-weight:700;color:var(--navy);}
+.intro-icon{font-size:1.2rem;flex-shrink:0;}
+
+/* SVG kontener */
+.truck-wrap{background:var(--white);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);margin-bottom:12px;position:relative;}
+.truck-head{background:var(--navy);padding:8px 16px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;}
+.found-badge{font-size:0.62rem;font-weight:900;color:rgba(255,255,255,0.7);}
+
+.truck-svg-wrap{padding:16px;position:relative;}
+.truck-svg-wrap svg{width:100%;display:block;}
+
+/* Hotspoty */
+.hotspot{cursor:pointer;transition:all 0.15s;}
+.hotspot circle{fill:var(--red);stroke:#fff;stroke-width:2;transition:fill 0.15s;}
+.hotspot:hover circle{fill:var(--orange);}
+.hotspot.found circle{fill:var(--green);}
+.hotspot.active circle{fill:var(--orange);filter:drop-shadow(0 0 6px rgba(224,120,32,0.6));}
+.hotspot text{fill:#fff;font-family:'Nunito',sans-serif;font-size:10px;font-weight:900;pointer-events:none;text-anchor:middle;dominant-baseline:central;}
+
+/* Karta słówka */
+.word-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:12px;transition:all 0.25s;}
+.word-card.hidden{opacity:0;transform:translateY(8px);pointer-events:none;}
+.word-card.visible{opacity:1;transform:translateY(0);}
+.wc-bar{height:4px;background:linear-gradient(90deg,var(--red),var(--orange));}
+.wc-body{padding:16px 20px;display:flex;align-items:center;gap:16px;}
+.wc-num{width:36px;height:36px;border-radius:10px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:900;flex-shrink:0;}
+.wc-num.found{background:var(--green);}
+.wc-content{flex:1;}
+.wc-en{font-family:'Courier Prime',monospace;font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:3px;}
+.wc-pl{font-size:0.72rem;color:var(--muted);font-weight:700;}
+.wc-snd{background:none;border:1.5px solid var(--border);border-radius:8px;padding:7px 14px;font-family:'Nunito',sans-serif;font-size:0.72rem;font-weight:700;color:var(--navy);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.wc-snd:hover{border-color:var(--navy);}
+.wc-snd.playing{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+/* Lista odkrytych */
+.found-list{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}
+.fl-head{background:var(--navy);padding:8px 14px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;}
+.fl-grid{display:grid;grid-template-columns:1fr 1fr;padding:8px 10px;gap:4px;}
+.fl-item{display:flex;align-items:center;gap:7px;padding:5px 7px;border-radius:7px;font-size:0.73rem;transition:all 0.15s;cursor:pointer;}
+.fl-item:hover{background:var(--bg);}
+.fl-item.undiscovered{opacity:0.3;cursor:default;}
+.fl-dot{width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0;transition:background 0.3s;}
+.fl-item.discovered .fl-dot{background:var(--green);}
+.fl-item.active-item .fl-dot{background:var(--red);}
+.fl-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);}
+.fl-pl{font-size:0.62rem;color:var(--muted);}
+
+/* QUIZ */
+.quiz-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:12px;display:none;}
+.quiz-card.show{display:block;}
+.qc-head{background:var(--red);padding:9px 16px;display:flex;align-items:center;justify-content:space-between;}
+.qc-title{font-size:0.65rem;font-weight:900;color:#fff;letter-spacing:1.5px;}
+.qc-prog{font-size:0.62rem;color:rgba(255,255,255,0.6);font-weight:700;}
+.qc-body{padding:14px 16px;}
+.q-ctx{font-size:0.68rem;font-weight:700;color:var(--muted);margin-bottom:6px;}
+.q-q{font-size:0.88rem;font-weight:900;line-height:1.5;margin-bottom:12px;padding:9px 12px;background:var(--bg);border-radius:8px;border-left:3px solid var(--navy);}
+.q-opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.q-opt{background:var(--bg);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;font-size:0.78rem;font-weight:700;cursor:pointer;text-align:left;color:var(--navy);transition:all 0.13s;font-family:'Courier Prime',monospace;}
+.q-opt:hover:not(:disabled){border-color:var(--navy);background:var(--white);}
+.q-opt.ok{background:#f0fdf4;border-color:var(--green);color:var(--green);}
+.q-opt.no{background:#fef2f2;border-color:var(--red);color:var(--red);}
+.q-opt:disabled{cursor:default;}
+.q-fb{font-size:0.75rem;font-weight:700;margin-top:10px;padding:8px 11px;border-radius:8px;display:none;line-height:1.5;}
+.q-fb.show{display:block;}
+.q-fb.ok{background:#f0fdf4;border:1px solid #86efac;color:var(--green);}
+.q-fb.no{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);}
+.q-next{margin-top:8px;width:100%;background:var(--navy);color:#fff;border:none;border-radius:9px;padding:11px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:900;cursor:pointer;display:none;}
+.q-next.show{display:block;}
+.q-done{background:#f0fdf4;border:1.5px solid #86efac;border-radius:9px;padding:14px;text-align:center;font-size:0.82rem;font-weight:700;color:var(--green);display:none;line-height:1.7;}
+.q-done.show{display:block;}
+
+.footer{display:flex;align-items:center;justify-content:space-between;margin-top:4px;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div class="h-left">
+    <div class="h-title">Twoja ci&#281;&#380;ar&#243;wka po angielsku</div>
+    <div class="h-sub">Lekcja 1 &middot; Modu&#322; 1 &middot; Angielski z Mareczkiem &middot; Crosshaul</div>
+  </div>
+  <div class="h-badge">1 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">0 / 12 odkrytych</div>
+</div>
+
+<div class="intro">
+  <div class="intro-icon">&#128270;</div>
+  Kliknij czerwone punkty na ci&#281;&#380;ar&#243;wce &#8212; poznaj nazwy cz&#281;&#347;ci po angielsku!
+</div>
+
+<!-- SVG Ciężarówka -->
+<div class="truck-wrap">
+  <div class="truck-head">
+    <span>Kliknij cz&#281;&#347;&#263; ci&#281;&#380;ar&#243;wki</span>
+    <span class="found-badge">Odkryto: <span id="foundCount">0</span> / 12</span>
+  </div>
+  <div class="truck-svg-wrap">
+    <svg id="truckSvg" viewBox="0 0 780 280" xmlns="http://www.w3.org/2000/svg">
+
+      <!-- NACZEPA — kadłub -->
+      <rect x="180" y="60" width="560" height="160" rx="4" fill="#2a3a5a" stroke="#1a2e4a" stroke-width="2"/>
+      <!-- Naczepa — boczne pasy -->
+      <rect x="180" y="60" width="560" height="12" rx="2" fill="#1a2e4a"/>
+      <rect x="180" y="208" width="560" height="12" rx="2" fill="#1a2e4a"/>
+      <!-- Naczepa — tylne drzwi -->
+      <rect x="700" y="72" width="36" height="136" rx="3" fill="#243050" stroke="#1a2e4a" stroke-width="1.5"/>
+      <line x1="718" y1="72" x2="718" y2="208" stroke="#1a2e4a" stroke-width="1.5"/>
+      <circle cx="706" cy="140" r="3" fill="#4a6a9a"/>
+      <circle cx="729" cy="140" r="3" fill="#4a6a9a"/>
+      <!-- Naczepa — lewy bok logo -->
+      <rect x="320" y="100" width="200" height="80" rx="4" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+      <!-- Naczepa — koła tylne (4) -->
+      <ellipse cx="620" cy="228" rx="26" ry="26" fill="#222" stroke="#444" stroke-width="2"/>
+      <ellipse cx="620" cy="228" rx="14" ry="14" fill="#333"/>
+      <ellipse cx="620" cy="228" rx="5" ry="5" fill="#666"/>
+      <ellipse cx="670" cy="228" rx="26" ry="26" fill="#222" stroke="#444" stroke-width="2"/>
+      <ellipse cx="670" cy="228" rx="14" ry="14" fill="#333"/>
+      <ellipse cx="670" cy="228" rx="5" ry="5" fill="#666"/>
+      <!-- Naczepa — koła środkowe -->
+      <ellipse cx="530" cy="228" rx="26" ry="26" fill="#222" stroke="#444" stroke-width="2"/>
+      <ellipse cx="530" cy="228" rx="14" ry="14" fill="#333"/>
+      <ellipse cx="530" cy="228" rx="5" ry="5" fill="#666"/>
+      <ellipse cx="480" cy="228" rx="26" ry="26" fill="#222" stroke="#444" stroke-width="2"/>
+      <ellipse cx="480" cy="228" rx="14" ry="14" fill="#333"/>
+      <ellipse cx="480" cy="228" rx="5" ry="5" fill="#666"/>
+      <!-- Podłoga naczepy -->
+      <rect x="180" y="218" width="560" height="8" rx="2" fill="#1a2e4a"/>
+
+      <!-- CIĄGNIK — kabina -->
+      <rect x="26" y="72" width="158" height="152" rx="8" fill="#c32020"/>
+      <!-- Dach kabiny zaokrąglony -->
+      <rect x="30" y="60" width="150" height="20" rx="6" fill="#d63528"/>
+      <!-- Szyba przednia -->
+      <rect x="38" y="82" width="92" height="68" rx="5" fill="#87CEEB" stroke="#1a2e4a" stroke-width="1.5"/>
+      <!-- Rama szyby -->
+      <rect x="36" y="80" width="96" height="72" rx="6" fill="none" stroke="#1a2e4a" stroke-width="2.5"/>
+      <!-- Szyba boczna -->
+      <rect x="136" y="88" width="40" height="52" rx="4" fill="#87CEEB" stroke="#1a2e4a" stroke-width="1.5"/>
+      <!-- Drzwi kabiny -->
+      <rect x="30" y="155" width="150" height="65" rx="0" fill="#c32020" stroke="#b01a1a" stroke-width="1"/>
+      <line x1="30" y1="158" x2="180" y2="158" stroke="#b01a1a" stroke-width="1.5"/>
+      <circle cx="165" cy="190" r="5" fill="#e07820"/>
+      <!-- Lusterko -->
+      <rect x="12" y="92" width="18" height="28" rx="4" fill="#1a2e4a" stroke="#111" stroke-width="1"/>
+      <!-- Zderzak przedni -->
+      <rect x="16" y="210" width="168" height="16" rx="3" fill="#1a2e4a"/>
+      <rect x="20" y="212" width="160" height="8" rx="2" fill="#2a3a5a"/>
+      <!-- Lampy przednie -->
+      <rect x="16" y="195" width="30" height="16" rx="3" fill="#f0c040" stroke="#e07820" stroke-width="1"/>
+      <rect x="140" y="195" width="40" height="16" rx="3" fill="#f0c040" stroke="#e07820" stroke-width="1"/>
+      <!-- Koło przednie -->
+      <ellipse cx="90" cy="240" rx="32" ry="32" fill="#222" stroke="#444" stroke-width="2"/>
+      <ellipse cx="90" cy="240" rx="18" ry="18" fill="#333"/>
+      <ellipse cx="90" cy="240" rx="6" ry="6" fill="#666"/>
+      <!-- Zbiornik paliwa -->
+      <rect x="170" y="170" width="22" height="50" rx="4" fill="#888" stroke="#666" stroke-width="1.5"/>
+      <rect x="174" y="174" width="14" height="10" rx="2" fill="#aaa"/>
+      <!-- Kratka wlotu powietrza -->
+      <rect x="16" y="155" width="22" height="35" rx="2" fill="#1a2e4a"/>
+      <line x1="18" y1="162" x2="36" y2="162" stroke="#2a3a5a" stroke-width="1.5"/>
+      <line x1="18" y1="168" x2="36" y2="168" stroke="#2a3a5a" stroke-width="1.5"/>
+      <line x1="18" y1="174" x2="36" y2="174" stroke="#2a3a5a" stroke-width="1.5"/>
+      <line x1="18" y1="180" x2="36" y2="180" stroke="#2a3a5a" stroke-width="1.5"/>
+
+      <!-- HOTSPOTY -->
+      <!-- 1. Cab -->
+      <g class="hotspot" id="hs0" onclick="clickSpot(0)">
+        <circle cx="112" cy="108" r="13"/>
+        <text x="112" y="108">1</text>
+      </g>
+      <!-- 2. Windshield -->
+      <g class="hotspot" id="hs1" onclick="clickSpot(1)">
+        <circle cx="70" cy="120" r="13"/>
+        <text x="70" y="120">2</text>
+      </g>
+      <!-- 3. Side mirror -->
+      <g class="hotspot" id="hs2" onclick="clickSpot(2)">
+        <circle cx="21" cy="106" r="13"/>
+        <text x="21" y="106">3</text>
+      </g>
+      <!-- 4. Front wheel -->
+      <g class="hotspot" id="hs3" onclick="clickSpot(3)">
+        <circle cx="90" cy="255" r="13"/>
+        <text x="90" y="255">4</text>
+      </g>
+      <!-- 5. Front bumper -->
+      <g class="hotspot" id="hs4" onclick="clickSpot(4)">
+        <circle cx="30" cy="220" r="13"/>
+        <text x="30" y="220">5</text>
+      </g>
+      <!-- 6. Fuel tank -->
+      <g class="hotspot" id="hs5" onclick="clickSpot(5)">
+        <circle cx="181" cy="186" r="13"/>
+        <text x="181" y="186">6</text>
+      </g>
+      <!-- 7. Trailer -->
+      <g class="hotspot" id="hs6" onclick="clickSpot(6)">
+        <circle cx="420" cy="140" r="13"/>
+        <text x="420" y="140">7</text>
+      </g>
+      <!-- 8. Rear wheels -->
+      <g class="hotspot" id="hs7" onclick="clickSpot(7)">
+        <circle cx="645" cy="250" r="13"/>
+        <text x="645" y="250">8</text>
+      </g>
+      <!-- 9. Rear doors -->
+      <g class="hotspot" id="hs8" onclick="clickSpot(8)">
+        <circle cx="742" cy="140" r="13"/>
+        <text x="742" y="140">9</text>
+      </g>
+      <!-- 10. Headlights -->
+      <g class="hotspot" id="hs9" onclick="clickSpot(9)">
+        <circle cx="30" cy="197" r="13"/>
+        <text x="30" y="197">10</text>
+      </g>
+      <!-- 11. Roof -->
+      <g class="hotspot" id="hs10" onclick="clickSpot(10)">
+        <circle cx="85" cy="65" r="13"/>
+        <text x="85" y="65">11</text>
+      </g>
+      <!-- 12. Cargo box -->
+      <g class="hotspot" id="hs11" onclick="clickSpot(11)">
+        <circle cx="350" cy="85" r="13"/>
+        <text x="350" y="85">12</text>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<!-- Karta aktywnego słówka -->
+<div class="word-card hidden" id="wordCard">
+  <div class="wc-bar"></div>
+  <div class="wc-body">
+    <div class="wc-num" id="wcNum">1</div>
+    <div class="wc-content">
+      <div class="wc-en" id="wcEn"></div>
+      <div class="wc-pl" id="wcPl"></div>
+    </div>
+    <button class="wc-snd" id="wcSnd" onclick="speakActive()">&#128266; Pos&#322;uchaj</button>
+  </div>
+</div>
+
+<!-- Lista wszystkich -->
+<div class="found-list">
+  <div class="fl-head">Cz&#281;&#347;ci ci&#281;&#380;ar&#243;wki</div>
+  <div class="fl-grid" id="foundGrid"></div>
+</div>
+
+<!-- Quiz -->
+<div class="quiz-card" id="quizCard">
+  <div class="qc-head">
+    <div class="qc-title">Quiz — Hans pyta!</div>
+    <div class="qc-prog" id="qprog">1 / 5</div>
+  </div>
+  <div class="qc-body">
+    <div class="q-ctx" id="qctx"></div>
+    <div class="q-q" id="qq"></div>
+    <div class="q-opts" id="qopts"></div>
+    <div class="q-fb" id="qfb"></div>
+    <button class="q-next" id="qnext" onclick="nextQ()">DALEJ &#8594;</button>
+    <div class="q-done" id="qdone">
+      &#10003; Lekcja 1 uko&#324;czona!<br>
+      Znasz 12 cz&#281;&#347;ci ci&#281;&#380;ar&#243;wki po angielsku.<br>
+      Mareczek jest z Ciebie dumny. &#128666;
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM &middot; CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d on"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div>
+<script>
+/* ════════════════════
+   DANE — 12 słówek (Zaktualizowane o pliki MP3)
+   Upewnij się, że nazwy plików MP3 w repozytorium są IDENTYCZNE.
+════════════════════ */
+var PARTS = [
+  {en:"cab / driver's cabin", pl:"kabina kierowcy",       file:"audio/L1/cab.mp3"},
+  {en:"windshield",           pl:"szyba przednia",         file:"audio/L1/windshield.mp3"},
+  {en:"side mirror",          pl:"lusterko boczne",        file:"audio/L1/sideMirror.mp3"},
+  {en:"front wheel",          pl:"ko\u0142o przednie",     file:"audio/L1/frontWheel.mp3"},
+  {en:"front bumper",         pl:"zderzak przedni",        file:"audio/L1/frontBumper.mp3"},
+  {en:"fuel tank",            pl:"zbiornik paliwa",        file:"audio/L1/fuelTank.mp3"},
+  {en:"trailer",              pl:"naczepa",                file:"audio/L1/trailer.mp3"},
+  {en:"rear wheels",          pl:"ko\u0142a tylne",        file:"audio/L1/rearWheels.mp3"},
+  {en:"rear doors",           pl:"tylne drzwi",            file:"audio/L1/rearDoors.mp3"},
+  {en:"headlights",           pl:"reflektory",             file:"audio/L1/headlights.mp3"},
+  {en:"roof",                 pl:"dach",                   file:"audio/L1/roof.mp3"},
+  {en:"cargo box",            pl:"skrzynia \u0142adunkowa",file:"audio/L1/cargoBox.mp3"},
+];
+
+var QS = [
+  {ctx:'Hans wskazuje na szyb\u0119 przed\u0105:', q:'"The windshield is cracked." Co jest p\u0119kni\u0119te?', opts:['Lusterko','Szyba przednia','Reflektor','Dach'], and:1, tip:'Windshield = szyba przednia. Cracked = p\u0119kni\u0119ta.'},
+  {ctx:'Hans pyta o \u015bwiat\u0142a:', q:'"Check the headlights please." Co sprawdzasz?', opts:['Zbiornik paliwa','Ko\u0142a','Reflektory','Zderzak'], and:2, tip:'Headlights = reflektory. Obowi\u0105zkowa kontrola przed wyjazdem!'},
+  {ctx:'Hans m\u00f3wi o naczepie:', q:'"The trailer is fully loaded." Co jest za\u0142adowane?', opts:['Kabina','Naczepa','Zbiornik paliwa','Tylne drzwi'], and:1, tip:'Trailer = naczepa. Fully loaded = w pe\u0142ni za\u0142adowana.'},
+  {ctx:'Hans pyta o tylne \u017decklo:', q:'"Please open the rear doors." Co otwierasz?', opts:['Dach','Ko\u0142a tylne','Szyb\u0119','Tylne drzwi'], and:3, tip:'Rear doors = tylne drzwi. Rear = tylny.'},
+  {ctx:'Hans sprawdza paliwo:', q:'"Is the fuel tank full?" Co sprawdza Hans?', opts:['Reflektor','Zbiornik paliwa','Lusterko','Zderzak'], and:1, tip:'Fuel tank = zbiornik paliwa. Full = pe\u0142ny.'},
+];
+
+var discovered = new Set();
+var activePart = null;
+var qi = 0;
+var currentAudio = null;
+
+function buildGrid() {
+  var h = "";
+  for (var i = 0; i < PARTS.length; i++) {
+    var p = PARTS[i];
+    var cls = "fl-item undiscovered";
+    h += "<div class='" + cls + "' id='fl" + i + "' onclick='clickFromList(" + i + ")'>";
+    h += "<div class='fl-dot'></div>";
+    h += "<div class='fl-en'>" + p.en + "</div>";
+    h += "<div class='fl-pl'>" + p.pl + "</div>";
+    h += "</div>";
+  }
+  document.getElementById("foundGrid").innerHTML = h;
+}
+
+function clickSpot(idx) {
+  activePart = idx;
+  var hs = document.getElementById("hs" + idx);
+  if (!discovered.has(idx)) {
+    discovered.add(idx);
+    hs.classList.add("found");
+    var flItem = document.getElementById("fl" + idx);
+    if(flItem) {
+      flItem.classList.remove("undiscovered");
+      flItem.classList.add("discovered");
+    }
+    updateProgress();
+  }
+  document.querySelectorAll(".hotspot").forEach(function(h){h.classList.remove("active");});
+  hs.classList.add("active");
+  showWordCard(idx);
+  updateListActive(idx);
+  if (discovered.size === PARTS.length) {
+    setTimeout(showQuiz, 800);
+  }
+}
+
+function clickFromList(idx) {
+  if (!discovered.has(idx)) return;
+  clickSpot(idx);
+}
+
+function showWordCard(idx) {
+  var p = PARTS[idx];
+  var card = document.getElementById("wordCard");
+  var num = document.getElementById("wcNum");
+  num.textContent = idx + 1;
+  num.className = "wc-num" + (discovered.has(idx) ? " found" : "");
+  document.getElementById("wcEn").textContent = p.en;
+  document.getElementById("wcPl").textContent = p.pl;
+  
+  var snd = document.getElementById("wcSnd");
+  if (snd) {
+    snd.classList.remove("playing");
+    snd.textContent = "\uD83D\uDD0A Pos\u0142uchaj";
+  }
+  
+  card.classList.remove("hidden");
+  card.classList.add("visible");
+}
+
+function updateListActive(idx) {
+  document.querySelectorAll(".fl-item").forEach(function(el){el.classList.remove("active-item");});
+  var item = document.getElementById("fl" + idx);
+  if (item) item.classList.add("active-item");
+}
+
+function updateProgress() {
+  var pct = (discovered.size / PARTS.length) * 100;
+  document.getElementById("progFill").style.width = pct + "%";
+  document.getElementById("progTxt").textContent = discovered.size + " / " + PARTS.length + " odkrytych";
+  document.getElementById("foundCount").textContent = discovered.size;
+}
+
+function showQuiz() {
+  document.getElementById("quizCard").classList.add("show");
+  document.getElementById("wordCard").classList.add("hidden");
+  renderQ();
+}
+
+function renderQ() {
+  if (qi >= QS.length) {
+    document.getElementById("qq").style.display = "none";
+    document.getElementById("qopts").innerHTML = "";
+    document.getElementById("qfb").className = "q-fb";
+    document.getElementById("qnext").classList.remove("show");
+    document.getElementById("qprog").textContent = "";
+    document.getElementById("qctx").textContent = "";
+    document.getElementById("qdone").classList.add("show");
+    document.getElementById("progFill").style.width = "100%";
+    document.getElementById("progTxt").textContent = "Ukończono!";
+    return;
+  }
+  var q = QS[qi];
+  document.getElementById("qprog").textContent = (qi+1) + " / " + QS.length;
+  document.getElementById("qctx").textContent = q.ctx;
+  document.getElementById("qq").textContent = q.q;
+  document.getElementById("qfb").className = "q-fb";
+  document.getElementById("qnext").classList.remove("show");
+  var h = "";
+  for (var i = 0; i < q.opts.length; i++) {
+    h += "<button class='q-opt' onclick='qa(this," + (i===q.and) + ")'>" + q.opts[i] + "</button>";
+  }
+  document.getElementById("qopts").innerHTML = h;
+}
+
+function qa(btn, correct) {
+  document.querySelectorAll(".q-opt").forEach(function(b){b.disabled=true;});
+  var fb = document.getElementById("qfb");
+  if (correct) {
+    btn.classList.add("ok");
+    fb.className = "q-fb show ok";
+    fb.textContent = "\u2705 " + QS[qi].tip;
+  } else {
+    btn.classList.add("no");
+    document.querySelectorAll(".q-opt")[QS[qi].and].classList.add("ok");
+    fb.className = "q-fb show no";
+    fb.textContent = "\u274C " + QS[qi].tip;
+  }
+  qi++;
+  document.getElementById("qnext").classList.add("show");
+}
+
+function nextQ() { renderQ(); }
+
+/* ── POPRAWIONE AUDIO Z ZABEZPIECZENIEM ── */
+function speakActive() {
+  if (activePart === null) return;
+  var p = PARTS[activePart];
+  var btn = document.getElementById("wcSnd");
+
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+  }
+
+  if (btn) {
+    btn.classList.add("playing");
+    btn.textContent = "\uD83D\uDD0A Ładowanie...";
+  }
+
+  // Automatyczne wykrywanie folderu
+  var currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+  var timestamp = new Date().getTime(); 
+  var audioUrl = currentPath + encodeURIComponent(p.file) + "?v=" + timestamp;
+
+  currentAudio = new Audio(audioUrl);
+
+  // Strażnik (Watchdog) - jeśli po 4s nic się nie dzieje, resetujemy przycisk
+  var watchdog = setTimeout(function() {
+    if (btn && btn.classList.contains("playing")) {
+      console.warn("Audio timed out:", audioUrl);
+      resetBtn();
+    }
+  }, 4000);
+
+  function resetBtn() {
+    clearTimeout(watchdog);
+    if (btn) {
+      btn.classList.remove("playing");
+      btn.textContent = "\uD83D\uDD0A Pos\u0142uchaj";
+    }
+  }
+
+  currentAudio.onplay = function() {
+    if (btn) btn.textContent = "\uD83D\uDD0A Odtwarzam...";
+  };
+
+  currentAudio.onended = resetBtn;
+
+  currentAudio.onerror = function() {
+    console.error("Nie udało się załadować pliku pod adresem:", audioUrl);
+    resetBtn();
+    if (btn) btn.textContent = "\u274C Błąd pliku";
+  };
+
+  currentAudio.play().catch(function(err) {
+    console.error("Autoplay Error:", err);
+    resetBtn();
+  });
+}
+
+buildGrid();
+</script>
+</body>
+</html>
