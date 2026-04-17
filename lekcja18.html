@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 18 — Opłaty drogowe</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --orange:#e07820;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:680px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:var(--navy);border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* CHECKLIST */
+.checklist{margin-bottom:16px;}
+
+.item{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:10px;padding:13px 15px;margin-bottom:8px;
+  display:flex;align-items:flex-start;gap:12px;
+  cursor:pointer;transition:all 0.18s;
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+  user-select:none;
+}
+.item:hover{border-color:var(--navy);box-shadow:0 3px 10px rgba(26,46,74,0.08);}
+.item.checked{border-color:var(--green);background:#f0fdf4;}
+.item.open{border-color:var(--navy);}
+.item.checked.open{border-color:var(--green);}
+
+/* Checkbox */
+.cb{
+  width:24px;height:24px;border-radius:6px;
+  border:2px solid #d0cac0;flex-shrink:0;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.18s;background:var(--bg);
+  font-size:0.85rem;color:transparent;
+}
+.item.checked .cb{background:var(--green);border-color:var(--green);color:#fff;}
+
+/* Body */
+.item-body{flex:1;min-width:0;}
+.item-header{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.item-en{font-family:'Courier Prime',monospace;font-size:0.95rem;font-weight:700;color:var(--navy);transition:color 0.18s;}
+.item.checked .item-en{color:var(--green);}
+.item-pl{font-size:0.65rem;font-weight:700;color:var(--muted);margin-top:2px;}
+.item-arrow{font-size:0.7rem;color:var(--muted);transition:transform 0.2s;flex-shrink:0;}
+.item.open .item-arrow{transform:rotate(180deg);}
+
+/* Rozwinięty panel */
+.item-detail{display:none;margin-top:10px;padding:10px 12px;background:var(--bg);border-radius:8px;}
+.item.open .item-detail{display:block;}
+.detail-ex{
+  font-family:'Courier Prime',monospace;font-size:0.82rem;font-weight:700;
+  color:var(--navy);border-left:2.5px solid var(--navy);
+  padding-left:10px;line-height:1.5;margin-bottom:4px;
+}
+.item.checked .detail-ex{border-left-color:var(--green);}
+.detail-pl{font-size:0.68rem;color:var(--muted);font-style:italic;padding-left:12px;margin-bottom:10px;}
+.detail-actions{display:flex;align-items:center;gap:8px;}
+.btn-sound{
+  background:none;border:1.5px solid var(--border);border-radius:7px;
+  padding:5px 12px;font-family:'Nunito',sans-serif;font-size:0.7rem;
+  font-weight:700;color:var(--navy);cursor:pointer;transition:all 0.15s;
+  display:flex;align-items:center;gap:5px;
+}
+.btn-sound:hover{border-color:var(--navy);background:var(--white);}
+.btn-sound.playing{background:var(--navy);color:#fff;border-color:var(--navy);}
+.btn-mark{
+  background:var(--navy);color:#fff;border:none;border-radius:7px;
+  padding:5px 14px;font-family:'Nunito',sans-serif;font-size:0.7rem;
+  font-weight:900;cursor:pointer;transition:all 0.15s;margin-left:auto;
+}
+.btn-mark:hover{background:#2a4a6a;}
+.item.checked .btn-mark{background:var(--green);}
+
+/* QUIZ */
+.quiz-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:14px;}
+.qc-head{background:var(--red);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;}
+.qc-title{font-size:0.65rem;font-weight:900;color:#fff;letter-spacing:1.5px;text-transform:uppercase;}
+.qc-prog{font-size:0.62rem;color:rgba(255,255,255,0.6);font-weight:700;}
+.qc-body{padding:13px 14px;}
+.q-q{font-size:0.82rem;font-weight:700;line-height:1.5;margin-bottom:10px;padding:8px 11px;background:var(--bg);border-radius:7px;border-left:2.5px solid var(--navy);}
+.q-opt{background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.78rem;font-weight:700;cursor:pointer;margin-bottom:6px;width:100%;text-align:left;color:var(--navy);display:flex;align-items:center;gap:9px;transition:all 0.13s;font-family:'Nunito',sans-serif;}
+.q-opt:last-child{margin-bottom:0;}
+.q-opt:hover:not(:disabled){border-color:var(--navy);background:var(--white);}
+.q-opt.ok{background:#f0fdf4;border-color:var(--green);color:var(--green);}
+.q-opt.no{background:#fef2f2;border-color:var(--red);color:var(--red);}
+.q-opt:disabled{cursor:default;}
+.q-ltr{width:20px;height:20px;border-radius:50%;background:rgba(26,46,74,0.1);display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:900;color:var(--navy);flex-shrink:0;transition:all 0.13s;}
+.q-opt.ok .q-ltr{background:var(--green);color:#fff;}
+.q-opt.no .q-ltr{background:var(--red);color:#fff;}
+.q-fb{font-size:0.72rem;font-weight:700;margin-top:8px;padding:7px 10px;border-radius:7px;display:none;line-height:1.5;}
+.q-fb.show{display:block;}
+.q-fb.ok{background:#f0fdf4;border:1px solid #86efac;color:var(--green);}
+.q-fb.no{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);}
+.q-next{margin-top:8px;width:100%;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:10px;font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:900;cursor:pointer;display:none;transition:all 0.15s;}
+.q-next:hover{background:#2a4a6a;}
+.q-next.show{display:block;}
+.q-done{background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:12px;text-align:center;font-size:0.8rem;font-weight:700;color:var(--green);display:none;}
+.q-done.show{display:block;}
+
+/* FOOTER */
+.footer{display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Opłaty drogowe</div>
+    <div class="h-sub">Lekcja 18 · Moduł 3 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">18 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">0 / 8 poznanych</div>
+</div>
+
+<div class="checklist" id="checklist"></div>
+
+<div class="quiz-card">
+  <div class="qc-head">
+    <div class="qc-title">Quiz</div>
+    <div class="qc-prog" id="qprog">1 / 5</div>
+  </div>
+  <div class="qc-body">
+    <div class="q-q" id="qq"></div>
+    <div id="qopts"></div>
+    <div class="q-fb" id="qfb"></div>
+    <button class="q-next" id="qnext" onclick="nextQ()">DALEJ →</button>
+    <div class="q-done" id="qdone">✅ Lekcja 18 ukończona! Znasz słownictwo opłat drogowych.</div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d on"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div>
+<script>
+const ITEMS = [
+  {
+    en:'Toll',
+    pl:'opłata drogowa',
+    ex:'"Where can I pay the toll?"',
+    exPl:'Gdzie mogę zapłacić opłatę drogową?',
+  },
+  {
+    en:'Vignette',
+    pl:'winieta',
+    ex:'"I have a vignette."',
+    exPl:'Mam winietę.',
+  },
+  {
+    en:'Receipt',
+    pl:'paragon / pokwitowanie',
+    ex:'"I need a receipt please."',
+    exPl:'Proszę o paragon.',
+  },
+  {
+    en:'Cash only',
+    pl:'tylko gotówka',
+    ex:'"Cash only accepted here."',
+    exPl:'Tutaj przyjmowana jest tylko gotówka.',
+  },
+  {
+    en:'Card payment',
+    pl:'płatność kartą',
+    ex:'"Do you accept card payment?"',
+    exPl:'Czy akceptują Państwo płatność kartą?',
+  },
+  {
+    en:'Truck lane',
+    pl:'pas dla ciężarówek',
+    ex:'"Is there a truck lane?"',
+    exPl:'Czy jest pas dla ciężarówek?',
+  },
+  {
+    en:'Total charge',
+    pl:'całkowita opłata',
+    ex:'"What is the total charge?"',
+    exPl:'Jaka jest całkowita opłata?',
+  },
+  {
+    en:'Truck stop',
+    pl:'zajazd dla kierowców',
+    ex:'"Where is the nearest truck stop?"',
+    exPl:'Gdzie jest najbliższy truck stop?',
+  },
+];
+
+let checked = new Set();
+
+function buildList() {
+  const el = document.getElementById('checklist');
+  el.innerHTML = ITEMS.map((item, i) => `
+    <div class="item" id="item${i}" onclick="toggleOpen(${i})">
+      <div class="cb" id="cb${i}">✓</div>
+      <div class="item-body">
+        <div class="item-header">
+          <div>
+            <div class="item-en" >${item.en}</div>
+            <div class="item-pl">${item.pl}</div>
+          </div>
+          <div class="item-arrow">▼</div>
+        </div>
+        <div class="item-detail">
+          <div class="detail-ex">${item.ex}</div>
+          <div class="detail-pl">${item.exPl}</div>
+          <div class="detail-actions">
+            <button class="btn-sound" id="snd${i}" onclick="event.stopPropagation();speakItem(${i})">🔊 Wymowa</button>
+            <button class="btn-mark" onclick="event.stopPropagation();markItem(${i})" id="mark${i}">Znam to</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleOpen(i) {
+  document.getElementById('item'+i).classList.toggle('open');
+}
+
+function markItem(i) {
+  const el = document.getElementById('item'+i);
+  if(checked.has(i)){
+    checked.delete(i);
+    el.classList.remove('checked');
+  } else {
+    checked.add(i);
+    el.classList.add('checked');
+    setTimeout(()=>el.classList.remove('open'), 400);
+  }
+  updateProgress();
+}
+
+function updateProgress() {
+  const pct = (checked.size / ITEMS.length) * 100;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progTxt').textContent = `${checked.size} / ${ITEMS.length} poznanych`;
+}
+
+/* QUIZ */
+const qs = [
+  {q:'Jak po angielsku powiedzieć "opłata drogowa"?',
+   opts:['Vignette','Receipt','Toll','Truck lane'],
+   and:2, tip:'Toll = opłata drogowa. Where can I pay the toll? = Gdzie mogę zapłacić opłatę drogową?'},
+  {q:'Kasjer przy bramce mówi "Cash only." Co to znaczy?',
+   opts:['Tylko kartą','Tylko gotówką','Gotówka i karta','Bezpłatnie'],
+   and:1, tip:'Cash only = tylko gotówka. Przy wielu bramkach w Europie nie ma możliwości płatności kartą!'},
+  {q:'Chcesz zapytać czy jest pas dla ciężarówek. Co mówisz?',
+   opts:['"Do you accept card payment?"','"Is there a truck lane?"','"Where is the truck stop?"','"What is the total charge?"'],
+   and:1, tip:'Truck lane = pas dla ciężarówek. Is there a truck lane? = Czy jest pas dla ciężarówek?'},
+  {q:'Co to "total charge"?',
+   opts:['Paragon','Całkowita opłata','Winieta','Płatność kartą'],
+   and:1, tip:'Total charge = całkowita opłata. What is the total charge? = Jaka jest całkowita opłata?'},
+  {q:'Potrzebujesz paragonu za opłatę. Co mówisz?',
+   opts:['"I need a vignette please."','"Cash only please."','"I need a receipt please."','"Where is the truck stop?"'],
+   and:2, tip:'Receipt = paragon / pokwitowanie. I need a receipt please = Proszę o paragon.'},
+];
+let qi=0;
+
+function renderQ(){
+  if(qi>=qs.length){
+    document.getElementById('qq').style.display='none';
+    document.getElementById('qopts').innerHTML='';
+    document.getElementById('qfb').className='q-fb';
+    document.getElementById('qnext').classList.remove('show');
+    document.getElementById('qprog').textContent='';
+    document.getElementById('qdone').classList.add('show');
+    return;
+  }
+  const q=qs[qi];
+  document.getElementById('qprog').textContent=`${qi+1} / ${qs.length}`;
+  document.getElementById('qq').textContent=q.q;
+  document.getElementById('qfb').className='q-fb';
+  document.getElementById('qnext').classList.remove('show');
+  document.getElementById('qopts').innerHTML=q.opts.map((o,i)=>`
+    <button class="q-opt" onclick="qa(this,${i===q.and})">
+      <div class="q-ltr">${['A','B','C','D'][i]}</div>${o}
+    </button>
+  `).join('');
+}
+function qa(btn,c){
+  document.querySelectorAll('.q-opt').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('qfb');
+  if(c){btn.classList.add('ok');fb.className='q-fb show ok';fb.textContent='✅ '+qs[qi].tip;}
+  else{btn.classList.add('no');document.querySelectorAll('.q-opt')[qs[qi].and].classList.add('ok');fb.className='q-fb show no';fb.textContent='❌ '+qs[qi].tip;}
+  qi++;document.getElementById('qnext').classList.add('show');
+}
+function nextQ(){renderQ();}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  'Where can I pay the toll?': 'audio/L18/where_can_i_pay_the_toll_l18.mp3',
+  'I have a vignette.': 'audio/L18/i_have_a_vignette_l18.mp3',
+  'I need a receipt please.': 'audio/L18/i_need_a_receipt_please_l18.mp3',
+  'Cash only accepted here.': 'audio/L18/cash_only_accepted_here_l18.mp3',
+  'Do you accept card payment?': 'audio/L18/do_you_accept_card_payment_l18.mp3',
+  'Is there a truck lane?': 'audio/L18/is_there_a_truck_lane_l18.mp3',
+  'What is the total charge?': 'audio/L18/what_is_the_total_charge_l18.mp3',
+  'Where is the nearest truck stop?': 'audio/L18/where_is_the_nearest_truck_stop_l18.mp3',
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  // Usuwanie cudzysłowów
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  
+  if(_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '🔊 Wymowa';
+
+  if (btn) {
+    btn.classList.add('playing');
+    btn.textContent = '⌛ Ładowanie...';
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("playing")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('playing');
+        btn.textContent = lbl;
+      }
+    }
+
+    _ap.onplay = () => { if (btn) btn.textContent = '🔊 Odtwarzam...'; };
+    _ap.onended = resetBtn;
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak pliku MP3 w mapie dla:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const lbl = label || '🔊 Wymowa';
+  if(btn){ btn.classList.add('playing'); btn.textContent='🔊 Odtwarzam (Bot)...'; }
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    u.onerror = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+// Odtwarzanie przykładu (całe zdanie)
+function speakItem(i) {
+  const text = ITEMS[i].ex;
+  const btn = document.getElementById('snd'+i);
+  _playAudio(text, btn, '🔊 Wymowa');
+}
+
+// Odtwarzanie słówka
+function speakVocab(i) {
+  const text = ITEMS[i].en;
+  _playAudio(text, null, null);
+}
+
+// Dodanie odrobiny stylizacji interaktywnej dla klikalnych nagłówków (wykonywane po załadowaniu)
+document.addEventListener("DOMContentLoaded", () => {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .item-en { cursor: pointer; display: inline-block; padding: 2px 4px; border-radius: 4px; transition: background 0.2s; margin-left: -4px;}
+      .item-en:hover { background: rgba(26,46,74,0.06); }
+    `;
+    document.head.appendChild(style);
+});
+
+buildList();
+renderQ();
+</script>
+</body>
+</html>

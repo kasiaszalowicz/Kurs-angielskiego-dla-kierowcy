@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 10 — Instrukcje przy załadunku</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --yellow:#ffe566;--orange:#e07820;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:720px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:6px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--navy),var(--orange));border-radius:99px;transition:width 0.4s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* ── EKRAN STARTOWY ── */
+.start-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;padding:28px 24px;text-align:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.sc-icon{font-size:2.5rem;margin-bottom:12px;}
+.sc-title{font-size:1.2rem;font-weight:900;color:var(--navy);margin-bottom:6px;}
+.sc-sub{font-size:0.82rem;color:var(--muted);line-height:1.6;margin-bottom:20px;}
+.sc-rules{background:var(--bg);border-radius:10px;padding:14px 16px;text-align:left;margin-bottom:20px;}
+.sc-rule{display:flex;gap:8px;margin-bottom:8px;font-size:0.78rem;color:var(--navy);line-height:1.5;font-weight:700;}
+.sc-rule:last-child{margin-bottom:0;}
+.sc-ri{flex-shrink:0;}
+.btn-start{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:14px 36px;font-family:'Nunito',sans-serif;font-size:0.9rem;font-weight:900;cursor:pointer;transition:all 0.15s;letter-spacing:0.5px;}
+.btn-start:hover{background:#2a4a6a;transform:translateY(-1px);}
+
+/* ── EKRAN GRY ── */
+.game-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+  display:none;
+}
+
+/* Status bar */
+.status-bar{
+  background:var(--navy);padding:10px 18px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.sb-round{font-size:0.7rem;font-weight:900;color:rgba(255,255,255,0.5);letter-spacing:1px;}
+.sb-score{
+  display:flex;align-items:center;gap:6px;
+  font-size:0.7rem;font-weight:900;color:var(--yellow);
+}
+.sb-timer{
+  font-family:'Courier Prime',monospace;
+  font-size:0.85rem;font-weight:700;
+  color:#fff;
+  background:rgba(255,255,255,0.1);
+  padding:3px 10px;border-radius:6px;
+  min-width:40px;text-align:center;
+}
+.sb-timer.urgent{color:var(--red);background:rgba(214,53,40,0.2);}
+
+/* Komenda magazyniera */
+.command-section{
+  padding:28px 24px 20px;
+  text-align:center;
+  border-bottom:1px solid var(--border);
+}
+.cs-from{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;}
+.cs-command{
+  font-family:'Courier Prime',monospace;
+  font-size:clamp(1.1rem,3vw,1.6rem);
+  font-weight:700;color:var(--navy);
+  line-height:1.3;margin-bottom:8px;
+  padding:16px 20px;
+  background:var(--bg);
+  border-radius:10px;
+  border:2px solid var(--navy);
+  display:inline-block;
+  min-width:280px;
+}
+.cs-situation{font-size:0.75rem;color:var(--muted);font-weight:700;font-style:italic;margin-top:8px;}
+
+/* Opcje */
+.options-section{padding:18px 20px;}
+.os-label{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;}
+.opts{display:flex;flex-direction:column;gap:8px;}
+.opt{
+  background:var(--bg);border:1.5px solid var(--border);
+  border-radius:10px;padding:12px 16px;
+  cursor:pointer;display:flex;align-items:center;gap:12px;
+  transition:all 0.15s;width:100%;text-align:left;
+  font-family:'Nunito',sans-serif;
+}
+.opt:hover:not(:disabled){border-color:var(--navy);background:#f0f4f8;transform:translateX(3px);}
+.opt.correct{border-color:var(--green);background:#f0fdf4;animation:pop 0.3s ease;}
+.opt.wrong{border-color:var(--red);background:#fef2f2;animation:shake 0.3s ease;}
+.opt:disabled{cursor:default;transform:none;}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.02)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.opt-letter{
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(26,46,74,0.08);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.65rem;font-weight:900;color:var(--navy);
+  flex-shrink:0;transition:all 0.15s;
+}
+.opt.correct .opt-letter{background:var(--green);color:#fff;}
+.opt.wrong .opt-letter{background:var(--red);color:#fff;}
+.opt-text{font-size:0.85rem;font-weight:700;color:var(--navy);line-height:1.4;}
+.opt.correct .opt-text{color:var(--green);}
+.opt.wrong .opt-text{color:var(--red);}
+
+/* Feedback */
+.feedback{
+  margin:0 20px 16px;padding:11px 14px;
+  border-radius:8px;font-size:0.78rem;font-weight:700;
+  line-height:1.6;display:none;
+}
+.feedback.show{display:block;}
+.feedback.ok{background:#f0fdf4;border:1.5px solid #86efac;color:#145a28;}
+.feedback.no{background:#fef2f2;border:1.5px solid #fca5a5;color:#7a1010;}
+.feedback .kw{font-family:'Courier Prime',monospace;background:rgba(26,46,74,0.07);padding:1px 6px;border-radius:4px;color:var(--navy);}
+
+/* Przycisk dalej */
+.btn-next{
+  display:none;width:calc(100% - 40px);margin:0 20px 18px;
+  background:var(--navy);color:#fff;border:none;border-radius:10px;
+  padding:13px;font-family:'Nunito',sans-serif;font-size:0.85rem;
+  font-weight:900;cursor:pointer;transition:all 0.15s;
+}
+.btn-next:hover{background:#2a4a6a;}
+.btn-next.show{display:block;}
+
+/* ── EKRAN WYNIKÓW ── */
+.result-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;padding:28px 24px;text-align:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);display:none;
+}
+.rc-icon{font-size:2.8rem;margin-bottom:10px;}
+.rc-title{font-size:1.2rem;font-weight:900;color:var(--navy);margin-bottom:6px;}
+.rc-sub{font-size:0.8rem;color:var(--muted);margin-bottom:20px;}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.stat-box{background:var(--bg);border-radius:10px;padding:12px 8px;border:1.5px solid var(--border);}
+.stat-num{font-size:1.6rem;font-weight:900;color:var(--navy);}
+.stat-lbl{font-size:0.6rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+
+/* Raport błędów */
+.errors-box{background:var(--bg);border-radius:10px;padding:14px 16px;text-align:left;margin-bottom:18px;}
+.eb-title{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;}
+.err-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;font-size:0.75rem;line-height:1.5;}
+.err-row:last-child{margin-bottom:0;}
+.err-cmd{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);flex-shrink:0;}
+.err-arrow{color:var(--muted);flex-shrink:0;}
+.err-pl{color:var(--muted);}
+
+/* Słownik */
+.vocab-box{background:var(--bg);border-radius:10px;padding:14px 16px;text-align:left;margin-bottom:18px;}
+.vb-title{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;}
+.vb-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.vb-row{display:flex;align-items:center;gap:6px;font-size:0.73rem;}
+.vb-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.vb-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);}
+.vb-pl{font-size:0.63rem;color:var(--muted);}
+
+.btn-restart{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:12px 32px;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:900;cursor:pointer;transition:all 0.15s;margin-right:8px;}
+.btn-restart:hover{background:#2a4a6a;}
+.btn-hard{background:var(--red);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:900;cursor:pointer;transition:all 0.15s;}
+.btn-hard:hover{background:#b02020;}
+
+/* FOOTER */
+.footer{margin-top:12px;display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Instrukcje przy załadunku</div>
+    <div class="h-sub">Lekcja 10 · Moduł 2 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">10 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">0 / 10 rund</div>
+</div>
+
+<!-- EKRAN STARTOWY -->
+<div class="start-card" id="startCard">
+  <div class="sc-icon">🏭</div>
+  <div class="sc-title">Symulator komend</div>
+  <div class="sc-sub">Magazynier wydaje komendy — Ty musisz wiedzieć co robić. 10 rund, każda z limitem czasu.</div>
+  <div class="sc-rules">
+    <div class="sc-rule"><span class="sc-ri">📢</span>Widzisz komendę po angielsku — wybierz co robisz</div>
+    <div class="sc-rule"><span class="sc-ri">⏱️</span>Masz 20 sekund na odpowiedź — potem automatycznie błąd</div>
+    <div class="sc-rule"><span class="sc-ri">⭐</span>Szybka odpowiedź = więcej punktów</div>
+    <div class="sc-rule"><span class="sc-ri">📋</span>Na końcu raport — które komendy sprawiały problem</div>
+  </div>
+  <button class="btn-start" onclick="startGame()">▶ START — ZACZYNAM ZAŁADUNEK</button>
+</div>
+
+<!-- EKRAN GRY -->
+<div class="game-card" id="gameCard">
+  <div class="status-bar">
+    <div class="sb-round" id="sbRound">RUNDA 1 / 10</div>
+    <div class="sb-score">⭐ <span id="sbScore">0</span> pkt</div>
+    <div class="sb-timer" id="sbTimer">8</div>
+  </div>
+  <div class="command-section">
+    <div class="cs-from">MAGAZYNIER MÓWI:</div>
+    <div class="cs-command" id="csCommand">—</div>
+    <div style="margin-top:10px;display:flex;align-items:center;justify-content:center;">
+      <button id="speakBtn" onclick="speakCmd()" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:6px 16px;font-family:'Nunito',sans-serif;font-size:0.72rem;font-weight:700;color:var(--navy);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s;">🔊 Posłuchaj wymowy</button>
+    </div>
+    <div class="cs-situation" id="csSituation" style="margin-top:8px;">—</div>
+  </div>
+  <div class="options-section">
+    <div class="os-label">Co robisz?</div>
+    <div class="opts" id="opts"></div>
+  </div>
+  <div class="feedback" id="feedback"></div>
+  <button class="btn-next" id="btnNext" onclick="nextRound()">NASTĘPNA KOMENDA →</button>
+</div>
+
+<!-- EKRAN WYNIKÓW -->
+<div class="result-card" id="resultCard">
+  <div class="rc-icon" id="rcIcon">🏆</div>
+  <div class="rc-title" id="rcTitle">Załadunek ukończony!</div>
+  <div class="rc-sub" id="rcSub">Mareczek wie jak reagować na komendy</div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-num" id="stCorrect">0</div><div class="stat-lbl">Poprawnych</div></div>
+    <div class="stat-box"><div class="stat-num" id="stScore">0</div><div class="stat-lbl">Punktów</div></div>
+    <div class="stat-box"><div class="stat-num" id="stTime">0s</div><div class="stat-lbl">Śr. czas</div></div>
+  </div>
+  <div class="errors-box" id="errorsBox" style="display:none">
+    <div class="eb-title">Komendy do powtórzenia</div>
+    <div id="errorsList"></div>
+  </div>
+  <div class="vocab-box">
+    <div class="vb-title">Słownik — Lekcja 10</div>
+    <div class="vb-grid">
+      <div class="vb-row"><div class="vb-dot" style="background:#1a2e4a"></div><div class="vb-en">Back up slowly!</div><div class="vb-pl">Cofaj powoli!</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#d63528"></div><div class="vb-en">Stop!</div><div class="vb-pl">Zatrzymaj się!</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#15803d"></div><div class="vb-en">Secure the load!</div><div class="vb-pl">Zabezpiecz ładunek!</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#e07820"></div><div class="vb-en">Wrap it with stretch!</div><div class="vb-pl">Owiń folią stretch!</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#7c3aed"></div><div class="vb-en">This side up!</div><div class="vb-pl">Tą stroną do góry!</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#0891b2"></div><div class="vb-en">How many straps?</div><div class="vb-pl">Ile pasków?</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#c8a040"></div><div class="vb-en">Go straight!</div><div class="vb-pl">Jedź prosto!</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#888"></div><div class="vb-en">A little more!</div><div class="vb-pl">Jeszcze trochę!</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#d63528"></div><div class="vb-en">That's enough!</div><div class="vb-pl">Wystarczy!</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#15803d"></div><div class="vb-en">Handle with care!</div><div class="vb-pl">Ostrożnie!</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#7c3aed"></div><div class="vb-en">strap / lashing</div><div class="vb-pl">pas mocujący</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#0891b2"></div><div class="vb-en">stretch wrap</div><div class="vb-pl">folia stretch</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#e07820"></div><div class="vb-en">this side up</div><div class="vb-pl">ta strona do góry</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#d63528"></div><div class="vb-en">fragile</div><div class="vb-pl">kruchy</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#15803d"></div><div class="vb-en">straight</div><div class="vb-pl">prosto</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#1a2e4a"></div><div class="vb-en">load</div><div class="vb-pl">ładunek</div></div>
+    </div>
+  </div>
+  <button class="btn-restart" onclick="restart()">↺ Zagraj jeszcze raz</button>
+  <button class="btn-hard" onclick="startHard()">🔥 Tryb trudny (5 sek)</button>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d"></div><div class="f-d on"></div><div class="f-d"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const ALL_ROUNDS = [
+  {
+    cmd:'"Back up slowly!"',
+    situation:'Magazynier stoi za ciężarówką i macha ręką',
+    opts:['Cofam powoli w kierunku rampy','Jadę do przodu','Zatrzymuję się i wyłączam silnik'],
+    and:0,
+    tip:'<span class="kw">Back up</span> = cofaj. <span class="kw">Slowly</span> = powoli. Zawsze cofaj powoli obserwując magazyniera!',
+  },
+  {
+    cmd:'"Stop! That\'s enough!"',
+    situation:'Ciężarówka jest prawie przy rampie',
+    opts:['Zatrzymuję się natychmiast','Cofam jeszcze trochę','Jadę do przodu'],
+    and:0,
+    tip:'<span class="kw">Stop!</span> = zatrzymaj się natychmiast. <span class="kw">That\'s enough</span> = wystarczy — jesteś w idealnej pozycji!',
+  },
+  {
+    cmd:'"Go straight! Straight!"',
+    situation:'Ciężarówka jedzie krzywo przy cofaniu',
+    opts:['Skręcam w lewo','Jadę prosto nie skręcając','Zatrzymuję się i pytam o kierunek'],
+    and:1,
+    tip:'<span class="kw">Go straight</span> = jedź prosto. Powtórzona komenda oznacza że to pilne — nie skręcaj!',
+  },
+  {
+    cmd:'"A little more to the left!"',
+    situation:'Magazynier wskazuje kierunek kołami',
+    opts:['Skręcam kierownicę w lewo','Skręcam kierownicę w prawo','Zatrzymuję się'],
+    and:0,
+    tip:'<span class="kw">A little more</span> = jeszcze trochę. <span class="kw">To the left</span> = w lewo. Left/right = zawsze z perspektywy kierowcy w kabinie!',
+  },
+  {
+    cmd:'"Secure the load please!"',
+    situation:'Palety zostały załadowane na naczepę',
+    opts:['Zamykam drzwi naczepy i odjeżdżam','Zakładam paski i zabezpieczam ładunek','Pytam o liczbę palet'],
+    and:1,
+    tip:'<span class="kw">Secure the load</span> = zabezpiecz ładunek. Paski, kliny, folia — wszystko musi być przed wyjazdem!',
+  },
+  {
+    cmd:'"Wrap it with stretch please!"',
+    situation:'Magazynier wskazuje na niezabezpieczone kartony',
+    opts:['Owijam ładunek folią stretch','Zakładam paski zabezpieczające','Opuszczam windę załadunkową'],
+    and:0,
+    tip:'<span class="kw">Wrap with stretch</span> = owiń folią stretch. Stretch wrap = folia stretch do zabezpieczania palet.',
+  },
+  {
+    cmd:'"This side up — fragile!"',
+    situation:'Magazynier pokazuje na karton z napisem',
+    opts:['Odwracam karton spodem do góry','Upewniam się że karton stoi właściwą stroną do góry','Odkładam karton na bok'],
+    and:1,
+    tip:'<span class="kw">This side up</span> = tą stroną do góry. <span class="kw">Fragile</span> = kruchy/delikatny. Sprawdzaj orientację każdego kartonu!',
+  },
+  {
+    cmd:'"How many straps do you need?"',
+    situation:'Magazynier pyta przed załadunkiem',
+    opts:['Odpowiadam ile pasków potrzebuję do zabezpieczenia','Mówię ile palet jadę zabrać','Pytam o wagę ładunku'],
+    and:0,
+    tip:'<span class="kw">Straps</span> = paski zabezpieczające. Odpowiedź: <span class="kw">I need four straps please.</span> = Potrzebuję czterech pasków.',
+  },
+  {
+    cmd:'"Handle with care!"',
+    situation:'Wózek widłowy jedzie z delikatnym ładunkiem',
+    opts:['Schodzę z drogi wózka i uważam','Pomagam przy rozładunku','Pytam o wagę palet'],
+    and:0,
+    tip:'<span class="kw">Handle with care</span> = obchodź się ostrożnie / ostrożnie. Używane dla delikatnego lub cennego towaru.',
+  },
+  {
+    cmd:'"Do not stack — one layer only!"',
+    situation:'Magazynier układa kartony na palecie',
+    opts:['Pilnuję żeby kartony leżały tylko w jednej warstwie','Pomagam ułożyć kartony w kilku warstwach','Pytam o liczbę kartonów'],
+    and:0,
+    tip:'<span class="kw">Do not stack</span> = nie piętrować. <span class="kw">One layer only</span> = tylko jedna warstwa. Ważne dla kruchego towaru!',
+  },
+];
+
+let rounds = [];
+let cur = 0;
+let score = 0;
+let correct = 0;
+let errors = [];
+let timeLimit = 20;
+let timer = null;
+let timeLeft = 0;
+let startTime = 0;
+let totalTime = 0;
+let answered = false;
+
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function startGame(limit = 20) {
+  timeLimit = limit;
+  rounds = shuffle(ALL_ROUNDS).slice(0, 10);
+  cur = 0; score = 0; correct = 0; errors = []; totalTime = 0; answered = false;
+  document.getElementById('startCard').style.display = 'none';
+  document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('gameCard').style.display = 'block';
+  renderRound();
+}
+
+function startHard() { startGame(10); }
+
+function renderRound() {
+  const r = rounds[cur];
+  answered = false;
+  document.getElementById('sbRound').textContent = `RUNDA ${cur+1} / ${rounds.length}`;
+  document.getElementById('sbScore').textContent = score;
+  document.getElementById('csCommand').textContent = r.cmd;
+  document.getElementById('csSituation').textContent = r.situation;
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('btnNext').className = 'btn-next';
+  document.getElementById('progFill').style.width = ((cur / rounds.length) * 100) + '%';
+  document.getElementById('progTxt').textContent = `${cur} / ${rounds.length} rund`;
+
+  // Przywracamy przycisk audio do domyślnego stanu
+  const btn = document.getElementById('speakBtn');
+  if (btn) {
+    btn.classList.remove('playing');
+    btn.textContent = '🔊 Posłuchaj wymowy';
+  }
+
+  // Opcje w losowej kolejności ale zachowaj indeks poprawnej
+  const optData = r.opts.map((o, i) => ({text: o, isCorrect: i === r.and}));
+  const shuffledOpts = shuffle(optData);
+
+  document.getElementById('opts').innerHTML = shuffledOpts.map((o, i) => `
+    <button class="opt" onclick="choose(this, ${o.isCorrect})" id="opt${i}">
+      <div class="opt-letter">${['A','B','C'][i]}</div>
+      <div class="opt-text">${o.text}</div>
+    </button>
+  `).join('');
+
+  startTimer();
+  startTime = Date.now();
+}
+
+function startTimer() {
+  clearInterval(timer);
+  timeLeft = timeLimit;
+  const timerEl = document.getElementById('sbTimer');
+  timerEl.textContent = timeLeft;
+  timerEl.className = 'sb-timer';
+
+  timer = setInterval(() => {
+    timeLeft--;
+    timerEl.textContent = timeLeft;
+    if(timeLeft <= 3) timerEl.className = 'sb-timer urgent';
+    if(timeLeft <= 0) {
+      clearInterval(timer);
+      if(!answered) timeUp();
+    }
+  }, 1000);
+}
+
+function timeUp() {
+  answered = true;
+  document.querySelectorAll('.opt').forEach(b => b.disabled = true);
+  const r = rounds[cur];
+  
+  // Zatrzymujemy ew. odtwarzanie audio
+  if (_ap) { _ap.pause(); _ap = null; }
+  window.speechSynthesis.cancel();
+  
+  const allOpts = document.querySelectorAll('.opt');
+  const optData = Array.from(allOpts);
+  optData.forEach((btn, i) => {
+    const txt = btn.querySelector('.opt-text').textContent;
+    if(txt === r.opts[r.and]) btn.classList.add('correct');
+  });
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback show no';
+  fb.innerHTML = '⏱️ Czas minął! ' + r.tip;
+  errors.push(r);
+  totalTime += timeLimit;
+  cur++;
+  document.getElementById('btnNext').className = 'btn-next show';
+  document.getElementById('btnNext').textContent = cur < rounds.length ? 'NASTĘPNA KOMENDA →' : 'WYNIKI →';
+}
+
+function choose(btn, isCorrect) {
+  if(answered) return;
+  answered = true;
+  clearInterval(timer);
+  
+  // Zatrzymujemy ew. odtwarzanie audio po dokonaniu wyboru
+  if (_ap) { _ap.pause(); _ap = null; }
+  window.speechSynthesis.cancel();
+
+  const elapsed = (Date.now() - startTime) / 1000;
+  totalTime += elapsed;
+  document.querySelectorAll('.opt').forEach(b => b.disabled = true);
+  const r = rounds[cur];
+  const fb = document.getElementById('feedback');
+
+  if(isCorrect) {
+    btn.classList.add('correct');
+    const pts = Math.max(1, Math.round((timeLimit - elapsed) * 10));
+    score += pts;
+    correct++;
+    fb.className = 'feedback show ok';
+    fb.innerHTML = `✅ +${pts} pkt! ` + r.tip;
+    document.getElementById('sbScore').textContent = score;
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.opt').forEach(b => {
+      if(b.querySelector('.opt-text').textContent === r.opts[r.and]) b.classList.add('correct');
+    });
+    fb.className = 'feedback show no';
+    fb.innerHTML = '❌ ' + r.tip;
+    errors.push(r);
+  }
+  cur++;
+  const nb = document.getElementById('btnNext');
+  nb.className = 'btn-next show';
+  nb.textContent = cur < rounds.length ? 'NASTĘPNA KOMENDA →' : 'WYNIKI →';
+}
+
+function nextRound() {
+  if(cur >= rounds.length) { showResults(); return; }
+  document.getElementById('progFill').style.width = ((cur / rounds.length) * 100) + '%';
+  renderRound();
+}
+
+function showResults() {
+  clearInterval(timer);
+  document.getElementById('gameCard').style.display = 'none';
+  const rc = document.getElementById('resultCard');
+  rc.style.display = 'block';
+  document.getElementById('progFill').style.width = '100%';
+  document.getElementById('progTxt').textContent = 'Ukończono!';
+
+  document.getElementById('stCorrect').textContent = correct + '/' + rounds.length;
+  document.getElementById('stScore').textContent = score;
+  document.getElementById('stTime').textContent = (totalTime / rounds.length).toFixed(1) + 's';
+
+  if(correct >= 9) {
+    document.getElementById('rcIcon').textContent = '🏆';
+    document.getElementById('rcTitle').textContent = 'Mistrz załadunku!';
+    document.getElementById('rcSub').textContent = 'Mareczek reaguje na komendy jak zawodowiec!';
+  } else if(correct >= 7) {
+    document.getElementById('rcIcon').textContent = '🥈';
+    document.getElementById('rcTitle').textContent = 'Dobra robota!';
+    document.getElementById('rcSub').textContent = 'Prawie idealnie — powtórz trudne komendy!';
+  } else {
+    document.getElementById('rcIcon').textContent = '💪';
+    document.getElementById('rcTitle').textContent = 'Ćwicz dalej!';
+    document.getElementById('rcSub').textContent = 'Komendy wymagają szybkiej reakcji — graj jeszcze raz!';
+  }
+
+  if(errors.length > 0) {
+    const eb = document.getElementById('errorsBox');
+    eb.style.display = 'block';
+    document.getElementById('errorsList').innerHTML = [...new Map(errors.map(e=>[e.cmd,e])).values()].map(e => `
+      <div class="err-row">
+        <div class="err-cmd">${e.cmd}</div>
+        <div class="err-arrow">→</div>
+        <div class="err-pl">${e.opts[e.and]}</div>
+      </div>
+    `).join('');
+  }
+}
+
+function restart() {
+  document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('startCard').style.display = 'block';
+  document.getElementById('progFill').style.width = '0%';
+  document.getElementById('progTxt').textContent = '0 / 10 rund';
+  // Czyścimy ew. listę błędów żeby po restarcie nie zostawała
+  document.getElementById('errorsBox').style.display = 'none';
+  document.getElementById('errorsList').innerHTML = '';
+}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  // Komendy z głównej gry (oczyszczone z cudzysłowów)
+  'Back up slowly!': 'audio/L10/back_up_slowly_l10.mp3',
+  'Stop! That\'s enough!': 'audio/L10/stop_thats_enough_l10.mp3',
+  'Go straight! Straight!': 'audio/L10/go_straight_straight_l10.mp3',
+  'A little more to the left!': 'audio/L10/a_little_more_to_the_left_l10.mp3',
+  'Secure the load please!': 'audio/L10/secure_the_load_please_l10.mp3',
+  'Wrap it with stretch please!': 'audio/L10/wrap_it_with_stretch_please_l10.mp3',
+  'This side up — fragile!': 'audio/L10/this_side_up_fragile_l10.mp3',
+  'How many straps do you need?': 'audio/L10/how_many_straps_do_you_need_l10.mp3',
+  'Handle with care!': 'audio/L10/handle_with_care_l10.mp3',
+  'Do not stack — one layer only!': 'audio/L10/do_not_stack_one_layer_only_l10.mp3',
+
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  // Czyścimy cudzysłowy (" i „)
+  const clean = text.replace(/["“”„]/g, '').trim();
+  
+  if(_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '🔊 Posłuchaj wymowy';
+
+  if (btn) {
+    btn.classList.add('playing');
+    btn.textContent = '⌛ Ładowanie...';
+    // Style dostosowane pod ten specyficzny przycisk w lekcji 10
+    btn.style.background = 'var(--navy)';
+    btn.style.color = '#fff';
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("playing")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('playing');
+        btn.textContent = lbl;
+        btn.style.background = 'none';
+        btn.style.color = 'var(--navy)';
+      }
+    }
+
+    _ap.onplay = () => {
+      if (btn) {
+        btn.textContent = '🔊 Odtwarzam...';
+      }
+    };
+
+    _ap.onended = resetBtn;
+
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak pliku MP3 dla:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) {
+      if(btn) { 
+        btn.classList.remove('playing'); 
+        btn.textContent = "❌ Brak audio";
+        btn.style.background = 'none';
+        btn.style.color = 'var(--navy)'; 
+      }
+      return;
+  }
+  window.speechSynthesis.cancel();
+  const lbl = label || '🔊 Posłuchaj wymowy';
+  if(btn){ 
+    btn.classList.add('playing'); 
+    btn.textContent = '🔊 Odtwarzam (Bot)...'; 
+    btn.style.background = 'var(--navy)';
+    btn.style.color = '#fff';
+  }
+  
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend  = ()=>{ 
+      if(btn){ 
+        btn.classList.remove('playing'); 
+        btn.textContent = lbl;
+        btn.style.background = 'none';
+        btn.style.color = 'var(--navy)';
+      } 
+    };
+    u.onerror= ()=>{ 
+      if(btn){ 
+        btn.classList.remove('playing'); 
+        btn.textContent = lbl;
+        btn.style.background = 'none';
+        btn.style.color = 'var(--navy)';
+      } 
+    };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+function speakCmd(){
+  const btn = document.getElementById('speakBtn');
+  const text = document.getElementById('csCommand').textContent;
+  if(!text || text==='—') return;
+  _playAudio(text, btn, '🔊 Posłuchaj wymowy');
+}
+
+function speakVocab(text) {
+  _playAudio(text, null, null);
+}
+
+// Podpięcie kliknięć w słowniczku
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".vocab-box .vb-row").forEach(row => {
+        let enWord = row.querySelector(".vb-en").textContent;
+        row.style.cursor = "pointer";
+        row.style.padding = "4px 6px";
+        row.style.borderRadius = "6px";
+        row.style.transition = "background 0.15s";
+        row.addEventListener('mouseover', () => row.style.background = 'rgba(26,46,74,0.05)');
+        row.addEventListener('mouseout', () => row.style.background = 'transparent');
+    });
+});
+
+</script>
+</body>
+</html>

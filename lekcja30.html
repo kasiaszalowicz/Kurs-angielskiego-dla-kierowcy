@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 30 &#8212; Ko&#322;o fortuny</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--navy:#1a2e4a;--red:#d63528;--green:#15803d;--bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;--orange:#e07820;}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:560px;margin:0 auto;}
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;}
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--navy),var(--orange));border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+.intro{background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:11px 16px;margin-bottom:16px;font-size:0.78rem;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:10px;}
+.wheel-section{display:flex;flex-direction:column;align-items:center;margin-bottom:16px;}
+.wheel-wrap{position:relative;width:320px;height:320px;margin-bottom:16px;}
+.pointer{position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:32px solid var(--red);z-index:10;}
+canvas{display:block;border-radius:50%;}
+.btn-spin{background:var(--red);color:#fff;border:none;border-radius:12px;padding:15px 48px;font-family:'Nunito',sans-serif;font-size:1.05rem;font-weight:900;cursor:pointer;letter-spacing:1px;}
+.btn-spin:disabled{opacity:0.5;cursor:not-allowed;}
+.result-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}
+.rc-bar{height:5px;background:linear-gradient(90deg,var(--red),var(--orange));}
+.rc-body{padding:18px 20px;}
+.rc-label{font-size:0.58rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;}
+.rc-phrase{font-family:'Courier Prime',monospace;font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:5px;line-height:1.4;}
+.rc-pl{font-size:0.75rem;color:var(--muted);font-style:italic;margin-bottom:5px;}
+.rc-lesson{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;}
+.rc-actions{display:flex;gap:8px;}
+.btn-snd{background:none;border:1.5px solid var(--border);border-radius:8px;padding:8px 16px;font-family:'Nunito',sans-serif;font-size:0.75rem;font-weight:700;color:var(--navy);cursor:pointer;display:flex;align-items:center;gap:6px;}
+.btn-snd:hover{border-color:var(--navy);}
+.btn-snd.playing{background:var(--navy);color:#fff;border-color:var(--navy);}
+.btn-again{background:var(--navy);color:#fff;border:none;border-radius:8px;padding:8px 18px;font-family:'Nunito',sans-serif;font-size:0.75rem;font-weight:900;cursor:pointer;margin-left:auto;}
+
+
+
+
+
+
+
+
+
+
+
+.end-card{background:var(--navy);border-radius:12px;overflow:hidden;display:none;margin-bottom:12px;}
+.end-card.show{display:block;}
+.end-top{background:#0d1f35;padding:24px;text-align:center;}
+.end-icon{font-size:3rem;display:block;margin-bottom:10px;}
+.end-title{font-size:1.3rem;font-weight:900;color:#fff;margin-bottom:6px;}
+.end-sub{font-size:0.8rem;color:rgba(255,255,255,0.45);line-height:1.6;}
+.end-body{padding:18px 20px;}
+.end-score{background:rgba(255,255,255,0.06);border-radius:10px;padding:14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.es-lbl{font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:1.5px;}
+.es-val{font-size:1.6rem;font-weight:900;color:#fff;}
+.btn-restart{width:100%;background:#fff;color:var(--navy);border:none;border-radius:10px;padding:13px;font-family:'Nunito',sans-serif;font-size:0.88rem;font-weight:900;cursor:pointer;}
+.footer{display:flex;align-items:center;justify-content:space-between;margin-top:4px;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="header">
+  <div>
+    <div class="h-title">Ko&#322;o fortuny &#8212; fina&#322; kursu!</div>
+    <div class="h-sub">Lekcja 30 &middot; Podsumowanie &middot; Angielski z Mareczkiem &middot; Crosshaul</div>
+  </div>
+  <div class="h-badge">30 / 30</div>
+</div>
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">0 / 20 fraz</div>
+</div>
+<div class="intro">
+  <span style="font-size:1.3rem;flex-shrink:0">&#127881;</span>
+  Zakr&#281;&#263; ko&#322;em &#8212; wylosuje fraz&#281; z ca&#322;ego kursu. Pos&#322;uchaj wymowy i sprawd&#378; czy j&#261; pami&#281;tasz!
+</div>
+<div class="wheel-section">
+  <div class="wheel-wrap">
+    <div class="pointer"></div>
+    <canvas id="wheel" width="320" height="320"></canvas>
+  </div>
+  <button class="btn-spin" id="btnSpin" onclick="spin()">&#9654; ZAKR&#280;&#262;!</button>
+<div id="spinDots" style="display:flex;flex-wrap:nowrap;gap:4px;margin-top:14px;justify-content:center;width:320px;overflow:hidden;"></div>
+</div>
+<div class="result-card">
+  <div class="rc-bar"></div>
+  <div class="rc-body">
+    <div class="rc-label">Wylosowana fraza:</div>
+    <div class="rc-phrase" id="rcPhrase">Zakr&#281;&#263; ko&#322;em &#8594;</div>
+    <div class="rc-pl" id="rcPl"></div>
+    <div class="rc-lesson" id="rcLesson"></div>
+    <div class="rc-actions" id="rcActions" style="display:none">
+      <button class="btn-snd" id="btnSnd" onclick="speakResult()">&#128266; Pos&#322;uchaj wymowy</button>
+      <button class="btn-again" onclick="spin()">&#9654; Jeszcze raz</button>
+    </div>
+  </div>
+</div>
+
+<div class="end-card" id="endCard">
+  <div class="end-top">
+    <span class="end-icon">&#127881;</span>
+    <div class="end-title">Kurs uko&#324;czony!</div>
+    <div class="end-sub">Mareczek przejecha&#322; ca&#322;&#261; tras&#281;.<br>Znasz angielski dla kierowcy TIR!</div>
+  </div>
+  <div class="end-body">
+    <div class="end-score">
+      <div class="es-lbl">Wylosowanych fraz</div>
+      <div class="es-val" id="endScore">20 / 20</div>
+    </div>
+    <button class="btn-restart" onclick="restart()">&#8635; Zagraj jeszcze raz</button>
+  </div>
+</div>
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM &middot; CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d on"></div><div class="f-d on"></div><div class="f-d on"></div><div class="f-d on"></div><div class="f-d on"></div>
+  </div>
+</div>
+</div>
+<script>
+/* ════════════════════════════════
+   DANE I KONFIGURACJA KOŁA
+════════════════════════════════ */
+var PHRASES = [
+  {en:"Here is my CMR.",                    pl:"Proszę, oto moje CMR.",                 lesson:"Lekcja 4",  idx:0},
+  {en:"I do not sign this.",                pl:"Nie podpisuję tego.",                   lesson:"Lekcja 6",  idx:1},
+  {en:"Back up slowly!",                    pl:"Cofaj powoli!",                         lesson:"Lekcja 2",  idx:2},
+  {en:"Where is the loading dock?",         pl:"Gdzie jest rampa załadunkowa?",         lesson:"Lekcja 9",  idx:3},
+  {en:"I am in transit to Germany.",        pl:"Jadę tranzytem do Niemiec.",            lesson:"Lekcja 19", idx:4},
+  {en:"The goods are damaged.",             pl:"Towar jest uszkodzony.",                lesson:"Lekcja 12", idx:5},
+  {en:"I need a tow truck.",                pl:"Potrzebuję holownika.",                 lesson:"Lekcja 21", idx:6},
+  {en:"Can I park here overnight?",         pl:"Czy mogę tu zaparkować na noc?",        lesson:"Lekcja 27", idx:7},
+  {en:"Please sign here.",                  pl:"Proszę tu podpisać.",                   lesson:"Lekcja 14", idx:8},
+  {en:"I have a CEMT permit.",              pl:"Mam zezwolenie CEMT.",                  lesson:"Lekcja 19", idx:9},
+  {en:"Stop the engine immediately!",       pl:"Natychmiast wyłącz silnik!",            lesson:"Lekcja 24", idx:10},
+  {en:"I disagree with this fine.",         pl:"Nie zgadzam się z mandatem.",           lesson:"Lekcja 20", idx:11},
+  {en:"Good morning. Documents please.",    pl:"Dzień dobry. Proszę dokumenty.",       lesson:"Lekcja 5",  idx:12},
+  {en:"How many straps do you need?",       pl:"Ile pasów mocujących?",                 lesson:"Lekcja 10", idx:13},
+  {en:"Please pull over for inspection.",   pl:"Proszę zjechać na kontrolę.",           lesson:"Lekcja 15", idx:14},
+  {en:"Can I have a receipt please?",       pl:"Proszę o paragon.",                     lesson:"Lekcja 26", idx:15},
+  {en:"Call 112 immediately!",              pl:"Dzwoń 112 natychmiast!",                lesson:"Lekcja 25", idx:16},
+  {en:"The cargo was complete at loading.", pl:"Ładunek był kompletny przy załadunku.", lesson:"Lekcja 8",  idx:17},
+  {en:"Is there safe parking here?",        pl:"Czy jest tu bezpieczny parking?",       lesson:"Lekcja 27", idx:18},
+  {en:"Thank you. Have a good day!",        pl:"Dziękuję. Dobrego dnia!",               lesson:"Lekcja 14", idx:19},
+];
+
+var COLORS = [
+  '#1a2e4a','#d63528','#15803d','#e07820','#0891b2',
+  '#7c3aed','#be185d','#854f0b','#1a6a3a','#c32020',
+  '#1a2e4a','#d63528','#15803d','#e07820','#0891b2',
+  '#7c3aed','#be185d','#854f0b','#1a6a3a','#c32020',
+];
+
+var canvas = document.getElementById('wheel');
+var ctx = canvas.getContext('2d');
+var W = 320, cx = W/2, cy = W/2, R = 148;
+var n = PHRASES.length;
+var arc = (2 * Math.PI) / n;
+var currentAngle = 0;
+var spinning = false;
+var currentResult = null;
+var seen = new Set();
+var spins = 0;
+
+/* ════════════════════════════════
+   LOGIKA GRY I RYSOWANIA
+════════════════════════════════ */
+function drawWheel(angle) {
+  ctx.clearRect(0, 0, W, W);
+  for (var i = 0; i < n; i++) {
+    var start = angle + i * arc;
+    var end = start + arc;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R, start, end);
+    ctx.closePath();
+    ctx.fillStyle = COLORS[i];
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(start + arc/2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.font = 'bold 7.5px Arial';
+    var label = PHRASES[i].en.length > 20 ? PHRASES[i].en.substring(0,18)+'...' : PHRASES[i].en;
+    ctx.fillText(label, R - 10, 3);
+    ctx.restore();
+  }
+  
+  // Środek koła
+  ctx.beginPath();
+  ctx.arc(cx, cy, 26, 0, 2*Math.PI);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.strokeStyle = '#1a2e4a';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.fillStyle = '#1a2e4a';
+  ctx.font = 'bold 11px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('GO', cx, cy+4);
+}
+
+function spin() {
+  if (spinning) return;
+  if (seen.size >= PHRASES.length) { showEnd(); return; }
+  spinning = true;
+  document.getElementById('btnSpin').disabled = true;
+  document.getElementById('rcActions').style.display = 'none';
+  document.getElementById('rcPhrase').textContent = '...';
+  document.getElementById('rcPl').textContent = '';
+  document.getElementById('rcLesson').textContent = '';
+  
+  var extraSpins = (6 + Math.random() * 6) * 2 * Math.PI;
+  var startAngle = currentAngle;
+  var targetAngle = startAngle + extraSpins;
+  var duration = 3500 + Math.random() * 1000;
+  var startTime = null;
+  
+  function animate(ts) {
+    if (!startTime) startTime = ts;
+    var elapsed = ts - startTime;
+    var progress = Math.min(elapsed / duration, 1);
+    var ease = 1 - Math.pow(1 - progress, 4); // ease out quart
+    var angle = startAngle + (targetAngle - startAngle) * ease;
+    
+    drawWheel(angle);
+    
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      currentAngle = targetAngle % (2 * Math.PI);
+      drawWheel(currentAngle);
+      spinning = false;
+      document.getElementById('btnSpin').disabled = false;
+      showResult();
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+function showResult() {
+  // Obliczanie wygranej części
+  var pointerAngle = -Math.PI / 2; // wskaźnik na górze
+  var normalized = ((pointerAngle - currentAngle) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI);
+  // Ponieważ łuki są rysowane zgodnie z ruchem wskazówek zegara od currentAngle,
+  // szukamy indeksu łuku, który znajduje się pod wskaźnikiem
+  var idx = Math.floor((2*Math.PI - normalized) / arc) % n;
+  
+  currentResult = PHRASES[idx];
+  spins++;
+  seen.add(idx);
+  
+  document.getElementById('rcPhrase').textContent = '"' + currentResult.en + '"';
+  document.getElementById('rcPl').textContent = currentResult.pl;
+  document.getElementById('rcLesson').textContent = currentResult.lesson;
+  document.getElementById('rcActions').style.display = 'flex';
+  
+  var snd = document.getElementById('btnSnd');
+  snd.classList.remove('playing');
+  snd.textContent = '► Posłuchaj wymowy';
+  
+  updateProgress();
+  renderDots();
+  
+  if (seen.size >= PHRASES.length) {
+    setTimeout(showEnd, 1000);
+  }
+}
+
+function renderDots() {
+  var el = document.getElementById('spinDots');
+  el.innerHTML = '';
+  for (var i = 0; i < n; i++) {
+    var d = document.createElement('div');
+    var isFound = seen.has(i);
+    d.style.cssText = 'width:12px;height:12px;border-radius:50%;background:' + (isFound ? '#15803d' : 'rgba(26,46,74,0.15)') + ';transition:all 0.3s;cursor:' + (isFound ? 'pointer' : 'default') + ';flex-shrink:0;';
+    d.title = PHRASES[i].en;
+    
+    if (isFound) {
+      (function(phrase) {
+        d.addEventListener('click', function() {
+          document.getElementById('rcPhrase').textContent = '"' + phrase.en + '"';
+          document.getElementById('rcPl').textContent = phrase.pl;
+          document.getElementById('rcLesson').textContent = phrase.lesson;
+          document.getElementById('rcActions').style.display = 'flex';
+          currentResult = phrase;
+          var snd = document.getElementById('btnSnd');
+          snd.classList.remove('playing');
+          snd.textContent = '► Posłuchaj wymowy';
+        });
+      })(PHRASES[i]);
+    }
+    el.appendChild(d);
+  }
+}
+
+function updateProgress() {
+  var pct = (seen.size / n) * 100;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progTxt').textContent = seen.size + ' / ' + n + ' fraz';
+}
+
+function showEnd() {
+  document.getElementById('endCard').classList.add('show');
+  document.getElementById('progFill').style.width = '100%';
+  document.getElementById('progTxt').textContent = 'Wszystkie 20 fraz!';
+  document.getElementById('endScore').textContent = seen.size + ' / ' + n;
+}
+
+function restart() {
+  currentAngle = 0; 
+  spinning = false; 
+  currentResult = null;
+  seen = new Set(); 
+  spins = 0;
+  
+  document.getElementById('endCard').classList.remove('show');
+  document.getElementById('rcPhrase').textContent = 'Zakręć kołem \u2192';
+  document.getElementById('rcPl').textContent = '';
+  document.getElementById('rcLesson').textContent = '';
+  document.getElementById('rcActions').style.display = 'none';
+  document.getElementById('progFill').style.width = '0%';
+  document.getElementById('progTxt').textContent = '0 / 20 fraz';
+  
+  drawWheel(0);
+  renderDots();
+}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  'Here is my CMR.': 'audio/L30/here_is_my_cmr_l30.mp3',
+  'I do not sign this.': 'audio/L30/i_do_not_sign_this_l30.mp3',
+  'Back up slowly!': 'audio/L30/back_up_slowly_l30.mp3',
+  'Where is the loading dock?': 'audio/L30/where_is_the_loading_dock_l30.mp3',
+  'I am in transit to Germany.': 'audio/L30/i_am_in_transit_to_germany_l30.mp3',
+  'The goods are damaged.': 'audio/L30/the_goods_are_damaged_l30.mp3',
+  'I need a tow truck.': 'audio/L30/i_need_a_tow_truck_l30.mp3',
+  'Can I park here overnight?': 'audio/L30/can_i_park_here_overnight_l30.mp3',
+  'Please sign here.': 'audio/L30/please_sign_here_l30.mp3',
+  'I have a CEMT permit.': 'audio/L30/i_have_a_cemt_permit_l30.mp3',
+  'Stop the engine immediately!': 'audio/L30/stop_the_engine_immediately_l30.mp3',
+  'I disagree with this fine.': 'audio/L30/i_disagree_with_this_fine_l30.mp3',
+  'Good morning. Documents please.': 'audio/L30/good_morning_documents_please_l30.mp3',
+  'How many straps do you need?': 'audio/L30/how_many_straps_do_you_need_l30.mp3',
+  'Please pull over for inspection.': 'audio/L30/please_pull_over_for_inspection_l30.mp3',
+  'Can I have a receipt please?': 'audio/L30/can_i_have_a_receipt_please_l30.mp3',
+  'Call 112 immediately!': 'audio/L30/call_112_immediately_l30.mp3',
+  'The cargo was complete at loading.': 'audio/L30/the_cargo_was_complete_at_loading_l30.mp3',
+  'Is there safe parking here?': 'audio/L30/is_there_safe_parking_here_l30.mp3',
+  'Thank you. Have a good day!': 'audio/L30/thank_you_have_a_good_day_l30.mp3'
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  
+  if(_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '► Posłuchaj wymowy';
+
+  if (btn) {
+    btn.classList.add('playing');
+    btn.textContent = '⌛ Ładowanie...';
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("playing")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('playing');
+        btn.textContent = lbl;
+      }
+    }
+
+    _ap.onplay = () => { if (btn) btn.textContent = '🔊 Odtwarzam...'; };
+    _ap.onended = resetBtn;
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak pliku MP3 dla:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const lbl = label || '► Posłuchaj wymowy';
+  if(btn){ btn.classList.add('playing'); btn.textContent='🔊 Odtwarzam (Bot)...'; }
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    u.onerror = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+function speakResult() {
+  if (!currentResult) return;
+  var btn = document.getElementById('btnSnd');
+  _playAudio(currentResult.en, btn, '► Posłuchaj wymowy');
+}
+
+/* INIT */
+drawWheel(0);
+renderDots();
+</script>
+</body>
+</html>

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 13 — Kolejka przy magazynie</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --orange:#e07820;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:680px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:var(--navy);border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* CHECKLIST */
+.checklist{margin-bottom:16px;}
+
+.item{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:10px;padding:13px 15px;margin-bottom:8px;
+  display:flex;align-items:flex-start;gap:12px;
+  cursor:pointer;transition:all 0.18s;
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+  user-select:none;
+}
+.item:hover{border-color:var(--navy);box-shadow:0 3px 10px rgba(26,46,74,0.08);}
+.item.checked{border-color:var(--green);background:#f0fdf4;}
+.item.open{border-color:var(--navy);}
+.item.checked.open{border-color:var(--green);}
+
+.cb{
+  width:24px;height:24px;border-radius:6px;
+  border:2px solid #d0cac0;flex-shrink:0;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.18s;background:var(--bg);
+  font-size:0.85rem;color:transparent;
+}
+.item.checked .cb{background:var(--green);border-color:var(--green);color:#fff;}
+
+.item-body{flex:1;min-width:0;}
+.item-header{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.item-en{font-family:'Courier Prime',monospace;font-size:0.95rem;font-weight:700;color:var(--navy);transition:color 0.18s;}
+.item.checked .item-en{color:var(--green);}
+.item-pl{font-size:0.65rem;font-weight:700;color:var(--muted);margin-top:2px;}
+.item-arrow{font-size:0.7rem;color:var(--muted);transition:transform 0.2s;flex-shrink:0;}
+.item.open .item-arrow{transform:rotate(180deg);}
+
+.item-detail{display:none;margin-top:10px;padding:10px 12px;background:var(--bg);border-radius:8px;}
+.item.open .item-detail{display:block;}
+.detail-ex{
+  font-family:'Courier Prime',monospace;font-size:0.82rem;font-weight:700;
+  color:var(--navy);border-left:2.5px solid var(--navy);
+  padding-left:10px;line-height:1.5;margin-bottom:4px;
+}
+.item.checked .detail-ex{border-left-color:var(--green);}
+.detail-pl{font-size:0.68rem;color:var(--muted);font-style:italic;padding-left:12px;margin-bottom:10px;}
+.detail-actions{display:flex;align-items:center;gap:8px;}
+.btn-sound{
+  background:none;border:1.5px solid var(--border);border-radius:7px;
+  padding:5px 12px;font-family:'Nunito',sans-serif;font-size:0.7rem;
+  font-weight:700;color:var(--navy);cursor:pointer;transition:all 0.15s;
+  display:flex;align-items:center;gap:5px;
+}
+.btn-sound:hover{border-color:var(--navy);background:var(--white);}
+.btn-sound.playing{background:var(--navy);color:#fff;border-color:var(--navy);}
+.btn-mark{
+  background:var(--navy);color:#fff;border:none;border-radius:7px;
+  padding:5px 14px;font-family:'Nunito',sans-serif;font-size:0.7rem;
+  font-weight:900;cursor:pointer;transition:all 0.15s;margin-left:auto;
+}
+.btn-mark:hover{background:#2a4a6a;}
+.item.checked .btn-mark{background:var(--green);}
+
+/* QUIZ */
+.quiz-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:14px;}
+.qc-head{background:var(--red);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;}
+.qc-title{font-size:0.65rem;font-weight:900;color:#fff;letter-spacing:1.5px;text-transform:uppercase;}
+.qc-prog{font-size:0.62rem;color:rgba(255,255,255,0.6);font-weight:700;}
+.qc-body{padding:13px 14px;}
+.q-q{font-size:0.82rem;font-weight:700;line-height:1.5;margin-bottom:10px;padding:8px 11px;background:var(--bg);border-radius:7px;border-left:2.5px solid var(--navy);}
+.q-opt{background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.78rem;font-weight:700;cursor:pointer;margin-bottom:6px;width:100%;text-align:left;color:var(--navy);display:flex;align-items:center;gap:9px;transition:all 0.13s;font-family:'Nunito',sans-serif;}
+.q-opt:last-child{margin-bottom:0;}
+.q-opt:hover:not(:disabled){border-color:var(--navy);background:var(--white);}
+.q-opt.ok{background:#f0fdf4;border-color:var(--green);color:var(--green);}
+.q-opt.no{background:#fef2f2;border-color:var(--red);color:var(--red);}
+.q-opt:disabled{cursor:default;}
+.q-ltr{width:20px;height:20px;border-radius:50%;background:rgba(26,46,74,0.1);display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:900;color:var(--navy);flex-shrink:0;transition:all 0.13s;}
+.q-opt.ok .q-ltr{background:var(--green);color:#fff;}
+.q-opt.no .q-ltr{background:var(--red);color:#fff;}
+.q-fb{font-size:0.72rem;font-weight:700;margin-top:8px;padding:7px 10px;border-radius:7px;display:none;line-height:1.5;}
+.q-fb.show{display:block;}
+.q-fb.ok{background:#f0fdf4;border:1px solid #86efac;color:var(--green);}
+.q-fb.no{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);}
+.q-next{margin-top:8px;width:100%;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:10px;font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:900;cursor:pointer;display:none;transition:all 0.15s;}
+.q-next:hover{background:#2a4a6a;}
+.q-next.show{display:block;}
+.q-done{background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:12px;text-align:center;font-size:0.8rem;font-weight:700;color:var(--green);display:none;}
+.q-done.show{display:block;}
+
+/* FOOTER */
+.footer{display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Kolejka przy magazynie</div>
+    <div class="h-sub">Lekcja 13 · Moduł 2 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">13 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">0 / 8 poznanych</div>
+</div>
+
+<div class="checklist" id="checklist"></div>
+
+<div class="quiz-card">
+  <div class="qc-head">
+    <div class="qc-title">Quiz</div>
+    <div class="qc-prog" id="qprog">1 / 5</div>
+  </div>
+  <div class="qc-body">
+    <div class="q-q" id="qq"></div>
+    <div id="qopts"></div>
+    <div class="q-fb" id="qfb"></div>
+    <button class="q-next" id="qnext" onclick="nextQ()">DALEJ →</button>
+    <div class="q-done" id="qdone">✅ Lekcja 13 ukończona! Znasz słownictwo kolejki przy magazynie.</div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d on"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div>
+<script>
+const ITEMS = [
+  {
+    en:'Appointment',
+    pl:'umówiony termin',
+    ex:'"I have an appointment at 2 PM."',
+    exPl:'Mam umówiony termin na 14:00.',
+  },
+  {
+    en:'Dock number',
+    pl:'numer rampy',
+    ex:'"Which dock number please?"',
+    exPl:'Który number rampy proszę?',
+  },
+  {
+    en:'Queue',
+    pl:'kolejka',
+    ex:'"Can I queue here?"',
+    exPl:'Czy mogę tutaj czekać w kolejce?',
+  },
+  {
+    en:'Wait',
+    pl:'czekać',
+    ex:'"How long is the wait?"',
+    exPl:'Jak długo trzeba czekać?',
+  },
+  {
+    en:'Next in line',
+    pl:'następny w kolejce',
+    ex:'"I am next in line."',
+    exPl:'Jestem następny w kolejce.',
+  },
+  {
+    en:'Proceed',
+    pl:'podejść / jechać dalej',
+    ex:'"Please let me know when I can proceed."',
+    exPl:'Proszę dać mi znać kiedy mogę jechać.',
+  },
+  {
+    en:'Reference number',
+    pl:'numer referencyjny',
+    ex:'"My reference number is REF-2025-0312."',
+    exPl:'Mój number referencyjny to REF-2025-0312.',
+  },
+  {
+    en:'What time can I start unloading?',
+    pl:'o której mogę zacząć rozładunek?',
+    ex:'"What time can I start unloading?"',
+    exPl:'O której mogę zacząć rozładunek?',
+  },
+];
+
+let checked = new Set();
+
+function buildList() {
+  var el = document.getElementById('checklist');
+  var out = '';
+  for (var i = 0; i < ITEMS.length; i++) {
+    var item = ITEMS[i];
+    out += '<div class="item" id="item'+i+'" onclick="toggleOpen('+i+')">';
+    out += '<div class="cb" id="cb'+i+'">✓</div>';
+    out += '<div class="item-body">';
+    out += '<div class="item-header">';
+    out += '<div>';
+    // Dodano możliwość kliknięcia i odsłuchania głównego słówka
+    out += '<div class="item-en" >' + item.en + '</div>';
+    out += '<div class="item-pl">' + item.pl + '</div>';
+    out += '</div>';
+    out += '<div class="item-arrow">▼</div>';
+    out += '</div>';
+    out += '<div class="item-detail">';
+    out += '<div class="detail-ex">' + item.ex + '</div>';
+    out += '<div class="detail-pl">' + item.exPl + '</div>';
+    out += '<div class="detail-actions">';
+    out += '<button class="btn-sound" id="snd'+i+'" onclick="event.stopPropagation(); speakItem('+i+')">🔊 Wymowa</button>';
+    out += '<button class="btn-mark" onclick="event.stopPropagation(); markItem('+i+')" id="mark'+i+'">Znam to</button>';
+    out += '</div></div></div></div>';
+  }
+  el.innerHTML = out;
+}
+
+function toggleOpen(i) {
+  document.getElementById('item'+i).classList.toggle('open');
+}
+
+function markItem(i) {
+  const el = document.getElementById('item'+i);
+  if(checked.has(i)){
+    checked.delete(i);
+    el.classList.remove('checked');
+  } else {
+    checked.add(i);
+    el.classList.add('checked');
+    setTimeout(()=>el.classList.remove('open'), 400);
+  }
+  updateProgress();
+}
+
+function updateProgress() {
+  const pct = (checked.size / ITEMS.length) * 100;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progTxt').textContent = `${checked.size} / ${ITEMS.length} poznanych`;
+}
+
+/* ════════════════
+   QUIZ
+════════════════ */
+const qs = [
+  {q:'Jak powiedzieć "mam umówiony termin"?',
+   opts:['"I have a queue."','"I have an appointment."','"I am next in line."','"I can proceed."'],
+   and:1,tip:'Appointment = umówiony termin. I have an appointment at 14:00 = mam umówiony termin na 14:00.'},
+  {q:'Pytasz o number rampy. Co mówisz?',
+   opts:['"What is the reference number?"','"How long is the wait?"','"Which dock number please?"','"Can I proceed?"'],
+   and:2,tip:'Dock number = number rampy. Which dock number please? = który number rampy proszę?'},
+  {q:'Chcesz wiedzieć jak długo czekać. Co mówisz?',
+   opts:['"I am next in line."','"How long is the wait?"','"Can I queue here?"','"What time can I start?"'],
+   and:1,tip:'Wait = czekanie / oczekiwanie. How long is the wait? = jak długo trzeba czekać?'},
+  {q:'Dyspozytor prosi o number referencyjny. Co podajesz?',
+   opts:['Numer CMR','Numer rampy','Numer rejestracyjny','Reference number'],
+   and:3,tip:'Reference number = number referencyjny. My reference number is REF-2025-0312.'},
+  {q:'Jesteś pierwszy w kolejce. Co mówisz?',
+   opts:['"I have an appointment."','"I am next in line."','"Please let me proceed."','"Which dock number?"'],
+   and:1,tip:'Next in line = następny w kolejce. I am next in line = jestem następny w kolejce.'},
+];
+let qi=0;
+
+function renderQ(){
+  if(qi>=qs.length){
+    document.getElementById('qq').style.display='none';
+    document.getElementById('qopts').innerHTML='';
+    document.getElementById('qfb').className='q-fb';
+    document.getElementById('qnext').classList.remove('show');
+    document.getElementById('qprog').textContent='';
+    document.getElementById('qdone').classList.add('show');
+    return;
+  }
+  const q=qs[qi];
+  document.getElementById('qprog').textContent=`${qi+1} / ${qs.length}`;
+  document.getElementById('qq').textContent=q.q;
+  document.getElementById('qfb').className='q-fb';
+  document.getElementById('qnext').classList.remove('show');
+  document.getElementById('qopts').innerHTML=q.opts.map((o,i)=>`
+    <button class="q-opt" onclick="qa(this,${i===q.and})">
+      <div class="q-ltr">${['A','B','C','D'][i]}</div>${o}
+    </button>
+  `).join('');
+}
+
+function qa(btn,c){
+  document.querySelectorAll('.q-opt').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('qfb');
+  if(c){btn.classList.add('ok');fb.className='q-fb show ok';fb.textContent='✅ '+qs[qi].tip;}
+  else{btn.classList.add('no');document.querySelectorAll('.q-opt')[qs[qi].and].classList.add('ok');fb.className='q-fb show no';fb.textContent='❌ '+qs[qi].tip;}
+  qi++;document.getElementById('qnext').classList.add('show');
+}
+function nextQ(){renderQ();}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  // Przykładowe zdania
+  'I have an appointment at 2 PM.': 'audio/L13/i_have_an_appointment_at_2_pm_l13.mp3',
+  'Which dock number please?': 'audio/L13/which_dock_number_please_l13.mp3',
+  'Can I queue here?': 'audio/L13/can_i_queue_here_l13.mp3',
+  'How long is the wait?': 'audio/L13/how_long_is_the_wait_l13.mp3',
+  'I am next in line.': 'audio/L13/i_am_next_in_line_l13.mp3',
+  'Please let me know when I can proceed.': 'audio/L13/please_let_me_know_when_i_can_proceed_l13.mp3',
+  'My reference number is REF-2025-0312.': 'audio/L13/my_reference_number_is_ref_2025_0312_l13.mp3',
+  'What time can I start unloading?': 'audio/L13/what_time_can_i_start_unloading_l13.mp3',
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  // Czyszczenie ze znaków cudzysłowu itp.
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  
+  if(_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '🔊 Posłuchaj wymowy';
+
+  if (btn) {
+    btn.classList.add('playing');
+    btn.textContent = '⌛ Ładowanie...';
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("playing")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('playing');
+        btn.textContent = lbl;
+      }
+    }
+
+    _ap.onplay = () => {
+      if (btn) btn.textContent = '🔊 Odtwarzam...';
+    };
+
+    _ap.onended = resetBtn;
+
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak pliku MP3 dla:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) {
+      if(btn) { btn.classList.remove('playing'); btn.textContent = "❌ Brak audio"; }
+      return;
+  }
+  window.speechSynthesis.cancel();
+  const lbl = label || '🔊 Posłuchaj wymowy';
+  if(btn){ 
+    btn.classList.add('playing'); 
+    btn.textContent = '🔊 Odtwarzam (Bot)...'; 
+  }
+  
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend  = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    u.onerror= ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+// Funkcja wywoływana przyciskiem "Wymowa" dla zdań
+function speakItem(i) {
+  const text = ITEMS[i].ex;
+  const btn = document.getElementById('snd'+i);
+  _playAudio(text, btn, '🔊 Wymowa');
+}
+
+// Funkcja wywoływana po kliknięciu słówka
+function speakVocab(word) {
+  _playAudio(word, null, null);
+}
+
+// Drobny efekt wizualny (hover) na główne słówko (item-en)
+document.addEventListener("DOMContentLoaded", () => {
+    // Dodajemy mały efekt podpowiadający klikalność angielskich słówek
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .item-en { cursor: pointer; display: inline-block; padding: 2px 4px; border-radius: 4px; transition: background 0.2s; margin-left: -4px;}
+      .item-en:hover { background: rgba(26,46,74,0.06); }
+    `;
+    document.head.appendChild(style);
+});
+
+/* INIT */
+buildList();
+renderQ();
+</script>
+</body>
+</html>

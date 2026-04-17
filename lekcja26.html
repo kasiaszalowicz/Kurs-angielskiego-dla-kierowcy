@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 26 — Paliwo na trasie</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --orange:#e07820;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:860px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:var(--navy);border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* MAIN LAYOUT */
+.main{display:grid;grid-template-columns:1fr 290px;gap:14px;margin-bottom:14px;}
+
+/* PARAGON */
+.receipt-wrap{
+  background:var(--white);
+  border:1.5px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.receipt-top{
+  background:var(--navy);padding:8px 16px;
+  font-size:0.6rem;font-weight:900;
+  color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;
+}
+
+/* Sam paragon */
+.receipt{
+  font-family:'Courier Prime',monospace;
+  padding:20px;
+  background:#fefefe;
+}
+
+/* Nagłówek paragonu */
+.r-header{text-align:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1.5px dashed #d0cac0;}
+.r-station{font-size:1rem;font-weight:700;color:var(--navy);letter-spacing:2px;}
+.r-address{font-size:0.68rem;color:var(--muted);margin-top:3px;}
+.r-date{font-size:0.65rem;color:var(--muted);margin-top:2px;}
+
+/* Sekcje paragonu */
+.r-section{margin-bottom:12px;padding-bottom:12px;border-bottom:1px dashed #e0dbd0;}
+.r-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.r-section-title{font-size:0.58rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;}
+
+/* Pozycja na paragonie */
+.r-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 10px;border-radius:8px;
+  cursor:pointer;transition:all 0.15s;
+  margin-bottom:4px;
+  border:1.5px solid transparent;
+}
+.r-item:last-child{margin-bottom:0;}
+.r-item:hover{background:var(--bg);border-color:var(--border);}
+.r-item.active{background:#f0f4ff;border-color:var(--navy);}
+.r-item.seen{border-color:#c8f0c8;}
+
+.ri-left{display:flex;align-items:center;gap:8px;}
+.ri-num{
+  width:18px;height:18px;border-radius:50%;
+  background:var(--navy);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.55rem;font-weight:900;
+  font-family:'Nunito',sans-serif;
+  flex-shrink:0;transition:background 0.15s;
+}
+.r-item.active .ri-num{background:var(--red);}
+.r-item.seen .ri-num{background:var(--green);}
+.ri-name{font-size:0.82rem;font-weight:700;color:var(--navy);}
+.ri-detail{font-size:0.65rem;color:var(--muted);}
+.ri-price{font-size:0.82rem;font-weight:700;color:var(--navy);white-space:nowrap;}
+
+/* Suma */
+.r-total{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 10px;
+  background:var(--navy);
+  border-radius:8px;
+  margin-top:4px;
+  cursor:pointer;
+  transition:all 0.15s;
+  border:1.5px solid transparent;
+}
+.r-total:hover{opacity:0.9;}
+.r-total.active{border-color:var(--red);}
+.r-total.seen{border-color:var(--green);}
+.rt-label{font-size:0.85rem;font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;}
+.rt-num{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.2);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:900;font-family:'Nunito',sans-serif;flex-shrink:0;}
+.r-total.active .rt-num{background:var(--red);}
+.r-total.seen .rt-num{background:var(--green);}
+.rt-price{font-size:0.9rem;font-weight:900;color:#fff;}
+
+/* Stopka paragonu */
+.r-footer{text-align:center;margin-top:16px;padding-top:12px;border-top:1.5px dashed #d0cac0;}
+.r-footer-txt{font-size:0.62rem;color:var(--muted);}
+
+/* Instrukcja */
+.r-hint{
+  text-align:center;margin-top:10px;
+  font-size:0.65rem;font-weight:700;color:var(--muted);
+  font-family:'Nunito',sans-serif;
+}
+
+/* PRAWY PANEL */
+.right-col{display:flex;flex-direction:column;gap:12px;}
+
+.active-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+  flex:1;
+}
+.ac-head{background:var(--navy);padding:8px 14px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.45);letter-spacing:1.5px;text-transform:uppercase;}
+.ac-body{padding:14px 15px;}
+.ac-empty{font-size:0.75rem;color:var(--muted);font-weight:700;text-align:center;padding:16px 0;line-height:1.7;}
+
+.ac-num{display:inline-block;background:rgba(26,46,74,0.08);color:var(--navy);font-size:0.58rem;font-weight:900;padding:2px 9px;border-radius:99px;letter-spacing:1px;margin-bottom:7px;}
+.ac-en{font-family:'Courier Prime',monospace;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:3px;line-height:1.3;}
+.ac-pl{font-size:0.73rem;font-weight:700;color:var(--muted);margin-bottom:10px;}
+
+.ac-phrase-label{font-size:0.58rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px;}
+.ac-phrase{
+  font-family:'Courier Prime',monospace;font-size:0.82rem;font-weight:700;
+  color:var(--navy);padding:8px 11px;background:var(--bg);
+  border-radius:7px;border-left:2.5px solid var(--navy);
+  line-height:1.5;margin-bottom:4px;
+}
+.ac-phrase-pl{font-size:0.65rem;color:var(--muted);font-style:italic;margin-bottom:8px;}
+.ac-tip{font-size:0.72rem;line-height:1.6;color:var(--navy);padding:7px 10px;background:var(--bg);border-radius:7px;margin-bottom:8px;}
+
+.ac-sound{width:100%;background:none;border:1.5px solid var(--border);border-radius:7px;padding:7px;font-family:'Nunito',sans-serif;font-size:0.72rem;font-weight:700;color:var(--navy);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.ac-sound:hover{border-color:var(--navy);background:var(--bg);}
+.ac-sound.pl{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+/* Słownik mini */
+.vocab-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.vc-head{background:var(--navy);padding:8px 14px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;}
+.vc-body{padding:8px 12px;}
+.v-row{display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:5px;transition:all 0.13s;margin-bottom:2px;}
+
+.v-dot{width:6px;height:6px;border-radius:50%;background:var(--navy);flex-shrink:0;}
+.v-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);font-size:0.7rem;}
+.v-pl{font-size:0.62rem;color:var(--muted);font-weight:700;margin-left:auto;}
+
+/* QUIZ */
+.quiz-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:14px;}
+.qc-head{background:var(--red);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;}
+.qc-title{font-size:0.65rem;font-weight:900;color:#fff;letter-spacing:1.5px;text-transform:uppercase;}
+.qc-prog{font-size:0.62rem;color:rgba(255,255,255,0.6);font-weight:700;}
+.qc-body{padding:13px 14px;}
+.q-q{font-size:0.82rem;font-weight:700;line-height:1.5;margin-bottom:10px;padding:8px 11px;background:var(--bg);border-radius:7px;border-left:2.5px solid var(--navy);}
+.q-opt{background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.78rem;font-weight:700;cursor:pointer;margin-bottom:6px;width:100%;text-align:left;color:var(--navy);display:flex;align-items:center;gap:9px;transition:all 0.13s;font-family:'Nunito',sans-serif;}
+.q-opt:last-child{margin-bottom:0;}
+.q-opt:hover:not(:disabled){border-color:var(--navy);background:var(--white);}
+.q-opt.ok{background:#f0fdf4;border-color:var(--green);color:var(--green);}
+.q-opt.no{background:#fef2f2;border-color:var(--red);color:var(--red);}
+.q-opt:disabled{cursor:default;}
+.q-ltr{width:20px;height:20px;border-radius:50%;background:rgba(26,46,74,0.1);display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:900;color:var(--navy);flex-shrink:0;transition:all 0.13s;}
+.q-opt.ok .q-ltr{background:var(--green);color:#fff;}
+.q-opt.no .q-ltr{background:var(--red);color:#fff;}
+.q-fb{font-size:0.72rem;font-weight:700;margin-top:8px;padding:7px 10px;border-radius:7px;display:none;line-height:1.5;}
+.q-fb.show{display:block;}
+.q-fb.ok{background:#f0fdf4;border:1px solid #86efac;color:var(--green);}
+.q-fb.no{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);}
+.q-next{margin-top:8px;width:100%;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:10px;font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:900;cursor:pointer;display:none;transition:all 0.15s;}
+.q-next:hover{background:#2a4a6a;}
+.q-next.show{display:block;}
+.q-done{background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:12px;text-align:center;font-size:0.8rem;font-weight:700;color:var(--green);display:none;}
+.q-done.show{display:block;}
+
+/* FOOTER */
+.footer{display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+
+@media(max-width:660px){
+  .main{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Paliwo na trasie</div>
+    <div class="h-sub">Lekcja 26 · Moduł 5 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">26 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">0 / 9 odkrytych</div>
+</div>
+
+<div class="main">
+
+  <!-- PARAGON -->
+  <div class="receipt-wrap">
+    <div class="receipt-top">Kliknij pozycję na paragonie — poznaj frazę</div>
+    <div class="receipt">
+
+      <!-- Nagłówek -->
+      <div class="r-header">
+        <div class="r-station">AUTOHOF FRANKFURT SÜD</div>
+        <div class="r-address">Truck Fuel Station · Autobahn A5 · Exit 23</div>
+        <div class="r-date">23.03.2026 &nbsp;·&nbsp; 14:37 &nbsp;·&nbsp; Pump 8 &nbsp;·&nbsp; TIR PO12345</div>
+      </div>
+
+      <!-- PALIWO -->
+      <div class="r-section">
+        <div class="r-section-title">Paliwo / Fuel</div>
+
+        <div class="r-item" id="ri1" onclick="activate(1)">
+          <div class="ri-left">
+            <div class="ri-num" id="rn1">1</div>
+            <div>
+              <div class="ri-name">Diesel EN590</div>
+              <div class="ri-detail">287.5 L &nbsp;·&nbsp; €1.689/L</div>
+            </div>
+          </div>
+          <div class="ri-price">€485.59</div>
+        </div>
+
+        <div class="r-item" id="ri2" onclick="activate(2)">
+          <div class="ri-left">
+            <div class="ri-num" id="rn2">2</div>
+            <div>
+              <div class="ri-name">AdBlue</div>
+              <div class="ri-detail">18.0 L &nbsp;·&nbsp; €0.89/L</div>
+            </div>
+          </div>
+          <div class="ri-price">€16.02</div>
+        </div>
+
+        <div class="r-item" id="ri3" onclick="activate(3)">
+          <div class="ri-left">
+            <div class="ri-num" id="rn3">3</div>
+            <div>
+              <div class="ri-name">Fuel card</div>
+              <div class="ri-detail">DKV · Authorization OK</div>
+            </div>
+          </div>
+          <div class="ri-price">—</div>
+        </div>
+      </div>
+
+      <!-- SKLEP -->
+      <div class="r-section">
+        <div class="r-section-title">Sklep / Shop</div>
+
+        <div class="r-item" id="ri4" onclick="activate(4)">
+          <div class="ri-left">
+            <div class="ri-num" id="rn4">4</div>
+            <div>
+              <div class="ri-name">Coffee — large</div>
+              <div class="ri-detail">1x &nbsp;·&nbsp; take away</div>
+            </div>
+          </div>
+          <div class="ri-price">€2.90</div>
+        </div>
+
+        <div class="r-item" id="ri5" onclick="activate(5)">
+          <div class="ri-left">
+            <div class="ri-num" id="rn5">5</div>
+            <div>
+              <div class="ri-name">Windscreen wash</div>
+              <div class="ri-detail">5L concentrate</div>
+            </div>
+          </div>
+          <div class="ri-price">€4.50</div>
+        </div>
+
+        <div class="r-item" id="ri6" onclick="activate(6)">
+          <div class="ri-left">
+            <div class="ri-num" id="rn6">6</div>
+            <div>
+              <div class="ri-name">Pump number</div>
+              <div class="ri-detail">Zapytaj o number pompy</div>
+            </div>
+          </div>
+          <div class="ri-price">Pump 8</div>
+        </div>
+      </div>
+
+      <!-- PŁATNOŚĆ -->
+      <div class="r-section">
+        <div class="r-section-title">Płatność / Payment</div>
+
+        <div class="r-item" id="ri7" onclick="activate(7)">
+          <div class="ri-left">
+            <div class="ri-num" id="rn7">7</div>
+            <div>
+              <div class="ri-name">Receipt</div>
+              <div class="ri-detail">Poproś o paragon</div>
+            </div>
+          </div>
+          <div class="ri-price">✓</div>
+        </div>
+
+        <div class="r-item" id="ri8" onclick="activate(8)">
+          <div class="ri-left">
+            <div class="ri-num" id="rn8">8</div>
+            <div>
+              <div class="ri-name">Fill it up</div>
+              <div class="ri-detail">Tankuj do pełna</div>
+            </div>
+          </div>
+          <div class="ri-price">→</div>
+        </div>
+      </div>
+
+      <!-- SUMA -->
+      <div class="r-total" id="ri9" onclick="activate(9)">
+        <div class="rt-label">
+          <div class="rt-num" id="rn9">9</div>
+          TOTAL
+        </div>
+        <div class="rt-price">€509.01</div>
+      </div>
+
+      <div class="r-footer">
+        <div class="r-footer-txt">Thank you · Danke · Dziękujemy</div>
+      </div>
+
+    </div>
+    <div class="r-hint">← Kliknij dowolną pozycję na paragonie</div>
+  </div>
+
+  <!-- PRAWY PANEL -->
+  <div class="right-col">
+    <div class="active-card">
+      <div class="ac-head">Aktywna pozycja</div>
+      <div class="ac-body" id="acBody">
+        <div class="ac-empty">← Kliknij pozycję<br>na paragonie</div>
+      </div>
+    </div>
+    <div class="vocab-card">
+      <div class="vc-head">Słownik — Lekcja 26</div>
+      <div class="vc-body">
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">diesel</div><div class="v-pl">olej napędowy</div></div>
+        <div class="v-row"><div class="v-dot" style="background:#0891b2"></div><div class="v-en">AdBlue</div><div class="v-pl">płyn SCR</div></div>
+        <div class="v-row"><div class="v-dot" style="background:#e07820"></div><div class="v-en">fuel card</div><div class="v-pl">karta paliwowa</div></div>
+        <div class="v-row"><div class="v-dot" style="background:#15803d"></div><div class="v-en">fill it up</div><div class="v-pl">do pełna</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">pump number</div><div class="v-pl">number pompy</div></div>
+        <div class="v-row"><div class="v-dot" style="background:#7c3aed"></div><div class="v-en">receipt</div><div class="v-pl">paragon</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">windscreen wash</div><div class="v-pl">płyn do spryskiwaczy</div></div>
+        <div class="v-row"><div class="v-dot" style="background:#d63528"></div><div class="v-en">total</div><div class="v-pl">suma / łącznie</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- QUIZ -->
+<div class="quiz-card">
+  <div class="qc-head">
+    <div class="qc-title">Quiz</div>
+    <div class="qc-prog" id="qprog">1 / 5</div>
+  </div>
+  <div class="qc-body">
+    <div class="q-q" id="qq"></div>
+    <div id="qopts"></div>
+    <div class="q-fb" id="qfb"></div>
+    <button class="q-next" id="qnext" onclick="nextQ()">DALEJ →</button>
+    <div class="q-done" id="qdone">✅ Lekcja 26 ukończona! Znasz słownictwo stacji paliwowej.</div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div>
+<script>
+/* ════════════
+   DANE
+════════════ */
+const ITEMS = {
+  1: {
+    en:'Diesel',
+    pl:'olej napędowy',
+    phrase:'"Can I have diesel on pump eight please."',
+    phrasePl:'Poproszę diesel na pompie number osiem.',
+    tip:'Diesel = olej napędowy. W Europie zawsze sprawdź czy pompa ma oznaczenie EN590 — to standard dla TIR-ów.',
+  },
+  2: {
+    en:'AdBlue',
+    pl:'płyn do układu SCR',
+    phrase:'"I need AdBlue as well please."',
+    phrasePl:'Poproszę też AdBlue.',
+    tip:'AdBlue = płyn mocznikowy do układu SCR. Bez niego silnik Euro 6 może nie ruszyć. As well = również / też.',
+  },
+  3: {
+    en:'Fuel card',
+    pl:'karta paliwowa',
+    phrase:'"Can I pay with a fuel card?"',
+    phrasePl:'Czy mogę zapłacić kartą paliwową?',
+    tip:'Fuel card = karta paliwowa (DKV, UTA, AS24). Do you accept DKV? = Czy akceptują Państwo DKV?',
+  },
+  4: {
+    en:'Take away coffee',
+    pl:'kawa na wynos',
+    phrase:'"A large coffee to go please."',
+    phrasePl:'Poproszę dużą kawę na wynos.',
+    tip:'To go = na wynos. Large = duży. Small = mały. Medium = średni. Take away = na wynos (UK).',
+  },
+  5: {
+    en:'Windscreen wash',
+    pl:'płyn do spryskiwaczy',
+    phrase:'"Where is the windscreen wash?"',
+    phrasePl:'Gdzie jest płyn do spryskiwaczy?',
+    tip:'Windscreen wash = płyn do spryskiwaczy. Windscreen = szyba przednia. Screenwash = wersja skrócona.',
+  },
+  6: {
+    en:'Pump number',
+    pl:'numer pompy',
+    phrase:'"Which pump number am I on?"',
+    phrasePl:'Na którym numerze pompy jestem?',
+    tip:'Pump number = number pompy. Zawsze znaj swój number pompy zanim podejdziesz do kasy!',
+  },
+  7: {
+    en:'Receipt',
+    pl:'paragon / pokwitowanie',
+    phrase:'"Can I have a receipt please?"',
+    phrasePl:'Czy mogę prosić o paragon?',
+    tip:'Receipt = paragon. Potrzebny do rozliczenia z firmą. Can I have = czy mogę prosić o.',
+  },
+  8: {
+    en:'Fill it up',
+    pl:'zatankuj do pełna',
+    phrase:'"Fill it up with diesel please."',
+    phrasePl:'Proszę zatankować do pełna olejem napędowym.',
+    tip:'Fill it up = do pełna. Alternatywa: I need fifty litres of diesel = potrzebuję 50 litrów diesla.',
+  },
+  9: {
+    en:'Total',
+    pl:'suma / łączna kwota',
+    phrase:'"What is the total?"',
+    phrasePl:'Ile to razem?',
+    tip:'Total = suma / łącznie. What is the total? = Ile to razem? How much in total? = Ile łącznie?',
+  },
+};
+
+let seen = new Set();
+let currentId = null;
+
+function activate(id) {
+  /* Reset poprzedniego */
+  if(currentId) {
+    document.getElementById('ri'+currentId)?.classList.remove('active');
+    if(currentId===9) document.getElementById('ri9')?.classList.remove('active');
+  }
+  currentId = id;
+  document.getElementById('ri'+id)?.classList.add('active');
+
+  if(!seen.has(id)){
+    seen.add(id);
+    document.getElementById('ri'+id)?.classList.add('seen');
+    document.getElementById('rn'+id).style.background = 'var(--green)';
+    updateProgress();
+  }
+
+  const item = ITEMS[id];
+  document.getElementById('acBody').innerHTML = `
+    <div class="ac-num">POZYCJA ${id} / 9</div>
+    <div class="ac-en">${item.en}</div>
+    <div class="ac-pl">${item.pl}</div>
+    <div class="ac-phrase-label">Co mówisz na stacji</div>
+    <div class="ac-phrase">${item.phrase}</div>
+    <div class="ac-phrase-pl">${item.phrasePl}</div>
+    <div class="ac-tip">${item.tip}</div>
+    <button class="ac-sound" id="acSnd" onclick="speakPhrase(${id})">🔊 Posłuchaj wymowy</button>
+  `;
+}
+
+function updateProgress(){
+  const pct=(seen.size/9)*100;
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progTxt').textContent=`${seen.size} / 9 odkrytych`;
+}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  'Can I have diesel on pump eight please.': 'audio/L26/diesel_pump_eight_l26.mp3',
+  'I need AdBlue as well please.': 'audio/L26/need_adblue_as_well_l26.mp3',
+  'Can I pay with a fuel card?': 'audio/L26/pay_fuel_card_l26.mp3',
+  'A large coffee to go please.': 'audio/L26/coffee_to_go_l26.mp3',
+  'Where is the windscreen wash?': 'audio/L26/where_windscreen_wash_l26.mp3',
+  'Which pump number am I on?': 'audio/L26/which_pump_number_l26.mp3',
+  'Can I have a receipt please?': 'audio/L26/can_i_have_receipt_l26.mp3',
+  'Fill it up with diesel please.': 'audio/L26/fill_it_up_diesel_l26.mp3',
+  'What is the total?': 'audio/L26/what_is_the_total_l26.mp3',
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  // Usuwamy cudzysłowy i czyścimy text
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  
+  if(_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '🔊 Posłuchaj';
+
+  if (btn) {
+    btn.classList.add('pl');
+    btn.textContent = '⌛ Ładowanie...';
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("pl")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('pl');
+        btn.textContent = lbl;
+      }
+    }
+
+    _ap.onplay = () => { if (btn) btn.textContent = '🔊 Odtwarzam...'; };
+    _ap.onended = resetBtn;
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak pliku MP3 dla:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const lbl = label || '🔊 Posłuchaj';
+  if(btn){ btn.classList.add('pl'); btn.textContent='🔊 Odtwarzam (Bot)...'; }
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend = ()=>{ if(btn){ btn.classList.remove('pl'); btn.textContent = lbl; } };
+    u.onerror = ()=>{ if(btn){ btn.classList.remove('pl'); btn.textContent = lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+// Funkcja wywoływana z przycisku w aktywnej karcie
+function speakPhrase(id) {
+  const text = ITEMS[id].phrase;
+  const btn = document.getElementById('acSnd');
+  _playAudio(text, btn, '🔊 Posłuchaj wymowy');
+}
+
+// Funkcja wywoływana przy kliknięciu w słownik
+function speakVocab(word) {
+  _playAudio(word, null, null);
+}
+
+/* QUIZ */
+const qs=[
+  {q:'Jak poprosić o zatankowanie do pełna?',
+   opts:['"Give me diesel."','"Fill it up with diesel please."','"I need some fuel."','"Pump number eight."'],
+   and:1,tip:'Fill it up = do pełna. Fill it up with diesel please = proszę zatankować do pełna dieslem.'},
+  {q:'Kasjer pyta o number pompy. Co odpowiadasz?',
+   opts:['"Pump number eight."','"I need AdBlue."','"Fill it up."','"Cash please."'],
+   and:0,tip:'Pump number = number pompy. Zawsze znaj number pompy zanim podejdziesz do kasy!'},
+  {q:'Potrzebujesz też AdBlue. Co mówisz?',
+   opts:['"I need windscreen wash."','"Fill it up please."','"I need AdBlue as well please."','"Can I have a receipt?"'],
+   and:2,tip:'As well = też / również. I need AdBlue as well = potrzebuję też AdBlue.'},
+  {q:'Chcesz zapłacić kartą paliwową DKV. Co mówisz?',
+   opts:['"Cash only please."','"Can I pay with a fuel card?"','"I have a receipt."','"What is the total?"'],
+   and:1,tip:'Fuel card = karta paliwowa. Can I pay with a fuel card? = Czy mogę zapłacić kartą paliwową?'},
+  {q:'Co znaczy "receipt"?',
+   opts:['Paragon / pokwitowanie','Numer pompy','Karta paliwowa','Płyn do spryskiwaczy'],
+   and:0,tip:'Receipt = paragon. Can I have a receipt please? = Czy mogę prosić o paragon?'},
+];
+let qi=0;
+
+function renderQ(){
+  if(qi>=qs.length){
+    document.getElementById('qq').style.display='none';
+    document.getElementById('qopts').innerHTML='';
+    document.getElementById('qfb').className='q-fb';
+    document.getElementById('qnext').classList.remove('show');
+    document.getElementById('qprog').textContent='';
+    document.getElementById('qdone').classList.add('show');
+    return;
+  }
+  const q=qs[qi];
+  document.getElementById('qprog').textContent=`${qi+1} / ${qs.length}`;
+  document.getElementById('qq').textContent=q.q;
+  document.getElementById('qfb').className='q-fb';
+  document.getElementById('qnext').classList.remove('show');
+  document.getElementById('qopts').innerHTML=q.opts.map((o,i)=>`
+    <button class="q-opt" onclick="qa(this,${i===q.and})">
+      <div class="q-ltr">${['A','B','C','D'][i]}</div>${o}
+    </button>
+  `).join('');
+}
+function qa(btn,c){
+  document.querySelectorAll('.q-opt').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('qfb');
+  if(c){btn.classList.add('ok');fb.className='q-fb show ok';fb.textContent='✅ '+qs[qi].tip;}
+  else{btn.classList.add('no');document.querySelectorAll('.q-opt')[qs[qi].and].classList.add('ok');fb.className='q-fb show no';fb.textContent='❌ '+qs[qi].tip;}
+  qi++;document.getElementById('qnext').classList.add('show');
+}
+function nextQ(){renderQ();}
+
+// Sprawiamy, by dolny słownik był interaktywny i klikalny
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".vocab-card .v-row").forEach(row => {
+        let enWord = row.querySelector(".v-en");
+        if(enWord) {
+            row.style.cursor = "pointer";
+            row.addEventListener('mouseover', () => row.style.background = 'rgba(26,46,74,0.05)');
+            row.addEventListener('mouseout', () => row.style.background = 'transparent');
+        }
+    });
+});
+
+renderQ();
+</script>
+</body>
+</html>

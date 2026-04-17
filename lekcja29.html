@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 29 — Rozmowy na trasie</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --orange:#e07820;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:720px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:var(--navy);border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* KONTEKST SCENY */
+.scene-ctx{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:10px;padding:10px 16px;
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+  font-size:0.75rem;font-weight:700;color:var(--muted);
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+}
+
+/* CHAT */
+.chat-wrap{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+  margin-bottom:14px;
+}
+.chat-top{background:var(--navy);padding:8px 16px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;}
+.chat-body{padding:16px;display:flex;flex-direction:column;gap:10px;min-height:200px;}
+
+/* Wiadomość — inny kierowca (lewo) */
+.msg-other{display:flex;gap:10px;align-items:flex-end;}
+.msg-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(26,46,74,0.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.65rem;font-weight:900;color:var(--navy);
+  flex-shrink:0;border:1.5px solid var(--border);
+}
+.bubble-other{
+  background:#f0f4f8;border:1.5px solid var(--border);
+  border-radius:12px 12px 12px 2px;
+  padding:10px 13px;max-width:80%;
+}
+.bo-name{font-size:0.58rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.bo-en{font-family:'Courier Prime',monospace;font-size:0.88rem;font-weight:700;color:var(--navy);line-height:1.5;}
+.bo-pl{font-size:0.65rem;color:var(--muted);font-style:italic;margin-top:3px;}
+.bo-snd{
+  display:inline-flex;align-items:center;gap:4px;
+  margin-top:6px;background:none;border:1px solid var(--border);
+  border-radius:6px;padding:3px 9px;
+  font-family:'Nunito',sans-serif;font-size:0.65rem;font-weight:700;
+  color:var(--muted);cursor:pointer;transition:all 0.15s;
+}
+.bo-snd:hover{border-color:var(--navy);color:var(--navy);}
+.bo-snd.playing{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+/* Wiadomość — Mareczek (prawo) */
+.msg-me{display:flex;gap:10px;align-items:flex-end;flex-direction:row-reverse;}
+.bubble-me{
+  background:var(--navy);border:1.5px solid var(--navy);
+  border-radius:12px 12px 2px 12px;
+  padding:10px 13px;max-width:80%;
+}
+.bm-label{font-size:0.58rem;font-weight:900;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.bm-en{font-family:'Courier Prime',monospace;font-size:0.88rem;font-weight:700;color:#fff;line-height:1.5;}
+.bm-pl{font-size:0.65rem;color:rgba(255,255,255,0.45);font-style:italic;margin-top:3px;}
+
+/* Typing indicator */
+.typing{display:flex;gap:10px;align-items:flex-end;}
+.typing-dots{
+  background:#f0f4f8;border:1.5px solid var(--border);
+  border-radius:12px 12px 12px 2px;
+  padding:12px 16px;display:flex;gap:5px;align-items:center;
+}
+.dot{width:7px;height:7px;border-radius:50%;background:#bbb;animation:bounce 1.2s infinite;}
+.dot:nth-child(2){animation-delay:0.2s;}
+.dot:nth-child(3){animation-delay:0.4s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+/* INPUT SEKCJA */
+.input-section{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;padding:16px;
+  margin-bottom:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.is-hint{
+  font-size:0.72rem;font-weight:700;color:var(--muted);
+  margin-bottom:10px;line-height:1.5;
+}
+.is-keyword{
+  display:inline-block;
+  background:rgba(26,46,74,0.08);color:var(--navy);
+  font-family:'Courier Prime',monospace;font-weight:700;
+  font-size:0.75rem;padding:2px 8px;border-radius:5px;
+  margin:0 2px;
+}
+.is-input-row{display:flex;gap:8px;}
+.is-input{
+  flex:1;border:1.5px solid var(--border);border-radius:9px;
+  padding:10px 14px;font-family:'Courier Prime',monospace;
+  font-size:0.9rem;font-weight:700;color:var(--navy);
+  background:var(--bg);outline:none;transition:all 0.15s;
+  text-transform:uppercase;
+}
+.is-input:focus{border-color:var(--navy);background:var(--white);}
+.is-input.ok{border-color:var(--green);background:#f0fdf4;}
+.is-input.error{border-color:var(--red);background:#fef2f2;animation:shake 0.3s;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.is-btn{
+  background:var(--navy);color:#fff;border:none;border-radius:9px;
+  padding:10px 18px;font-family:'Nunito',sans-serif;font-size:0.82rem;
+  font-weight:900;cursor:pointer;transition:all 0.15s;white-space:nowrap;
+}
+.is-btn:hover{background:#2a4a6a;}
+.is-feedback{font-size:0.72rem;font-weight:700;margin-top:8px;padding:6px 10px;border-radius:7px;display:none;line-height:1.5;}
+.is-feedback.show{display:block;}
+.is-feedback.ok{background:#f0fdf4;border:1px solid #86efac;color:var(--green);}
+.is-feedback.no{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);}
+
+/* EKRAN KOŃCOWY */
+.end-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;padding:24px;text-align:center;
+  display:none;margin-bottom:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.end-card.show{display:block;}
+.end-icon{font-size:2.5rem;margin-bottom:10px;}
+.end-title{font-size:1.1rem;font-weight:900;color:var(--navy);margin-bottom:5px;}
+.end-sub{font-size:0.78rem;color:var(--muted);margin-bottom:16px;}
+.vocab-end{background:var(--bg);border-radius:10px;padding:14px;text-align:left;margin-bottom:16px;}
+.ve-title{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:9px;}
+.ve-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.ve-row{display:flex;align-items:center;gap:6px;font-size:0.73rem;padding:3px 5px;border-radius:5px;transition:all 0.13s;}
+
+.ve-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.ve-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);}
+.ve-pl{font-size:0.63rem;color:var(--muted);}
+.btn-restart{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:11px 28px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:900;cursor:pointer;transition:all 0.15s;}
+.btn-restart:hover{background:#2a4a6a;}
+
+/* FOOTER */
+.footer{display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Rozmowy na trasie</div>
+    <div class="h-sub">Lekcja 29 · Moduł 5 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">29 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">0 / 8 słówek odblokowanych</div>
+</div>
+
+<div class="scene-ctx">
+  <span>☀️</span>
+  <span id="sceneCtx">Parking przy autostradzie A2 · popołudnie · Mareczek pije kawę przy ciężarówce</span>
+</div>
+
+<!-- CHAT -->
+<div class="chat-wrap">
+  <div class="chat-top">Rozmowa na parkingu</div>
+  <div class="chat-body" id="chatBody"></div>
+</div>
+
+<!-- INPUT -->
+<div class="input-section" id="inputSection">
+  <div class="is-hint" id="isHint">Wpisz słowo kluczowe żeby odpowiedzieć:</div>
+  <div class="is-input-row">
+    <input class="is-input" type="text" id="isInput" placeholder="wpisz słówko..." autocomplete="off" onkeydown="if(event.key==='Enter')checkWord()">
+    <button class="is-btn" onclick="checkWord()">WYŚLIJ</button>
+  </div>
+  <div class="is-feedback" id="isFeedback"></div>
+</div>
+
+<!-- KONIEC -->
+<div class="end-card" id="endCard">
+  <div class="end-icon">🤝</div>
+  <div class="end-title">Świetna rozmowa!</div>
+  <div class="end-sub">Mareczek dogadał się z Johnem jak zawodowiec. Znasz wszystkie 8 słówek!</div>
+  <div class="vocab-end">
+    <div class="ve-title">Słownik — Lekcja 29</div>
+    <div class="ve-grid" id="vocabGrid"></div>
+  </div>
+  <button class="btn-restart" onclick="restart()">↺ Zagraj jeszcze raz</button>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div>
+<script>
+/* ════════════════════════════════
+   DANE CZATU (Rozmowa z Johnem)
+════════════════════════════════ */
+const CHAT_STEPS = [
+  {
+    other: {
+      who: "JOHN",
+      en: "Hello mate! How are you doing?",
+      pl: "Cześć stary! Jak leci?",
+      snd: "hello_mate_how_are_you_l29.mp3"
+    },
+    me: {
+      en: "I am fine, thank you. And you?",
+      pl: "Mam się dobrze, dziękuję. A ty?",
+      hint: "Mam się dobrze = I am <span class='is-keyword'>____</span>",
+      keyword: "fine",
+      vocabEn: "I am fine",
+      vocabPl: "mam się dobrze"
+    }
+  },
+  {
+    other: {
+      who: "JOHN",
+      en: "I'm good. I'm John, from the UK.",
+      pl: "U mnie w porządku. Jestem John, z Wielkiej Brytanii.",
+      snd: "im_good_im_john_l29.mp3"
+    },
+    me: {
+      en: "Nice to meet you. I am Mareczek, from Poland.",
+      pl: "Miło cię poznać. Jestem Mareczek, z Polski.",
+      hint: "Miło cię poznać = <span class='is-keyword'>____</span> to meet you",
+      keyword: "nice",
+      vocabEn: "nice to meet you",
+      vocabPl: "miło cię poznać"
+    }
+  },
+  {
+    other: {
+      who: "JOHN",
+      en: "Nice to meet you too. Are you staying here for the weekend?",
+      pl: "Ciebie również miło poznać. Zostajesz tu na weekend?",
+      snd: "nice_to_meet_you_too_weekend_l29.mp3"
+    },
+    me: {
+      en: "Yes, I have a long pause. Have a good weekend!",
+      pl: "Tak, mam długą pauzę. Dobrego weekendu!",
+      hint: "weekend = <span class='is-keyword'>_______</span>",
+      keyword: "weekend",
+      vocabEn: "weekend",
+      vocabPl: "weekend"
+    }
+  },
+  {
+    other: {
+      who: "JOHN",
+      en: "Thanks! By the way, do you know where the shower is?",
+      pl: "Dzięki! Przy okazji, wiesz gdzie jest prysznic?",
+      snd: "thanks_by_the_way_shower_l29.mp3"
+    },
+    me: {
+      en: "The shower is inside the gas station.",
+      pl: "Prysznic jest wewnątrz stacji benzynowej.",
+      hint: "prysznic = <span class='is-keyword'>______</span>",
+      keyword: "shower",
+      vocabEn: "shower",
+      vocabPl: "prysznic"
+    }
+  },
+  {
+    other: {
+      who: "JOHN",
+      en: "Perfect. I need to wash up.",
+      pl: "Świetnie. Muszę się umyć.",
+      snd: "perfect_i_need_to_wash_up_l29.mp3"
+    },
+    me: {
+      en: "No problem. Do you want some coffee later?",
+      pl: "Nie ma problemu. Chcesz później trochę kawy?",
+      hint: "kawa = <span class='is-keyword'>______</span>",
+      keyword: "coffee",
+      vocabEn: "coffee",
+      vocabPl: "kawa"
+    }
+  },
+  {
+    other: {
+      who: "JOHN",
+      en: "I'd love to, but I'm going to sleep soon.",
+      pl: "Z chęcią, ale niedługo idę spać.",
+      snd: "id_love_to_but_sleep_l29.mp3"
+    },
+    me: {
+      en: "Alright, no problem. Have a good evening!",
+      pl: "W porządku, nie ma problemu. Dobrego wieczoru!",
+      hint: "wieczór = <span class='is-keyword'>_______</span>",
+      keyword: "evening",
+      vocabEn: "evening",
+      vocabPl: "wieczór"
+    }
+  },
+  {
+    other: {
+      who: "JOHN",
+      en: "Thanks, you too. I'm leaving early tomorrow.",
+      pl: "Dzięki, nawzajem. Wyjeżdżam wcześnie rano jutro.",
+      snd: "thanks_you_too_leaving_tomorrow_l29.mp3"
+    },
+    me: {
+      en: "See you tomorrow then! Good night.",
+      pl: "Do zobaczenia jutro w takim razie! Dobranoc.",
+      hint: "jutro = <span class='is-keyword'>________</span>",
+      keyword: "tomorrow",
+      vocabEn: "tomorrow",
+      vocabPl: "jutro"
+    }
+  },
+  {
+    other: {
+      who: "JOHN",
+      en: "Good night! Have a safe trip back home.",
+      pl: "Dobranoc! Bezpiecznej drogi powrotnej do domu.",
+      snd: "good_night_safe_trip_l29.mp3"
+    },
+    me: {
+      en: "Thank you. Have a safe trip!",
+      pl: "Dziękuję. Bezpiecznej drogi!",
+      hint: "bezpieczny = <span class='is-keyword'>____</span>",
+      keyword: "safe",
+      vocabEn: "safe trip",
+      vocabPl: "bezpieczna droga"
+    }
+  }
+];
+
+let cur = 0;
+
+/* ════════════════
+   LOGIKA INTERFEJSU
+════════════════ */
+function initChat() {
+  cur = 0;
+  document.getElementById('chatBody').innerHTML = '';
+  document.getElementById('progFill').style.width = '0%';
+  document.getElementById('progTxt').textContent = '0 / 8 słówek odblokowanych';
+  document.getElementById('endCard').classList.remove('show');
+  document.getElementById('inputSection').style.display = 'block';
+  document.getElementById('isInput').value = '';
+  document.getElementById('isFeedback').className = 'is-feedback';
+  
+  showJohnMsg();
+}
+
+function showJohnMsg() {
+  const chat = document.getElementById('chatBody');
+  
+  // Wstawienie wskaźnika pisania
+  const typingHtml = `
+    <div class="typing" id="typingIndicator">
+      <div class="msg-avatar">JH</div>
+      <div class="typing-dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>
+  `;
+  chat.insertAdjacentHTML('beforeend', typingHtml);
+  scrollToBottom();
+  
+  // Zablokuj input na czas pisania
+  document.getElementById('isInput').disabled = true;
+  document.querySelector('.is-btn').disabled = true;
+
+  // Po chwili pokaż wiadomość Johna
+  setTimeout(() => {
+    const ind = document.getElementById('typingIndicator');
+    if(ind) ind.remove();
+
+    const stepData = CHAT_STEPS[cur];
+    const msgHtml = `
+      <div class="msg-other">
+        <div class="msg-avatar">JH</div>
+        <div class="bubble-other">
+          <div class="bo-name">${stepData.other.who}</div>
+          <div class="bo-en">${stepData.other.en}</div>
+          <div class="bo-pl">${stepData.other.pl}</div>
+          <button class="bo-snd" onclick="speakAudio('${stepData.other.en.replace(/'/g,"\\'")}', this)">🔊 Wymowa</button>
+        </div>
+      </div>
+    `;
+    chat.insertAdjacentHTML('beforeend', msgHtml);
+    scrollToBottom();
+    
+    // Odblokuj input dla użytkownika
+    document.getElementById('isInput').disabled = false;
+    document.querySelector('.is-btn').disabled = false;
+    document.getElementById('isInput').value = '';
+    document.getElementById('isInput').focus();
+    
+    document.getElementById('isHint').innerHTML = `Przetłumacz i wpisz brakujące słowo:<br> ${stepData.me.hint}`;
+  }, 1500);
+}
+
+function checkWord() {
+  const input = document.getElementById('isInput');
+  const val = input.value.trim().toLowerCase();
+  const stepData = CHAT_STEPS[cur];
+  const fb = document.getElementById('isFeedback');
+  
+  if(val === stepData.me.keyword.toLowerCase()) {
+    input.classList.remove('error');
+    input.classList.add('ok');
+    fb.className = 'is-feedback show ok';
+    fb.innerHTML = `✅ Doskonale! ${stepData.me.vocabEn} = ${stepData.me.vocabPl}`;
+    
+    // Pokaż odpowiedź Mareczka w czacie
+    const chat = document.getElementById('chatBody');
+    const msgHtml = `
+      <div class="msg-me">
+        <div class="bubble-me">
+          <div class="bm-label">TY</div>
+          <div class="bm-en">${stepData.me.en}</div>
+          <div class="bm-pl">${stepData.me.pl}</div>
+          <button class="bo-snd" style="color:rgba(255,255,255,0.8); border-color:rgba(255,255,255,0.4);" onclick="speakAudio('${stepData.me.en.replace(/'/g,"\\'")}', this)">🔊 Wymowa</button>
+        </div>
+      </div>
+    `;
+    chat.insertAdjacentHTML('beforeend', msgHtml);
+    scrollToBottom();
+    
+    cur++;
+    document.getElementById('progFill').style.width = ((cur/CHAT_STEPS.length)*100) + '%';
+    document.getElementById('progTxt').textContent = `${cur} / ${CHAT_STEPS.length} słówek odblokowanych`;
+    
+    // Przejście do kolejnego kroku
+    setTimeout(() => {
+      input.classList.remove('ok');
+      fb.className = 'is-feedback';
+      if(cur < CHAT_STEPS.length) {
+        showJohnMsg();
+      } else {
+        showEnd();
+      }
+    }, 2000);
+
+  } else {
+    input.classList.remove('ok');
+    input.classList.add('error');
+    fb.className = 'is-feedback show no';
+    fb.innerHTML = `❌ Błąd. Spróbuj ponownie! (Podpowiedź: słowo ma ${stepData.me.keyword.length} liter)`;
+    setTimeout(() => input.classList.remove('error'), 400);
+  }
+}
+
+function scrollToBottom() {
+  const chat = document.getElementById('chatBody');
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function showEnd() {
+  document.getElementById('inputSection').style.display = 'none';
+  document.getElementById('endCard').classList.add('show');
+  
+  // Wypełnij słownik na końcu z funkcją klikania
+  const grid = document.getElementById('vocabGrid');
+  grid.innerHTML = CHAT_STEPS.map((s) => `
+    <div class="ve-row" style="cursor:pointer;" onmouseover="this.style.background='rgba(26,46,74,0.05)'" onmouseout="this.style.background='transparent'">
+      <div class="ve-dot" style="background:var(--navy)"></div>
+      <div class="ve-en">${s.me.vocabEn}</div>
+      <div class="ve-pl">— ${s.me.vocabPl}</div>
+    </div>
+  `).join('');
+}
+
+function restart() {
+  initChat();
+}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  // Rozmowa w czacie (wiadomości Johna)
+  'Hello mate! How are you doing?': 'audio/L29/hello_mate_how_are_you_l29.mp3',
+  'I\'m good. I\'m John, from the UK.': 'audio/L29/im_good_im_john_l29.mp3',
+  'Nice to meet you too. Are you staying here for the weekend?': 'audio/L29/nice_to_meet_you_too_weekend_l29.mp3',
+  'Thanks! By the way, do you know where the shower is?': 'audio/L29/thanks_by_the_way_shower_l29.mp3',
+  'Perfect. I need to wash up.': 'audio/L29/perfect_i_need_to_wash_up_l29.mp3',
+  'I\'d love to, but I\'m going to sleep soon.': 'audio/L29/id_love_to_but_sleep_l29.mp3',
+  'Thanks, you too. I\'m leaving early tomorrow.': 'audio/L29/thanks_you_too_leaving_tomorrow_l29.mp3',
+  'Good night! Have a safe trip back home.': 'audio/L29/good_night_safe_trip_l29.mp3',
+
+  // Rozmowa w czacie (wiadomości Mareczka)
+  'I am fine, thank you. And you?': 'i_am_fine_thank_you_l29.mp3',
+  'Nice to meet you. I am Mareczek, from Poland.': 'audio/L29/nice_to_meet_you_l29.mp3',
+  'Yes, I have a long pause. Have a good weekend!': 'audio/L29/yes_i_have_a_long_pause_l29.mp3',
+  'The shower is inside the gas station.': 'audio/L29/the_shower_is_inside_l29.mp3',
+  'No problem. Do you want some coffee later?': 'audio/L29/no_problem_do_you_want_coffee_l29.mp3',
+  'Alright, no problem. Have a good evening!': 'audio/L29/alright_no_problem_evening_l29.mp3',
+  'See you tomorrow then! Good night.': 'audio/L29/see_you_tomorrow_then_l29.mp3',
+  'Thank you. Have a safe trip!': 'audio/L29/thank_you_have_a_safe_trip_l29.mp3',
+};
+
+let _ap = null;
+
+function speakAudio(text, btn, label) {
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  
+  if(_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '🔊 Wymowa';
+
+  if (btn) {
+    btn.classList.add('playing');
+    btn.textContent = '⌛...';
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("playing")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('playing');
+        btn.textContent = lbl;
+      }
+    }
+
+    _ap.onplay = () => { if (btn) btn.textContent = '🔊 Odttwarzam...'; };
+    _ap.onended = resetBtn;
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak pliku MP3 dla tekstu:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const lbl = label || '🔊 Wymowa';
+  if(btn){ btn.classList.add('playing'); btn.textContent='🔊 Bot...'; }
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    u.onerror = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+/* INIT */
+initChat();
+</script>
+</body>
+</html>

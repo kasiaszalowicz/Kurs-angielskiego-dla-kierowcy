@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 28 — Jedzenie na trasie</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --yellow:#ffe566;--orange:#e07820;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:720px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:6px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--navy),var(--orange));border-radius:99px;transition:width 0.4s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* START */
+.start-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:28px 24px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.sc-icon{font-size:2.5rem;margin-bottom:12px;}
+.sc-title{font-size:1.2rem;font-weight:900;color:var(--navy);margin-bottom:6px;}
+.sc-sub{font-size:0.82rem;color:var(--muted);line-height:1.6;margin-bottom:20px;}
+.sc-rules{background:var(--bg);border-radius:10px;padding:14px 16px;text-align:left;margin-bottom:20px;}
+.sc-rule{display:flex;gap:8px;margin-bottom:7px;font-size:0.78rem;color:var(--navy);line-height:1.5;font-weight:700;}
+.sc-rule:last-child{margin-bottom:0;}
+.btn-start{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:14px 36px;font-family:'Nunito',sans-serif;font-size:0.9rem;font-weight:900;cursor:pointer;transition:all 0.15s;}
+.btn-start:hover{background:#2a4a6a;transform:translateY(-1px);}
+
+/* GRA */
+.game-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);display:none;}
+
+/* Status */
+.status-bar{background:var(--navy);padding:10px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.sb-round{font-size:0.7rem;font-weight:900;color:rgba(255,255,255,0.5);letter-spacing:1px;}
+.sb-score{font-size:0.7rem;font-weight:900;color:var(--yellow);}
+.sb-timer{font-family:'Courier Prime',monospace;font-size:0.85rem;font-weight:700;color:#fff;background:rgba(255,255,255,0.1);padding:3px 10px;border-radius:6px;min-width:40px;text-align:center;}
+.sb-timer.urgent{color:var(--red);background:rgba(214,53,40,0.2);}
+
+/* Pytanie kelnera */
+.question-section{padding:24px 22px 18px;text-align:center;border-bottom:1px solid var(--border);}
+.qs-from{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;}
+.qs-text{
+  font-family:'Courier Prime',monospace;
+  font-size:clamp(1rem,2.8vw,1.4rem);
+  font-weight:700;color:var(--navy);
+  line-height:1.4;padding:16px 18px;
+  background:var(--bg);border-radius:10px;
+  border:2px solid var(--navy);
+  display:inline-block;min-width:280px;margin-bottom:10px;
+}
+.qs-ctx{font-size:0.72rem;color:var(--muted);font-weight:700;font-style:italic;}
+.btn-speak{
+  display:inline-flex;align-items:center;gap:5px;
+  margin-top:10px;background:none;
+  border:1.5px solid var(--border);border-radius:8px;
+  padding:6px 14px;font-family:'Nunito',sans-serif;
+  font-size:0.72rem;font-weight:700;color:var(--navy);
+  cursor:pointer;transition:all 0.15s;
+}
+.btn-speak:hover{border-color:var(--navy);background:var(--bg);}
+.btn-speak.playing{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+/* Opcje */
+.opts-section{padding:16px 20px;}
+.opts-label{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;}
+.opts{display:flex;flex-direction:column;gap:7px;}
+.opt{
+  background:var(--bg);border:1.5px solid var(--border);
+  border-radius:10px;padding:11px 14px;
+  cursor:pointer;display:flex;align-items:center;gap:11px;
+  transition:all 0.15s;width:100%;text-align:left;
+  font-family:'Nunito',sans-serif;
+}
+.opt:hover:not(:disabled){border-color:var(--navy);background:#f0f4f8;transform:translateX(2px);}
+.opt.correct{border-color:var(--green);background:#f0fdf4;animation:pop 0.25s ease;}
+.opt.wrong{border-color:var(--red);background:#fef2f2;animation:shake 0.3s ease;}
+.opt:disabled{cursor:default;transform:none;}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.01)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.opt-letter{width:26px;height:26px;border-radius:50%;background:rgba(26,46,74,0.08);display:flex;align-items:center;justify-content:center;font-size:0.62rem;font-weight:900;color:var(--navy);flex-shrink:0;transition:all 0.15s;}
+.opt.correct .opt-letter{background:var(--green);color:#fff;}
+.opt.wrong .opt-letter{background:var(--red);color:#fff;}
+.opt-text{font-size:0.85rem;font-weight:700;color:var(--navy);line-height:1.4;}
+.opt.correct .opt-text{color:var(--green);}
+.opt.wrong .opt-text{color:var(--red);}
+
+/* Feedback */
+.feedback{margin:0 20px 14px;padding:10px 13px;border-radius:8px;font-size:0.77rem;font-weight:700;line-height:1.6;display:none;}
+.feedback.show{display:block;}
+.feedback.ok{background:#f0fdf4;border:1.5px solid #86efac;color:#145a28;}
+.feedback.no{background:#fef2f2;border:1.5px solid #fca5a5;color:#7a1010;}
+.feedback .kw{font-family:'Courier Prime',monospace;background:rgba(26,46,74,0.07);padding:1px 5px;border-radius:4px;color:var(--navy);}
+
+/* Dalej */
+.btn-next{display:none;width:calc(100% - 40px);margin:0 20px 18px;background:var(--navy);color:#fff;border:none;border-radius:10px;padding:12px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:900;cursor:pointer;transition:all 0.15s;}
+.btn-next:hover{background:#2a4a6a;}
+.btn-next.show{display:block;}
+
+/* WYNIKI */
+.result-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:26px 22px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.05);display:none;}
+.rc-icon{font-size:2.8rem;margin-bottom:10px;}
+.rc-title{font-size:1.2rem;font-weight:900;color:var(--navy);margin-bottom:5px;}
+.rc-sub{font-size:0.8rem;color:var(--muted);margin-bottom:18px;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+.stat-box{background:var(--bg);border-radius:10px;padding:12px 8px;border:1.5px solid var(--border);}
+.stat-num{font-size:1.5rem;font-weight:900;color:var(--navy);}
+.stat-lbl{font-size:0.6rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.errors-box{background:var(--bg);border-radius:10px;padding:13px 15px;text-align:left;margin-bottom:16px;}
+.eb-title{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:9px;}
+.err-row{font-family:'Courier Prime',monospace;font-size:0.75rem;color:var(--navy);margin-bottom:5px;padding:4px 0;border-bottom:1px solid var(--border);}
+.err-row:last-child{border-bottom:none;margin-bottom:0;}
+
+/* Słownik */
+.vocab-box{background:var(--bg);border-radius:10px;padding:13px 15px;text-align:left;margin-bottom:16px;}
+.vb-title{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:9px;}
+.vb-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.vb-row{display:flex;align-items:center;gap:6px;font-size:0.73rem;}
+.vb-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.vb-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);}
+.vb-pl{font-size:0.63rem;color:var(--muted);}
+
+.btns-row{display:flex;gap:8px;justify-content:center;}
+.btn-restart{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:11px 28px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:900;cursor:pointer;transition:all 0.15s;}
+.btn-restart:hover{background:#2a4a6a;}
+.btn-hard{background:var(--orange);color:#fff;border:none;border-radius:10px;padding:11px 22px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:900;cursor:pointer;transition:all 0.15s;}
+.btn-hard:hover{background:#c06010;}
+
+/* FOOTER */
+.footer{margin-top:12px;display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Jedzenie na trasie</div>
+    <div class="h-sub">Lekcja 28 · Moduł 5 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">28 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">0 / 10 rund</div>
+</div>
+
+<!-- START -->
+<div class="start-card" id="startCard">
+  <div class="sc-icon">🍽️</div>
+  <div class="sc-title">Symulator kelnera</div>
+  <div class="sc-sub">Kelner mówi po angielsku — wybierz właściwą odpowiedź. 10 rund, 20 sekund na każdą.</div>
+  <div class="sc-rules">
+    <div class="sc-rule"><span>🎧</span>Kliknij 🔊 żeby usłyszeć pytanie kelnera</div>
+    <div class="sc-rule"><span>⏱️</span>20 sekund na odpowiedź</div>
+    <div class="sc-rule"><span>⭐</span>Szybka odpowiedź = więcej punktów</div>
+    <div class="sc-rule"><span>📋</span>Na końcu raport trudnych pytań</div>
+  </div>
+  <button class="btn-start" onclick="startGame(20)">▶ START</button>
+</div>
+
+<!-- GRA -->
+<div class="game-card" id="gameCard">
+  <div class="status-bar">
+    <div class="sb-round" id="sbRound">RUNDA 1 / 10</div>
+    <div class="sb-score">⭐ <span id="sbScore">0</span> pkt</div>
+    <div class="sb-timer" id="sbTimer">20</div>
+  </div>
+  <div class="question-section">
+    <div class="qs-from">KELNER MÓWI:</div>
+    <div class="qs-text" id="qsText">—</div>
+    <div class="qs-ctx" id="qsCtx">—</div>
+    <button class="btn-speak" id="btnSpeak" onclick="speakQ()">🔊 Posłuchaj</button>
+  </div>
+  <div class="opts-section">
+    <div class="opts-label">Co odpowiadasz?</div>
+    <div class="opts" id="opts"></div>
+  </div>
+  <div class="feedback" id="feedback"></div>
+  <button class="btn-next" id="btnNext" onclick="nextRound()">NASTĘPNE →</button>
+</div>
+
+<!-- WYNIKI -->
+<div class="result-card" id="resultCard">
+  <div class="rc-icon" id="rcIcon">🏆</div>
+  <div class="rc-title" id="rcTitle">Smacznego!</div>
+  <div class="rc-sub" id="rcSub"></div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-num" id="stCorrect">0</div><div class="stat-lbl">Poprawnych</div></div>
+    <div class="stat-box"><div class="stat-num" id="stScore">0</div><div class="stat-lbl">Punktów</div></div>
+    <div class="stat-box"><div class="stat-num" id="stTime">0s</div><div class="stat-lbl">Śr. czas</div></div>
+  </div>
+  <div class="errors-box" id="errorsBox" style="display:none;">
+    <div class="eb-title">Trudne pytania — powtórz</div>
+    <div id="errorsList"></div>
+  </div>
+  <div class="vocab-box">
+    <div class="vb-title">Słownik — Lekcja 28</div>
+    <div class="vb-grid">
+      <div class="vb-row"><div class="vb-dot" style="background:#1a2e4a"></div><div class="vb-en">I'd like...</div><div class="vb-pl">Poproszę...</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#e07820"></div><div class="vb-en">the bill please</div><div class="vb-pl">rachunek proszę</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#15803d"></div><div class="vb-en">well done</div><div class="vb-pl">wysmażony (stek)</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#d63528"></div><div class="vb-en">medium</div><div class="vb-pl">średnio wysmażony</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#7c3aed"></div><div class="vb-en">tap water</div><div class="vb-pl">woda z kranu</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#0891b2"></div><div class="vb-en">to go</div><div class="vb-pl">na wynos</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#c8a040"></div><div class="vb-en">cash</div><div class="vb-pl">gotówka</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#888"></div><div class="vb-en">card</div><div class="vb-pl">karta płatnicza</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#1a2e4a"></div><div class="vb-en">gluten free</div><div class="vb-pl">bez glutenu</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#e07820"></div><div class="vb-en">refill</div><div class="vb-pl">dolanie / dolewka</div></div>
+    </div>
+  </div>
+  <div class="btns-row">
+    <button class="btn-restart" onclick="restart()">↺ Zagraj jeszcze raz</button>
+    <button class="btn-hard" onclick="startGame(10)">🔥 Tryb trudny (10 sek)</button>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d on"></div>
+  </div>
+</div>
+
+</div>
+<script>
+const ALL = [
+  {
+    q:'"Are you ready to order?"',
+    ctx:'Kelner podchodzi do stolika',
+    opts:[
+      {t:"Yes, I'd like the soup and a steak please.",correct:true},
+      {t:"I don't understand the menu.",correct:false},
+      {t:"Come back later.",correct:false},
+    ],
+    tip:'<span class="kw">I\'d like...</span> = Poproszę... — najważniejsza fraza przy zamawianiu. Prosta i grzeczna.',
+  },
+  {
+    q:'"What sauce would you like on your hot dog?"',
+    ctx:'Kelner przy ladzie pyta o sos',
+    opts:[
+      {t:"Ketchup and mustard please.",correct:true},
+      {t:"Yes, hot dog please.",correct:false},
+      {t:"No sauce, just the bread.",correct:false},
+    ],
+    tip:'<span class="kw">Ketchup and mustard</span> = ketchup i musztarda. Inne sosy: <span class="kw">mayo</span> = majonez, <span class="kw">relish</span> = sos octowy z warzywami.',
+  },
+  {
+    q:'"Something to drink?"',
+    ctx:'Kelner pyta o napój',
+    opts:[
+      {t:"A large coffee and tap water please.",correct:true},
+      {t:"Drink, yes.",correct:false},
+      {t:"No drink for me now.",correct:false},
+    ],
+    tip:'<span class="kw">Tap water</span> = woda z kranu (zazwyczaj bezpłatna). <span class="kw">Still</span> = niegazowana, <span class="kw">sparkling</span> = gazowana.',
+  },
+  {
+    q:'"Would you like anything else?"',
+    ctx:'Kelner pyta po podaniu dania',
+    opts:[
+      {t:"No thank you, that's all.",correct:true},
+      {t:"I am full already.",correct:false},
+      {t:"Maybe something.",correct:false},
+    ],
+    tip:'<span class="kw">That\'s all, thank you.</span> = To wszystko, dziękuję. Prosta i grzeczna odpowiedź.',
+  },
+  {
+    q:'"Is everything okay with your meal?"',
+    ctx:'Kelner sprawdza czy smakuje',
+    opts:[
+      {t:"Yes, it's very good thank you.",correct:true},
+      {t:"Food is food.",correct:false},
+      {t:"I don't know yet.",correct:false},
+    ],
+    tip:'<span class="kw">It\'s very good, thank you.</span> = Jest bardzo dobre, dziękuję. Zawsze warto być uprzejmym!',
+  },
+  {
+    q:'"Cash or card?"',
+    ctx:'Kelner pyta jak chcesz zapłacić',
+    opts:[
+      {t:"Card please.",correct:true},
+      {t:"I pay now.",correct:false},
+      {t:"Money.",correct:false},
+    ],
+    tip:'<span class="kw">Card please.</span> = Kartą proszę. <span class="kw">Cash.</span> = Gotówką. Proste i jasne.',
+  },
+  {
+    q:'"Do you have a loyalty card?"',
+    ctx:'Kasjer na stacji pyta o kartę punktów',
+    opts:[
+      {t:"What is a loyalty card?",correct:false},
+      {t:"No, I don't have one.",correct:true},
+      {t:"I have a driver card.",correct:false},
+    ],
+    tip:'<span class="kw">Loyalty card</span> = karta stałego klienta / karta punktów. <span class="kw">I don\'t have one</span> = nie mam. Można też powiedzieć <span class="kw">No, sorry.</span>',
+  },
+  {
+    q:'"For here or to go?"',
+    ctx:'Kelner w barze na stacji pytania',
+    opts:[
+      {t:"To go please.",correct:true},
+      {t:"I eat outside.",correct:false},
+      {t:"Both.",correct:false},
+    ],
+    tip:'<span class="kw">To go</span> = na wynos. <span class="kw">For here</span> = na miejscu. Typowe w fast food i stacjach benzynowych.',
+  },
+  {
+    q:'"The bill please."',
+    ctx:'Chcesz poprosić o rachunek — co mówisz?',
+    opts:[
+      {t:"Give me the bill.",correct:false},
+      {t:"I want to pay.",correct:false},
+      {t:"The bill please.",correct:true},
+    ],
+    tip:'<span class="kw">The bill please.</span> = Rachunek proszę. Można też powiedzieć <span class="kw">Can I have the bill?</span>',
+  },
+  {
+    q:'"Do you have any allergies?"',
+    ctx:'Kelner pyta o alergie',
+    opts:[
+      {t:"No allergies, thank you.",correct:true},
+      {t:"I don't know.",correct:false},
+      {t:"What are allergies?",correct:false},
+    ],
+    tip:'<span class="kw">No allergies.</span> = Brak alergii. Jeśli masz: <span class="kw">I\'m allergic to...</span> = Jestem uczulony na...',
+  },
+];
+
+let rounds=[], cur=0, score=0, correct=0, errors=[], timeLimit=20;
+let timer=null, timeLeft=0, startTime=0, totalTime=0, answered=false;
+let currentQ = null;
+
+function shuffle(a){return [...a].sort(()=>Math.random()-0.5);}
+
+function startGame(limit=20){
+  timeLimit=limit;
+  rounds=shuffle(ALL).slice(0,10);
+  cur=0;score=0;correct=0;errors=[];totalTime=0;answered=false;
+  document.getElementById('startCard').style.display='none';
+  document.getElementById('resultCard').style.display='none';
+  document.getElementById('gameCard').style.display='block';
+  renderRound();
+}
+
+function renderRound(){
+  const r=rounds[cur];
+  currentQ=r;
+  answered=false;
+  document.getElementById('sbRound').textContent=`RUNDA ${cur+1} / ${rounds.length}`;
+  document.getElementById('sbScore').textContent=score;
+  document.getElementById('qsText').textContent=r.q;
+  document.getElementById('qsCtx').textContent=r.ctx;
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('btnNext').className='btn-next';
+  document.getElementById('progFill').style.width=((cur/rounds.length)*100)+'%';
+  document.getElementById('progTxt').textContent=`${cur} / ${rounds.length} rund`;
+  
+  const btnSpeak = document.getElementById('btnSpeak');
+  btnSpeak.className='btn-speak';
+  btnSpeak.textContent='🔊 Posłuchaj';
+
+  const shuffled=shuffle(r.opts.map((o,i)=>({...o,origIdx:i})));
+  document.getElementById('opts').innerHTML=shuffled.map((o,i)=>`
+    <button class="opt" onclick="choose(this,${o.correct})">
+      <div class="opt-letter">${['A','B','C'][i]}</div>
+      <div class="opt-text">${o.t}</div>
+    </button>
+  `).join('');
+
+  startTimer();
+  startTime=Date.now();
+}
+
+function startTimer(){
+  clearInterval(timer);
+  timeLeft=timeLimit;
+  const el=document.getElementById('sbTimer');
+  el.textContent=timeLeft;
+  el.className='sb-timer';
+  timer=setInterval(()=>{
+    timeLeft--;
+    el.textContent=timeLeft;
+    if(timeLeft<=5) el.className='sb-timer urgent';
+    if(timeLeft<=0){clearInterval(timer);if(!answered)timeUp();}
+  },1000);
+}
+
+function timeUp(){
+  answered=true;
+  document.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+  const r=rounds[cur];
+  document.querySelectorAll('.opt').forEach(b=>{
+    if(b.querySelector('.opt-text').textContent===r.opts.find(o=>o.correct).t)
+      b.classList.add('correct');
+  });
+  const fb=document.getElementById('feedback');
+  fb.className='feedback show no';
+  fb.innerHTML='⏱️ Czas! '+r.tip;
+  errors.push(r);
+  totalTime+=timeLimit;
+  cur++;
+  const nb=document.getElementById('btnNext');
+  nb.className='btn-next show';
+  nb.textContent=cur<rounds.length?'NASTĘPNE →':'WYNIKI →';
+}
+
+function choose(btn,isCorrect){
+  if(answered)return;
+  answered=true;
+  clearInterval(timer);
+  const elapsed=(Date.now()-startTime)/1000;
+  totalTime+=elapsed;
+  document.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+  const r=rounds[cur];
+  const fb=document.getElementById('feedback');
+  if(isCorrect){
+    btn.classList.add('correct');
+    const pts=Math.max(1,Math.round((timeLimit-elapsed)*8));
+    score+=pts;correct++;
+    fb.className='feedback show ok';
+    fb.innerHTML=`✅ +${pts} pkt! `+r.tip;
+    document.getElementById('sbScore').textContent=score;
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.opt').forEach(b=>{
+      if(b.querySelector('.opt-text').textContent===r.opts.find(o=>o.correct).t)
+        b.classList.add('correct');
+    });
+    fb.className='feedback show no';
+    fb.innerHTML='❌ '+r.tip;
+    errors.push(r);
+  }
+  cur++;
+  const nb=document.getElementById('btnNext');
+  nb.className='btn-next show';
+  nb.textContent=cur<rounds.length?'NASTĘPNE →':'WYNIKI →';
+}
+
+function nextRound(){
+  if(cur>=rounds.length){showResults();return;}
+  document.getElementById('progFill').style.width=((cur/rounds.length)*100)+'%';
+  renderRound();
+}
+
+function showResults(){
+  clearInterval(timer);
+  document.getElementById('gameCard').style.display='none';
+  document.getElementById('resultCard').style.display='block';
+  document.getElementById('progFill').style.width='100%';
+  document.getElementById('progTxt').textContent='Ukończono!';
+  document.getElementById('stCorrect').textContent=correct+'/'+rounds.length;
+  document.getElementById('stScore').textContent=score;
+  document.getElementById('stTime').textContent=(totalTime/rounds.length).toFixed(1)+'s';
+
+  if(correct>=9){
+    document.getElementById('rcIcon').textContent='🏆';
+    document.getElementById('rcTitle').textContent='Smacznego, mistrzu!';
+    document.getElementById('rcSub').textContent='Mareczek zamówi w każdej restauracji na trasie.';
+  } else if(correct>=7){
+    document.getElementById('rcIcon').textContent='🥈';
+    document.getElementById('rcTitle').textContent='Dobrze poszło!';
+    document.getElementById('rcSub').textContent='Prawie idealnie — powtórz trudniejsze pytania.';
+  } else {
+    document.getElementById('rcIcon').textContent='💪';
+    document.getElementById('rcTitle').textContent='Ćwicz dalej!';
+    document.getElementById('rcSub').textContent='Zamówienie jedzenia wymaga pewności — spróbuj jeszcze raz!';
+  }
+
+  if(errors.length>0){
+    const eb=document.getElementById('errorsBox');
+    eb.style.display='block';
+    const unique=[...new Map(errors.map(e=>[e.q,e])).values()];
+    document.getElementById('errorsList').innerHTML=unique.map(e=>`
+      <div class="err-row">${e.q} <span style="color:var(--muted);font-family:'Nunito',sans-serif;font-size:0.65rem;">— ${e.ctx}</span></div>
+    `).join('');
+  }
+  
+  // Aktywacja klikalnego słowniczka
+  document.querySelectorAll(".vocab-grid .vb-row").forEach(row => {
+      let enWord = row.querySelector(".vb-en");
+      if(enWord) {
+          row.style.cursor = "pointer";
+          row.style.transition = "background 0.2s";
+          row.onclick = () => speakVocab(enWord.textContent);
+          row.onmouseover = () => row.style.background = 'rgba(26,46,74,0.05)';
+          row.onmouseout = () => row.style.background = 'transparent';
+      }
+  });
+}
+
+function restart(){
+  document.getElementById('resultCard').style.display='none';
+  document.getElementById('startCard').style.display='block';
+  document.getElementById('progFill').style.width='0%';
+  document.getElementById('progTxt').textContent='0 / 10 rund';
+}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  'Are you ready to order?': 'audio/L28/are_you_ready_to_order_l28.mp3',
+  'What sauce would you like on your hot dog?': 'audio/L28/what_sauce_would_you_like_l28.mp3',
+  'Something to drink?': 'audio/L28/something_to_drink_l28.mp3',
+  'Would you like anything else?': 'audio/L28/would_you_like_anything_else_l28.mp3',
+  'Is everything okay with your meal?': 'audio/L28/is_everything_okay_with_your_meal_l28.mp3',
+  'Cash or card?': 'audio/L28/cash_or_card_l28.mp3',
+  'Do you have a loyalty card?': 'audio/L28/do_you_have_a_loyalty_card_l28.mp3',
+  'For here or to go?': 'audio/L28/for_here_or_to_go_l28.mp3',
+  'The bill please.': 'audio/L28/the_bill_please_l28.mp3',
+  'Do you have any allergies?': 'audio/L28/do_you_have_any_allergies_l28.mp3',
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  // Czyszczenie tekstu z cudzysłowów dla dopasowania klucza
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  
+  if(_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '🔊 Posłuchaj';
+
+  if (btn) {
+    btn.classList.add('playing');
+    btn.textContent = '⌛ Ładowanie...';
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("playing")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('playing');
+        btn.textContent = lbl;
+      }
+    }
+
+    _ap.onplay = () => { if (btn) btn.textContent = '🔊 Odtwarzam...'; };
+    _ap.onended = resetBtn;
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak pliku MP3 dla tekstu:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const lbl = label || '🔊 Posłuchaj';
+  if(btn){ btn.classList.add('playing'); btn.textContent='🔊 Odtwarzam (Bot)...'; }
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    u.onerror = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+function speakQ(){
+  _playAudio(currentQ.q, document.getElementById('btnSpeak'), '🔊 Posłuchaj');
+}
+
+function speakVocab(word) {
+  _playAudio(word, null, null);
+}
+
+</script>
+</body>
+</html>

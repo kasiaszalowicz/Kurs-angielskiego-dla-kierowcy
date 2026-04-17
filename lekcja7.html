@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 7 — Zerwana plomba</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --yellow:#ffe566;--orange:#e07820;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:720px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--red),var(--orange));border-radius:99px;transition:width 0.6s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* SCENA - karta */
+.scene-card{
+  background:var(--white);
+  border:1.5px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+  margin-bottom:14px;
+}
+
+/* Nagłówek sceny */
+.scene-header{
+  background:var(--navy);
+  padding:12px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.sh-left{display:flex;align-items:center;gap:10px;}
+.sh-num{
+  background:var(--red);color:#fff;
+  font-size:0.7rem;font-weight:900;
+  padding:3px 10px;border-radius:99px;
+  letter-spacing:1px;white-space:nowrap;
+}
+.sh-desc{font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.7);}
+.sh-loc{
+  font-size:0.62rem;color:rgba(255,255,255,0.4);
+  font-family:'Courier Prime',monospace;
+  white-space:nowrap;
+}
+
+/* DIALOGI */
+.dialogs{padding:20px;}
+
+/* Wiadomość celnika — lewa strona */
+.msg-left{
+  display:flex;gap:12px;
+  margin-bottom:16px;
+  align-items:flex-start;
+}
+.msg-avatar{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.7rem;font-weight:900;
+  flex-shrink:0;margin-top:2px;
+}
+.msg-avatar.officer{background:rgba(214,53,40,0.1);color:var(--red);border:1.5px solid rgba(214,53,40,0.2);}
+.msg-bubble-left{
+  background:#f0f4f8;
+  border:1.5px solid var(--border);
+  border-radius:0 12px 12px 12px;
+  padding:11px 14px;
+  max-width:85%;
+}
+.snd-msg-btn{
+  background:none;border:1.5px solid #e0dbd0;
+  border-radius:6px;padding:4px 10px;margin-top:7px;
+  font-size:0.65rem;font-weight:700;color:#1a2e4a;
+  cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:4px;
+  font-family:'Nunito',sans-serif;
+}
+.snd-msg-btn:hover{border-color:#1a2e4a;background:#f0f4f8;}
+.snd-msg-btn.playing{background:#1a2e4a;color:#fff;border-color:#1a2e4a;}
+.mb-who{font-size:0.58rem;font-weight:900;color:var(--red);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px;}
+.mb-en{font-family:'Courier Prime',monospace;font-size:0.88rem;font-weight:700;color:var(--navy);line-height:1.5;}
+.mb-pl{font-size:0.68rem;color:var(--muted);font-style:italic;margin-top:4px;line-height:1.5;}
+
+/* Wiadomość Mareczka — prawa strona */
+.msg-right{
+  display:flex;gap:12px;
+  margin-bottom:16px;
+  align-items:flex-start;
+  flex-direction:row-reverse;
+}
+.msg-avatar.marek{background:rgba(26,46,74,0.1);color:var(--navy);border:1.5px solid rgba(26,46,74,0.2);}
+.msg-bubble-right{
+  background:var(--navy);
+  border:1.5px solid var(--navy);
+  border-radius:12px 0 12px 12px;
+  padding:11px 14px;
+  max-width:85%;
+}
+.mb-who-r{font-size:0.58rem;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px;opacity:0.7;}
+.mb-en-r{font-family:'Courier Prime',monospace;font-size:0.88rem;font-weight:700;color:#fff;line-height:1.5;}
+.mb-pl-r{font-size:0.68rem;color:rgba(255,255,255,0.45);font-style:italic;margin-top:4px;line-height:1.5;}
+
+/* Pytanie wyboru */
+.choice-section{
+  border-top:1px solid var(--border);
+  padding:16px 20px;
+  background:#faf8f4;
+}
+.choice-label{
+  font-size:0.62rem;font-weight:900;color:var(--red);
+  text-transform:uppercase;letter-spacing:1.5px;
+  margin-bottom:10px;display:flex;align-items:center;gap:6px;
+}
+.choice-label::after{content:'';flex:1;height:1px;background:rgba(214,53,40,0.2);}
+
+.opt{
+  background:var(--white);
+  border:1.5px solid var(--border);
+  border-radius:10px;
+  padding:12px 15px;
+  cursor:pointer;
+  display:flex;align-items:flex-start;gap:10px;
+  transition:all 0.15s;
+  width:100%;text-align:left;
+  margin-bottom:8px;
+}
+.opt:last-child{margin-bottom:0;}
+.opt:hover:not(:disabled){border-color:var(--navy);background:#f0f4f8;}
+.opt.correct{border-color:var(--green);background:#f0fdf4;animation:pop 0.25s ease;}
+.opt.wrong{border-color:var(--red);background:#fef2f2;animation:shake 0.3s ease;}
+.opt:disabled{cursor:default;}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.01)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+.opt-letter{
+  width:24px;height:24px;border-radius:50%;
+  background:rgba(26,46,74,0.08);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.6rem;font-weight:900;
+  font-family:'Nunito',sans-serif;color:var(--navy);
+  flex-shrink:0;transition:all 0.15s;margin-top:1px;
+}
+.opt.correct .opt-letter{background:var(--green);color:#fff;}
+.opt.wrong .opt-letter{background:var(--red);color:#fff;}
+
+.opt-body{}
+.opt-en{font-family:'Courier Prime',monospace;font-size:0.85rem;font-weight:700;color:var(--navy);line-height:1.4;}
+.opt.correct .opt-en{color:var(--green);}
+.opt.wrong .opt-en{color:var(--red);}
+.opt-pl{font-size:0.65rem;color:var(--muted);margin-top:3px;font-style:italic;font-family:'Nunito',sans-serif;}
+
+/* Feedback */
+.feedback{
+  margin:10px 20px 0;
+  padding:11px 14px;
+  border-radius:8px;
+  font-size:0.78rem;font-weight:700;
+  line-height:1.6;display:none;
+}
+.feedback.show{display:block;}
+.feedback.ok{background:#f0fdf4;border:1.5px solid #86efac;color:#145a28;}
+.feedback.no{background:#fef2f2;border:1.5px solid #fca5a5;color:#7a1010;}
+.feedback .kw{
+  font-family:'Courier Prime',monospace;
+  background:rgba(26,46,74,0.07);
+  padding:1px 6px;border-radius:4px;
+  color:var(--navy);
+}
+
+/* Przycisk dalej */
+.btn-next{
+  display:none;width:calc(100% - 40px);
+  margin:12px 20px;
+  background:var(--navy);color:#fff;border:none;
+  border-radius:10px;padding:13px;
+  font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:900;
+  cursor:pointer;transition:all 0.15s;letter-spacing:0.5px;
+}
+.btn-next:hover{background:#2a4a6a;}
+.btn-next.show{display:block;}
+
+/* EKRAN KOŃCOWY */
+.end-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;padding:28px 24px;text-align:center;
+  display:none;box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.end-card.show{display:block;}
+.end-icon{font-size:2.8rem;margin-bottom:10px;}
+.end-title{font-size:1.2rem;font-weight:900;color:var(--navy);margin-bottom:4px;}
+.end-sub{font-size:0.8rem;color:var(--muted);margin-bottom:18px;}
+.score-wrap{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--bg);border-radius:10px;
+  padding:12px 24px;margin-bottom:18px;
+  border:1.5px solid var(--border);
+}
+.score-num{font-size:1.8rem;font-weight:900;color:var(--navy);}
+.score-lbl{font-size:0.7rem;color:var(--muted);font-weight:700;text-align:left;line-height:1.4;}
+
+/* Słownik końcowy */
+.vocab-box{
+  background:var(--bg);border-radius:10px;
+  padding:14px 16px;text-align:left;margin-bottom:18px;
+}
+.vb-title{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;}
+.vb-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.vb-row{display:flex;align-items:center;gap:7px;font-size:0.75rem;}
+.vb-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.vb-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);}
+.vb-pl{font-size:0.65rem;color:var(--muted);}
+
+.btn-restart{
+  background:var(--red);color:#fff;border:none;
+  border-radius:10px;padding:12px 32px;
+  font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:900;
+  cursor:pointer;transition:all 0.15s;
+}
+.btn-restart:hover{background:#b02020;}
+
+/* FOOTER */
+.footer{margin-top:12px;display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Zerwana plomba</div>
+    <div class="h-sub">Lekcja 7 · Moduł 1 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">7 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">Scena 1 / 6</div>
+</div>
+
+<!-- SCENA -->
+<div class="scene-card" id="sceneCard">
+  <div class="scene-header">
+    <div class="sh-left">
+      <div class="sh-num" id="shNum">SCENA 1</div>
+      <div class="sh-desc" id="shDesc">Celnik zauważa coś niepokojącego</div>
+    </div>
+    <div class="sh-loc" id="shLoc">📍 Granica — 03:47 rano</div>
+  </div>
+  <div class="dialogs" id="dialogs"></div>
+  <div class="choice-section" id="choiceSection">
+    <div class="choice-label">Wybierz odpowiedź Mareczka</div>
+    <div id="opts"></div>
+  </div>
+  <div class="feedback" id="feedback"></div>
+  <button class="btn-next" id="btnNext" onclick="nextStep()">DALEJ →</button>
+</div>
+
+<!-- EKRAN KOŃCOWY -->
+<div class="end-card" id="endCard">
+  <div class="end-icon" id="endIcon">🏆</div>
+  <div class="end-title" id="endTitle">Sprawa zamknięta!</div>
+  <div class="end-sub" id="endSub">Mareczek wyszedł z sytuacji jak profesjonalista</div>
+  <div class="score-wrap">
+    <div class="score-num" id="scoreNum">0/6</div>
+    <div class="score-lbl">poprawnych<br>odpowiedzi</div>
+  </div>
+  <div class="vocab-box">
+    <div class="vb-title">Słownik — Lekcja 7</div>
+    <div class="vb-grid">
+      <div class="vb-row"><div class="vb-dot" style="background:#d63528"></div><div class="vb-en">seal</div><div class="vb-pl">— plomba</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#1a2e4a"></div><div class="vb-en">broken seal</div><div class="vb-pl">— zerwana plomba</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#15803d"></div><div class="vb-en">intact</div><div class="vb-pl">— nienaruszony</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#e07820"></div><div class="vb-en">seal number</div><div class="vb-pl">— number plomby</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#7c3aed"></div><div class="vb-en">not my fault</div><div class="vb-pl">— nie moja wina</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#0891b2"></div><div class="vb-en">photographic evidence</div><div class="vb-pl">— dowód fotograficzny</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#c8a040"></div><div class="vb-en">note on the CMR</div><div class="vb-pl">— adnotacja na CMR</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:#888"></div><div class="vb-en">during transit</div><div class="vb-pl">— podczas tranzytu</div></div>
+    </div>
+  </div>
+  <button class="btn-restart" onclick="restart()">↺ Zagraj jeszcze raz</button>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d on"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div>
+<script>
+const scenes = [
+  {
+    num:'SCENA 1', desc:'Celnik zatrzymuje ciężarówkę', loc:'📍 Granica — 03:47 rano',
+    messages:[
+      {side:'left', who:'CELNIK — KEVIN', en:'"Driver. Stop the engine. Step out of the vehicle."', pl:'Kierowco. Wyłącz silnik. Proszę wysiąść z pojazdu.'},
+      {side:'left', who:'CELNIK — KEVIN', en:'"I can see the seal on your trailer is broken. Did you do this?"', pl:'Widzę że plomba na Pana naczepie jest zerwana. Czy to Pan to zrobił?'},
+    ],
+    opts:[
+      {en:'"The seal is broken — but this is not my fault."', pl:'Plomba jest zerwana — ale to nie moja wina.', ok:true},
+      {en:'"What seal? I don\'t see any seal."', pl:'Jaka plomba? Nie widzę żadnej plomby.', ok:false},
+      {en:'"Yes, I broke it. It was an accident."', pl:'Tak, zerwałem ją. To był wypadek.', ok:false},
+    ],
+    tip:'Pierwsza zasada: <span class="kw">this is not my fault</span>. Nigdy nie przyznawaj się do winy zanim nie poznasz faktów. Zawsze spokojnie i profesjonalnie.',
+  },
+  {
+    num:'SCENA 2', desc:'Celnik żąda dokumentów', loc:'📍 Granica — 03:52 rano',
+    messages:[
+      {side:'right', who:'MARECZEK', en:'"The seal is broken — but this is not my fault."', pl:'Plomba jest zerwana — ale to nie moja wina.'},
+      {side:'left', who:'CELNIK — KEVIN', en:'"We will see about that. Show me the CMR. What is the seal number on the document?"', pl:'Zobaczymy. Proszę pokazać CMR. Jaki jest number plomby na dokumencie?'},
+    ],
+    opts:[
+      {en:'"I don\'t have the CMR here."', pl:'Nie mam tu CMR.', ok:false},
+      {en:'"Here is my CMR. The seal number is PL-2025-0312."', pl:'Proszę mój CMR. Number plomby to PL-2025-0312.', ok:true},
+      {en:'"The seal number? I forgot it."', pl:'Numer plomby? Zapomniałem.', ok:false},
+    ],
+    tip:'Zawsze miej CMR pod ręką! <span class="kw">The seal number is PL-2025-0312</span> — number plomby jest wpisany w CMR przy załadunku. To Twój dowód.',
+  },
+  {
+    num:'SCENA 3', desc:'Numery się nie zgadzają', loc:'📍 Granica — 04:05 rano',
+    messages:[
+      {side:'left', who:'CELNIK — KEVIN', en:'"The seal number on the CMR is PL-2025-0312. But the broken seal on your trailer shows PL-2025-0891. These numbers do not match."', pl:'Numer plomby na CMR to PL-2025-0312. Ale zerwana plomba na naczepie pokazuje PL-2025-0891. Te numery się nie zgadzają.'},
+      {side:'left', who:'CELNIK — KEVIN', en:'"Can you explain this?"', pl:'Czy może Pan to wyjaśnić?'},
+    ],
+    opts:[
+      {en:'"I have no idea. Maybe someone changed it."', pl:'Nie mam pojęcia. Może ktoś ją zmienił.', ok:false},
+      {en:'"The seal was intact at loading. I have photographic evidence from the loading point."', pl:'Plomba była nienaruszona przy załadunku. Mam dowód fotograficzny z miejsca załadunku.', ok:true},
+      {en:'"Are you sure the numbers are different? Let me check."', pl:'Czy na pewno numery są różne? Pozwoli Pan że sprawdzę.', ok:false},
+    ],
+    tip:'Kluczowe słowo: <span class="kw">intact</span> = nienaruszony. <span class="kw">photographic evidence</span> = dowód fotograficzny. Zawsze fotografuj plombę przy załadunku!',
+  },
+  {
+    num:'SCENA 4', desc:'Mareczek pokazuje dowody', loc:'📍 Granica — 04:18 rano',
+    messages:[
+      {side:'right', who:'MARECZEK', en:'"The seal was intact at loading. I have the photos."', pl:'Plomba była nienaruszona przy załadunku. Mam zdjęcia.'},
+      {side:'left', who:'CELNIK — KEVIN', en:'"Interesting. So the seal was replaced during transit. Someone opened your trailer and replaced the original seal with a different one."', pl:'Interesujące. Czyli plomba została podmieniona podczas tranzytu. Ktoś otworzył Pana naczepę i zastąpił oryginalną plombę inną.'},
+      {side:'left', who:'CELNIK — KEVIN', en:'"You stopped somewhere during the night. Where exactly?"', pl:'Zatrzymał się Pan gdzieś w nocy. Gdzie dokładnie?'},
+    ],
+    opts:[
+      {en:'"I stopped at a truck stop near Frankfurt for my mandatory rest."', pl:'Zatrzymałem się na parkingu przy Frankfurcie na obowiązkowy odpoczynek.', ok:true},
+      {en:'"I don\'t remember where I stopped."', pl:'Nie pamiętam gdzie się zatrzymałem.', ok:false},
+      {en:'"I didn\'t stop anywhere. I drove all night."', pl:'Nigdzie się nie zatrzymałem. Jechałem całą noc.', ok:false},
+    ],
+    tip:'Zawsze znaj swoje miejsca postoju! <span class="kw">mandatory rest</span> = obowiązkowy odpoczynek. Tachograf rejestruje wszystkie postoje — to Twoja ochrona.',
+  },
+  {
+    num:'SCENA 5', desc:'Celnik weryfikuje tachograf', loc:'📍 Granica — 04:35 rano',
+    messages:[
+      {side:'left', who:'CELNIK — KEVIN', en:'"I need to check your tachograph. Also — I need you to note the broken seal number on the CMR."', pl:'Muszę sprawdzić Pana tachograf. Też — potrzebuję żeby wpisał Pan number zerwanej plomby na CMR.'},
+      {side:'left', who:'CELNIK — KEVIN', en:'"Write: broken seal found at border control, number PL-2025-0891."', pl:'Proszę napisać: zerwana plomba znaleziona przy kontroli granicznej, number PL-2025-0891.'},
+    ],
+    opts:[
+      {en:'"I refuse to write anything. Call my company."', pl:'Odmawiam wpisywania czegokolwiek. Niech Pan dzwoni do mojej firmy.', ok:false},
+      {en:'"Of course. I will note the broken seal number on the CMR and inform my dispatcher."', pl:'Oczywiście. Wpiszę number zerwanej plomby na CMR i poinformuję mojego dyspozytora.', ok:true},
+      {en:'"Can I first call my lawyer?"', pl:'Czy mogę najpierw zadzwonić do mojego prawnika?', ok:false},
+    ],
+    tip:'<span class="kw">I will note on the CMR</span> = wpiszę na CMR. Zawsze dokumentuj incydenty i <span class="kw">inform your dispatcher</span> = informuj dyspozytora natychmiast.',
+  },
+  {
+    num:'SCENA 6', desc:'Sprawa wyjaśniona', loc:'📍 Granica — 05:12 rano',
+    messages:[
+      {side:'left', who:'CELNIK — KEVIN', en:'"The tachograph confirms your stop in Frankfurt. You are not responsible for the broken seal. We will file a report."', pl:'Tachograf potwierdza Pana postój we Frankfurcie. Nie jest Pan odpowiedzialny za zerwaną plombę. Złożymy raport.'},
+      {side:'left', who:'CELNIK — KEVIN', en:'"You may proceed. But inform your company immediately. They need to inform the shipper."', pl:'Może Pan jechać. Ale niech Pan natychmiast poinformuje firmę. Muszą powiadomić nadawcę.'},
+    ],
+    opts:[
+      {en:'"Finally! Can I go now?"', pl:'Wreszcie! Czy mogę już jechać?', ok:false},
+      {en:'"Thank you officer. I will call my dispatcher immediately and report the broken seal."', pl:'Dziękuję. Natychmiast zadzwonię do dyspozytora i zgłoszę zerwaną plombę.', ok:true},
+      {en:'"Not my problem anymore. Goodbye."', pl:'To już nie mój problem. Do widzenia.', ok:false},
+    ],
+    tip:'Profesjonalne zakończenie. <span class="kw">I will call my dispatcher immediately</span> = natychmiast zadzwonię do dyspozytora. Zawsze kończ incydent protokołem!',
+  },
+];
+
+let cur=0, score=0, answered=false;
+
+function render(){
+  const s=scenes[cur];
+  document.getElementById('shNum').textContent=s.num;
+  document.getElementById('shDesc').textContent=s.desc;
+  document.getElementById('shLoc').textContent=s.loc;
+  document.getElementById('progFill').style.width=((cur/scenes.length)*100)+'%';
+  document.getElementById('progTxt').textContent=`Scena ${cur+1} / ${scenes.length}`;
+  answered=false;
+
+  document.getElementById('dialogs').innerHTML=s.messages.map(m=>{
+    if(m.side==='left') return `
+      <div class="msg-left">
+        <div class="msg-avatar officer">${m.who.split(' ')[0].substring(0,2)}</div>
+        <div class="msg-bubble-left">
+          <div class="mb-who">${m.who}</div>
+          <div class="mb-en">${m.en}</div>
+          <div class="mb-pl">${m.pl}</div>
+          <button class="snd-msg-btn" onclick="speakMsg(this, \`${m.en.replace(/'/g, "\\'")}\`)">🔊 Posłuchaj wymowy</button>
+        </div>
+      </div>`;
+    return `
+      <div class="msg-right">
+        <div class="msg-avatar marek">MR</div>
+        <div class="msg-bubble-right">
+          <div class="mb-who-r">${m.who}</div>
+          <div class="mb-en-r">${m.en}</div>
+          <div class="mb-pl-r">${m.pl}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('btnNext').className='btn-next';
+  document.getElementById('opts').innerHTML=s.opts.map((o,i)=>`
+    <button class="opt" onclick="choose(${i})" id="opt${i}">
+      <div class="opt-letter">${['A','B','C'][i]}</div>
+      <div class="opt-body">
+        <div class="opt-en">${o.en}</div>
+        <div class="opt-pl">${o.pl}</div>
+      </div>
+    </button>
+  `).join('');
+}
+
+function choose(idx){
+  if(answered)return;
+  answered=true;
+  const s=scenes[cur];
+  document.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+  const btn=document.getElementById('opt'+idx);
+  const fb=document.getElementById('feedback');
+  if(s.opts[idx].ok){
+    btn.classList.add('correct');
+    fb.className='feedback show ok';
+    fb.innerHTML='✅ '+s.tip;
+    score++;
+  } else {
+    btn.classList.add('wrong');
+    const ci=s.opts.findIndex(o=>o.ok);
+    document.getElementById('opt'+ci).classList.add('correct');
+    fb.className='feedback show no';
+    fb.innerHTML='❌ '+s.tip;
+  }
+  cur++;
+  const nb=document.getElementById('btnNext');
+  nb.className='btn-next show';
+  nb.textContent=cur<scenes.length?'DALEJ →':'WYNIKI →';
+}
+
+function nextStep(){
+  if(cur>=scenes.length){ showEnd(); return; }
+  const card=document.getElementById('sceneCard');
+  card.style.opacity='0';card.style.transition='opacity 0.2s';
+  setTimeout(()=>{ render(); card.style.opacity='1'; },200);
+  document.getElementById('progFill').style.width=((cur/scenes.length)*100)+'%';
+}
+
+function showEnd(){
+  document.getElementById('sceneCard').style.display='none';
+  const ec=document.getElementById('endCard');
+  ec.classList.add('show');
+  document.getElementById('progFill').style.width='100%';
+  document.getElementById('progTxt').textContent='Ukończono!';
+  document.getElementById('scoreNum').textContent=score+'/'+scenes.length;
+  if(score===scenes.length){
+    document.getElementById('endIcon').textContent='🏆';
+    document.getElementById('endTitle').textContent='Sprawa zamknięta!';
+    document.getElementById('endSub').textContent='Wynik idealny — Mareczek jest profesjonalistą!';
+  } else if(score>=4){
+    document.getElementById('endIcon').textContent='🥈';
+    document.getElementById('endTitle').textContent='Dobra robota!';
+    document.getElementById('endSub').textContent='Mareczek wyszedł obronną ręką. Spróbuj jeszcze raz!';
+  } else {
+    document.getElementById('endIcon').textContent='💪';
+    document.getElementById('endTitle').textContent='Ćwicz dalej!';
+    document.getElementById('endSub').textContent='Zerwana plomba to poważna sprawa — powtórz lekcję!';
+  }
+}
+
+function restart(){
+  cur=0;score=0;answered=false;
+  document.getElementById('sceneCard').style.display='block';
+  document.getElementById('sceneCard').style.opacity='1';
+  document.getElementById('endCard').classList.remove('show');
+  render();
+}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  // Scena 1
+  'Driver. Stop the engine. Step out of the vehicle.': 'driver_stop_the_engine_l7.mp3',
+  'I can see the seal on your trailer is broken. Did you do this?': 'audio/L7/i_can_see_the_seal_l7.mp3',
+  // Scena 2
+  'We will see about that. Show me the CMR. What is the seal number on the document?': 'audio/L7/we_will_see_about_that_l7.mp3',
+  // Scena 3
+  'The seal number on the CMR is PL-2025-0312. But the broken seal on your trailer shows PL-2025-0891. These numbers do not match.': 'audio/L7/the_seal_number_on_the_cmr_l7.mp3',
+  'Can you explain this?': 'audio/L7/can_you_explain_this_l7.mp3',
+  // Scena 4
+  'Interesting. So the seal was replaced during transit. Someone opened your trailer and replaced the original seal with a different one.': 'audio/L7/interesting_so_the_seal_l7.mp3',
+  'You stopped somewhere during the night. Where exactly?': 'audio/L7/you_stopped_somewhere_l7.mp3',
+  // Scena 5
+  'I need to check your tachograph. Also — I need you to note the broken seal number on the CMR.': 'audio/L7/i_need_to_check_your_tachograph_l7.mp3',
+  'Write: broken seal found at border control, number PL-2025-0891.': 'audio/L7/write_broken_seal_found_l7.mp3',
+  // Scena 6
+  'The tachograph confirms your stop in Frankfurt. You are not responsible for the broken seal. We will file a report.': 'audio/L7/the_tachograph_confirms_l7.mp3',
+  'You may proceed. But inform your company immediately. They need to inform the shipper.': 'audio/L7/you_may_proceed_but_inform_l7.mp3',
+
+  // Słownik końcowy
+  'seal': 'seal_l7.mp3',
+  'broken seal': 'broken_seal_l7.mp3',
+  'intact': 'intact_l7.mp3',
+  'seal number': 'seal_number_l7.mp3',
+  'not my fault': 'not_my_fault_l7.mp3',
+  'photographic evidence': 'photographic_evidence_l7.mp3',
+  'note on the CMR': 'note_on_the_cmr_l7.mp3',
+  'during transit': 'during_transit_l7.mp3'
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  
+  if(_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '🔊 Posłuchaj wymowy';
+
+  if (btn) {
+    btn.classList.add('playing');
+    btn.textContent = '⌛ Ładowanie...';
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("playing")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('playing');
+        btn.textContent = lbl;
+      }
+    }
+
+    _ap.onplay = () => {
+      if (btn) btn.textContent = '🔊 Odtwarzam...';
+    };
+
+    _ap.onended = resetBtn;
+
+    _ap.onerror = () => {
+      console.warn("Błąd MP3, fallback do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany, fallback:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak zdefiniowanego MP3 w AUDIO_MAP dla:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) {
+      if(btn) { btn.classList.remove('playing'); btn.textContent = "❌ Brak audio"; }
+      return;
+  }
+  window.speechSynthesis.cancel();
+  const lbl = label || '🔊 Posłuchaj wymowy';
+  if(btn){ btn.classList.add('playing'); btn.textContent='🔊 Odtwarzam...'; }
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend  = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent=lbl; } };
+    u.onerror= ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent=lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+// Funkcje wywoływane z HTML
+function speakMsg(btn, text) {
+  _playAudio(text, btn, '🔊 Posłuchaj wymowy');
+}
+
+function speakWord(word) {
+  _playAudio(word, null, null);
+}
+
+// Podpięcie kliknięć do słownika na ekranie końcowym
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".vocab-box .vb-row").forEach(row => {
+        let enWord = row.querySelector(".vb-en").textContent;
+        // Dodajemy wskaźnik i wywołanie audio
+        row.style.cursor = "pointer";
+        // Efekt hover, zeby kursant wiedzial, że można kliknąć
+        row.addEventListener('mouseover', () => row.style.background = 'rgba(26,46,74,0.05)');
+        row.addEventListener('mouseout', () => row.style.background = 'transparent');
+    });
+});
+
+render();
+</script>
+</body>
+</html>

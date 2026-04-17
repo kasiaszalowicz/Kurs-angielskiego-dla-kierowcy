@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 22 — Pomoc drogowa</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --orange:#e07820;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:720px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--red),var(--orange));border-radius:99px;transition:width 0.6s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* SCENA */
+.scene-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.scene-bar{height:5px;background:linear-gradient(90deg,var(--red),var(--orange));}
+.scene-head{background:var(--navy);padding:10px 18px;display:flex;align-items:center;justify-content:space-between;}
+.sh-left{display:flex;align-items:center;gap:8px;}
+.sh-num{background:var(--red);color:#fff;font-size:0.65rem;font-weight:900;padding:3px 10px;border-radius:99px;letter-spacing:1px;white-space:nowrap;}
+.sh-desc{font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.7);}
+.sh-loc{font-size:0.62rem;color:rgba(255,255,255,0.35);font-family:'Courier Prime',monospace;}
+
+/* DIALOGI */
+.dialogs{padding:18px 20px;display:flex;flex-direction:column;gap:12px;}
+
+/* Pomoc drogowa — lewo */
+.msg-disp{display:flex;align-items:flex-start;gap:10px;}
+.disp-avatar{width:36px;height:36px;border-radius:50%;background:rgba(214,53,40,0.1);border:1.5px solid rgba(214,53,40,0.25);display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:900;color:var(--red);flex-shrink:0;margin-top:2px;}
+.disp-bubble{background:#fef2f2;border:1.5px solid rgba(214,53,40,0.2);border-radius:0 12px 12px 12px;padding:10px 13px;max-width:85%;}
+.db-who{font-size:0.58rem;font-weight:900;color:var(--red);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.db-en{font-family:'Courier Prime',monospace;font-size:0.88rem;font-weight:700;color:var(--navy);line-height:1.5;}
+.db-pl{font-size:0.65rem;color:var(--muted);font-style:italic;margin-top:3px;}
+.db-snd{display:inline-flex;align-items:center;gap:4px;margin-top:6px;background:none;border:1px solid rgba(214,53,40,0.25);border-radius:6px;padding:3px 9px;font-family:'Nunito',sans-serif;font-size:0.65rem;font-weight:700;color:var(--red);cursor:pointer;transition:all 0.15s;}
+.db-snd:hover{border-color:var(--red);background:white;}
+.db-snd.playing{background:var(--red);color:#fff;border-color:var(--red);}
+
+/* Mareczek — prawo */
+.msg-me{display:flex;align-items:flex-start;gap:10px;flex-direction:row-reverse;}
+.me-avatar{width:36px;height:36px;border-radius:50%;background:rgba(26,46,74,0.1);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:900;color:var(--navy);flex-shrink:0;margin-top:2px;}
+.me-bubble{background:var(--navy);border:1.5px solid var(--navy);border-radius:12px 0 12px 12px;padding:10px 13px;max-width:85%;}
+.mb-who{font-size:0.58rem;font-weight:900;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.mb-en{font-family:'Courier Prime',monospace;font-size:0.88rem;font-weight:700;color:#fff;line-height:1.5;}
+.mb-pl{font-size:0.65rem;color:rgba(255,255,255,0.45);font-style:italic;margin-top:3px;}
+
+/* Opcje */
+.choice-section{border-top:1px solid var(--border);padding:14px 20px;background:#faf8f4;}
+.choice-label{font-size:0.62rem;font-weight:900;color:var(--red);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.choice-label::after{content:'';flex:1;height:1px;background:rgba(214,53,40,0.2);}
+.opt{background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;transition:all 0.15s;width:100%;text-align:left;margin-bottom:7px;}
+.opt:last-child{margin-bottom:0;}
+.opt:hover:not(:disabled){border-color:var(--red);background:#fff5f5;}
+.opt.correct{border-color:var(--green);background:#f0fdf4;animation:pop 0.25s ease;}
+.opt.wrong{border-color:var(--red);background:#fef2f2;animation:shake 0.3s ease;}
+.opt:disabled{cursor:default;}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.01)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.opt-letter{width:24px;height:24px;border-radius:50%;background:rgba(214,53,40,0.08);color:var(--red);display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:900;font-family:'Nunito',sans-serif;flex-shrink:0;transition:all 0.15s;margin-top:1px;}
+.opt.correct .opt-letter{background:var(--green);color:#fff;}
+.opt.wrong .opt-letter{background:var(--red);color:#fff;}
+.opt-body{}
+.opt-en{font-family:'Courier Prime',monospace;font-size:0.85rem;font-weight:700;color:var(--navy);line-height:1.4;}
+.opt.correct .opt-en{color:var(--green);}
+.opt.wrong .opt-en{color:var(--red);}
+.opt-pl{font-size:0.63rem;color:var(--muted);margin-top:2px;font-style:italic;}
+
+/* Feedback */
+.feedback{margin:10px 20px 0;padding:10px 13px;border-radius:8px;font-size:0.77rem;font-weight:700;line-height:1.6;display:none;}
+.feedback.show{display:block;}
+.feedback.ok{background:#f0fdf4;border:1.5px solid #86efac;color:var(--green);}
+.feedback.no{background:#fef2f2;border:1.5px solid #fca5a5;color:var(--red);}
+.feedback .kw{font-family:'Courier Prime',monospace;background:rgba(26,46,74,0.07);padding:1px 5px;border-radius:4px;color:var(--navy);}
+
+/* Dalej */
+.btn-next{display:none;width:calc(100% - 40px);margin:12px 20px;background:var(--navy);color:#fff;border:none;border-radius:10px;padding:12px;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:900;cursor:pointer;transition:all 0.15s;}
+.btn-next:hover{background:#2a4a6a;}
+.btn-next.show{display:block;}
+
+/* EKRAN KOŃCOWY */
+.end-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:26px 22px;text-align:center;display:none;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.end-card.show{display:block;}
+.end-bar{height:5px;background:linear-gradient(90deg,var(--red),var(--orange));border-radius:99px;margin-bottom:20px;}
+.end-icon{font-size:2.8rem;margin-bottom:10px;}
+.end-title{font-size:1.2rem;font-weight:900;color:var(--navy);margin-bottom:5px;}
+.end-sub{font-size:0.8rem;color:var(--muted);margin-bottom:18px;}
+.score-row{display:flex;justify-content:center;gap:14px;margin-bottom:18px;}
+.score-box{background:var(--bg);border-radius:10px;padding:12px 20px;text-align:center;border:1.5px solid var(--border);}
+.sb-num{font-size:1.6rem;font-weight:900;color:var(--navy);}
+.sb-lbl{font-size:0.6rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.vocab-box{background:var(--bg);border-radius:10px;padding:14px;text-align:left;margin-bottom:18px;}
+.vb-title{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:9px;}
+.vb-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.vb-row{display:flex;align-items:center;gap:7px;font-size:0.73rem;padding:3px 4px;border-radius:5px;transition:all 0.13s;}
+.vb-row:hover{background:rgba(214,53,40,0.06);}
+.vb-dot{width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;}
+.vb-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);}
+.vb-pl{font-size:0.63rem;color:var(--muted);}
+.btn-restart{background:var(--red);color:#fff;border:none;border-radius:10px;padding:12px 32px;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:900;cursor:pointer;transition:all 0.15s;}
+.btn-restart:hover{background:#b02020;}
+
+/* FOOTER */
+.footer{margin-top:12px;display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Pomoc drogowa</div>
+    <div class="h-sub">Lekcja 22 · Moduł 4 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">22 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">Scena 1 / 6</div>
+</div>
+
+<!-- SCENA -->
+<div class="scene-card" id="sceneCard">
+  <div class="scene-bar"></div>
+  <div class="scene-head">
+    <div class="sh-left">
+      <div class="sh-num" id="shNum">SCENA 1</div>
+      <div class="sh-desc" id="shDesc">Awaria na autostradzie</div>
+    </div>
+    <div class="sh-loc" id="shLoc">📍 Autostrada A2 — 02:14 w nocy</div>
+  </div>
+  <div class="dialogs" id="dialogs"></div>
+  <div class="choice-section">
+    <div class="choice-label">Wybierz odpowiedź Mareczka</div>
+    <div id="opts"></div>
+  </div>
+  <div class="feedback" id="feedback"></div>
+  <button class="btn-next" id="btnNext" onclick="nextStep()">DALEJ →</button>
+</div>
+
+<!-- EKRAN KOŃCOWY -->
+<div class="end-card" id="endCard">
+  <div class="end-bar"></div>
+  <div class="end-icon" id="endIcon">🚛</div>
+  <div class="end-title" id="endTitle">Pomoc w drodze!</div>
+  <div class="end-sub" id="endSub">Mareczek wezwał pomoc jak zawodowiec</div>
+  <div class="score-row">
+    <div class="score-box"><div class="sb-num" id="scoreNum">0/6</div><div class="sb-lbl">Poprawnych</div></div>
+  </div>
+  <div class="vocab-box">
+    <div class="vb-title">Słownik — Lekcja 22</div>
+    <div class="vb-grid" id="vocabGrid"></div>
+  </div>
+  <button class="btn-restart" onclick="restart()">↺ Zagraj jeszcze raz</button>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d on"></div>
+  </div>
+</div>
+
+</div>
+<script>
+const SCENES = [
+  {
+    num:'SCENA 1', desc:'Awaria na autostradzie', loc:'📍 Autostrada A2 — 02:14 w nocy',
+    disp:{who:'POMOC DROGOWA', en:'"Breakdown assistance, how can I help you?"', pl:'Pomoc drogowa, w czym mogę pomóc?'},
+    opts:[
+      {en:'"Hello. My truck has broken down on the A2 motorway."', pl:'Dzień dobry. Moja ciężarówka się zepsuła na autostradzie A2.', ok:true},
+      {en:'"Hello. I have a problem with my documents."', pl:'Dzień dobry. Mam problem z dokumentami.', ok:false},
+      {en:'"Hello. I need a hotel near the motorway."', pl:'Dzień dobry. Potrzebuję hotelu przy autostradzie.', ok:false},
+    ],
+    fb:'<span class="kw">Broken down</span> = zepsuć się / awaria. My truck has broken down = moja ciężarówka się zepsuła. Pierwsze zdanie musi być jasne i konkretne.',
+    vocab:{en:'broken down', pl:'zepsuła się'},
+  },
+  {
+    num:'SCENA 2', desc:'Pomoc drogowa pyta o lokalizację', loc:'📍 Autostrada A2 — km 187',
+    disp:{who:'POMOC DROGOWA', en:'"What is your exact location? Are you on the hard shoulder?"', pl:'Jaka jest Pana dokładna lokalizacja? Czy jest Pan na poboczu awaryjnym?'},
+    opts:[
+      {en:'"I am somewhere on the road. I don\'t know exactly."', pl:'Jestem gdzieś na drodze. Nie wiem dokładnie.', ok:false},
+      {en:'"I am on the hard shoulder, kilometre marker 187, near Poznan."', pl:'Jestem na poboczu awaryjnym, słupek kilometrowy 187, niedaleko Poznania.', ok:true},
+      {en:'"I am in Germany, I think."', pl:'Jestem w Niemczech, chyba.', ok:false},
+    ],
+    fb:'<span class="kw">Hard shoulder</span> = pobocze awaryjne. Zawsze znaj swój słupek kilometrowy — to skraca czas przybycia pomocy o połowę!',
+    vocab:{en:'hard shoulder', pl:'pobocze awaryjne'},
+  },
+  {
+    num:'SCENA 3', desc:'Opis usterki', loc:'📍 Pobocze awaryjne A2 km 187',
+    disp:{who:'POMOC DROGOWA', en:'"What is the problem with your vehicle?"', pl:'Jaki jest problem z Pana pojazdem?'},
+    opts:[
+      {en:'"I have a flat tyre on the rear axle. The engine has also failed."', pl:'Mam przebitą oponę na tylnej osi. Silnik też się zepsuł.', ok:true},
+      {en:'"Something is wrong. I don\'t know what."', pl:'Coś jest nie tak. Nie wiem co.', ok:false},
+      {en:'"The truck is making a strange noise."', pl:'Ciężarówka wydaje dziwny dźwięk.', ok:false},
+    ],
+    fb:'<span class="kw">Flat tyre</span> = przebita opona. <span class="kw">Engine failure</span> = awaria silnika. Im precyzyjniej opiszesz usterkę, tym lepiej przygotowana przyjedzie pomoc.',
+    vocab:{en:'flat tyre / engine failure', pl:'przebita opona / awaria silnika'},
+  },
+  {
+    num:'SCENA 4', desc:'Bezpieczeństwo na miejscu', loc:'📍 Pobocze awaryjne A2 km 187',
+    disp:{who:'POMOC DROGOWA', en:'"Are you safe? Do you have your hazard lights on and warning triangle placed?"', pl:'Czy jest Pan bezpieczny? Czy ma Pan włączone światła awaryjne i postawiony trójkąt?'},
+    opts:[
+      {en:'"Not yet, I will do it now."', pl:'Jeszcze nie, zrobię to teraz.', ok:false},
+      {en:'"Yes. Hazard lights are on and the warning triangle is placed 100 metres behind."', pl:'Tak. Światła awaryjne są włączone i trójkąt stoi 100 metrów za mną.', ok:true},
+      {en:'"I don\'t have a warning triangle."', pl:'Nie mam trójkąta ostrzegawczego.', ok:false},
+    ],
+    fb:'<span class="kw">Hazard lights</span> = światła awaryjne. <span class="kw">Warning triangle</span> = trójkąt ostrzegawczy. Zawsze najpierw bezpieczeństwo — potem dzwonienie!',
+    vocab:{en:'hazard lights / warning triangle', pl:'światła awaryjne / trójkąt'},
+  },
+  {
+    num:'SCENA 5', desc:'Pytanie o czas oczekiwania', loc:'📍 Pobocze awaryjne A2 km 187',
+    disp:{who:'POMOC DROGOWA', en:'"We are sending assistance now. Expected arrival in 45 minutes."', pl:'Wysyłamy pomoc teraz. Przewidywany czas przybycia 45 minut.'},
+    opts:[
+      {en:'"45 minutes?! That is too long!"', pl:'45 minut?! To za długo!', ok:false},
+      {en:'"Understood. How long will it take to fix the tyre?"', pl:'Rozumiem. Jak długo zajmie naprawa opony?', ok:true},
+      {en:'"OK. Can you send a taxi too?"', pl:'OK. Czy możecie też wysłać taksówkę?', ok:false},
+    ],
+    fb:'"<span class="kw">How long will it take?</span>" = jak długo to potrwa? Profesjonalne pytanie — Mareczek musi poinformować pomoc drogowaa firmy o opóźnieniu.',
+    vocab:{en:'how long will it take?', pl:'jak długo to potrwa?'},
+  },
+  {
+    num:'SCENA 6', desc:'Zakończenie zgłoszenia', loc:'📍 Pobocze awaryjne A2 km 187',
+    disp:{who:'POMOC DROGOWA', en:'"Stay in your vehicle and stay safe. Help is on the way. Is there anything else?"', pl:'Proszę pozostać w pojeździe i być bezpiecznym. Pomoc jest w drodze. Czy coś jeszcze?'},
+    opts:[
+      {en:'"No, that\'s all. Thank you very much."', pl:'Nie, to wszystko. Bardzo dziękuję.', ok:true},
+      {en:'"Yes — can you also bring a coffee? It is cold here."', pl:'Tak — czy możecie też przywieźć kawę? Zimno tu.', ok:false},
+      {en:'"Actually, I think I can fix it myself."', pl:'Właściwie myślę, że sam to naprawię.', ok:false},
+    ],
+    fb:'<span class="kw">Stay safe</span> = bądź bezpieczny. Help is on the way = pomoc jest w drodze. Spokojne i profesjonalne zakończenie rozmowy.',
+    vocab:{en:'stay safe', pl:'bądź bezpieczny'},
+    last:true,
+  },
+];
+
+const VOCAB = [
+  {en:'broken down', pl:'zepsuła się'},
+  {en:'tow truck', pl:'laweta'},
+  {en:'flat tyre', pl:'przebita opona'},
+  {en:'engine failure', pl:'awaria silnika'},
+  {en:'hard shoulder', pl:'pobocze awaryjne'},
+  {en:'hazard lights', pl:'światła awaryjne'},
+  {en:'how long will it take?', pl:'jak długo to potrwa?'},
+  {en:'warning triangle', pl:'trójkąt ostrzegawczy'},
+];
+
+let cur=0, score=0, answered=false;
+
+function render(){
+  const s=SCENES[cur];
+  document.getElementById('shNum').textContent=s.num;
+  document.getElementById('shDesc').textContent=s.desc;
+  document.getElementById('shLoc').textContent=s.loc;
+  document.getElementById('progFill').style.width=((cur/SCENES.length)*100)+'%';
+  document.getElementById('progTxt').textContent=`Scena ${cur+1} / ${SCENES.length}`;
+  answered=false;
+
+  document.getElementById('dialogs').innerHTML=`
+    <div class="msg-disp">
+      <div class="disp-avatar">DP</div>
+      <div class="disp-bubble">
+        <div class="db-who">${s.disp.who}</div>
+        <div class="db-en">${s.disp.en}</div>
+        <div class="db-pl">${s.disp.pl}</div>
+        <button class="db-snd" onclick="speakDisp(${cur}, this)">🔊 Wymowa</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('btnNext').className='btn-next';
+  document.getElementById('opts').innerHTML=s.opts.map((o,i)=>`
+    <button class="opt" onclick="choose(${i})" id="opt${i}">
+      <div class="opt-letter">${['A','B','C'][i]}</div>
+      <div class="opt-body">
+        <div class="opt-en">${o.en}</div>
+        <div class="opt-pl">${o.pl}</div>
+      </div>
+    </button>
+  `).join('');
+}
+
+function choose(idx){
+  if(answered)return;
+  answered=true;
+  const s=SCENES[cur];
+  document.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+  const btn=document.getElementById('opt'+idx);
+  const fb=document.getElementById('feedback');
+  if(s.opts[idx].ok){
+    btn.classList.add('correct');
+    fb.className='feedback show ok';
+    fb.innerHTML='✅ '+s.fb;
+    score++;
+  } else {
+    btn.classList.add('wrong');
+    const ci=s.opts.findIndex(o=>o.ok);
+    document.getElementById('opt'+ci).classList.add('correct');
+    fb.className='feedback show no';
+    fb.innerHTML='❌ '+s.fb;
+  }
+  cur++;
+  const nb=document.getElementById('btnNext');
+  nb.className='btn-next show';
+  nb.textContent=cur<SCENES.length?'DALEJ →':'WYNIKI →';
+}
+
+function nextStep(){
+  if(cur>=SCENES.length){showEnd();return;}
+  const card=document.getElementById('sceneCard');
+  card.style.opacity='0';card.style.transition='opacity 0.2s';
+  setTimeout(()=>{render();card.style.opacity='1';},200);
+  document.getElementById('progFill').style.width=((cur/SCENES.length)*100)+'%';
+}
+
+function showEnd(){
+  document.getElementById('sceneCard').style.display='none';
+  document.getElementById('endCard').classList.add('show');
+  document.getElementById('progFill').style.width='100%';
+  document.getElementById('progTxt').textContent='Ukończono!';
+  document.getElementById('scoreNum').textContent=score+'/'+SCENES.length;
+  if(score>=5){
+    document.getElementById('endIcon').textContent='🏆';
+    document.getElementById('endTitle').textContent='Pomoc w drodze!';
+    document.getElementById('endSub').textContent='Mareczek wezwał pomoc jak zawodowiec. Wynik idealny!';
+  } else if(score>=4){
+    document.getElementById('endIcon').textContent='🥈';
+    document.getElementById('endTitle').textContent='Dobra robota!';
+    document.getElementById('endSub').textContent='Prawie idealnie — powtórz trudniejsze sceny.';
+  } else {
+    document.getElementById('endIcon').textContent='💪';
+    document.getElementById('endTitle').textContent='Ćwicz dalej!';
+    document.getElementById('endSub').textContent='Awaria w nocy wymaga pewności — zagraj jeszcze raz!';
+  }
+  
+  // Wypełnianie interaktywnego słowniczka
+  document.getElementById('vocabGrid').innerHTML=VOCAB.map(v=>`
+    <div class="vb-row" style="cursor:pointer;">
+      <div class="vb-dot"></div>
+      <div class="vb-en">${v.en}</div>
+      <div class="vb-pl">— ${v.pl}</div>
+    </div>
+  `).join('');
+}
+
+function restart(){
+  cur=0;score=0;answered=false;
+  document.getElementById('sceneCard').style.display='block';
+  document.getElementById('sceneCard').style.opacity='1';
+  document.getElementById('endCard').classList.remove('show');
+  document.getElementById('progFill').style.width='0%';
+  render();
+}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  'Breakdown assistance, how can I help you?': 'audio/L22/breakdown_assistance_how_can_i_help_you_l22.mp3',
+  'What is your exact location? Are you on the hard shoulder?': 'audio/L22/what_is_your_exact_location_l22.mp3',
+  'What is the problem with your vehicle?': 'audio/L22/what_is_the_problem_with_your_vehicle_l22.mp3',
+  'Are you safe? Do you have your hazard lights on and warning triangle placed?': 'audio/L22/are_you_safe_do_you_have_your_hazard_lights_on_l22.mp3',
+  'We are sending assistance now. Expected arrival in 45 minutes.': 'audio/L22/we_are_sending_assistance_now_expected_arrival_l22.mp3',
+  'Stay in your vehicle and stay safe. Help is on the way. Is there anything else?': 'audio/L22/stay_in_your_vehicle_and_stay_safe_l22.mp3',
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  // Usuwanie cudzysłowów z tekstu
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  
+  if(_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '🔊 Wymowa';
+
+  if (btn) {
+    btn.classList.add('playing');
+    btn.textContent = '⌛ Ładowanie...';
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("playing")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('playing');
+        btn.textContent = lbl;
+      }
+    }
+
+    _ap.onplay = () => { if (btn) btn.textContent = '🔊 Odtwarzam...'; };
+    _ap.onended = resetBtn;
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak pliku MP3 dla tekstu:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const lbl = label || '🔊 Wymowa';
+  if(btn){ btn.classList.add('playing'); btn.textContent='🔊 Odtwarzam (Bot)...'; }
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    u.onerror = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+// Funkcja przypisana do przycisku dyspozytora
+function speakDisp(sceneIdx, btn) {
+  const text = SCENES[sceneIdx].disp.en;
+  _playAudio(text, btn, '🔊 Wymowa');
+}
+
+// Funkcja przypisana do kliknięć w słowniczku
+function speakVocab(word) {
+  _playAudio(word, null, null);
+}
+
+render();
+</script>
+</body>
+</html>

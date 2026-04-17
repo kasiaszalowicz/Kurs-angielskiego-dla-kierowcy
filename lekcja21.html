@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 21 — Awaria</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --orange:#e07820;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:860px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--navy),var(--orange));border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* ── RUNDA 1 — Drag & Drop ── */
+.round-info{text-align:center;margin-bottom:16px;}
+.round-tag{display:inline-block;background:var(--navy);color:#fff;font-size:0.6rem;font-weight:900;letter-spacing:2px;padding:3px 12px;border-radius:99px;text-transform:uppercase;margin-bottom:6px;}
+.round-title{font-size:1.1rem;font-weight:900;color:var(--navy);}
+.round-sub{font-size:0.72rem;color:var(--muted);font-weight:700;margin-top:3px;}
+
+/* DND layout */
+.dnd-layout{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:10px;margin-bottom:16px;
+}
+
+/* Frazy — lewa */
+.drag-pool-wrap{}
+.dp-label{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
+.drag-pool{display:flex;flex-direction:column;gap:6px;}
+
+.drag-item{
+  background:var(--white);
+  border:1.5px solid var(--border);
+  border-radius:9px;
+  padding:10px 13px;
+  font-family:'Courier Prime',monospace;
+  font-size:0.82rem;font-weight:700;
+  color:var(--navy);
+  cursor:grab;user-select:none;
+  transition:all 0.15s;
+  display:flex;align-items:center;gap:8px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.05);
+}
+.drag-item:hover{border-color:var(--navy);transform:translateY(-1px);box-shadow:0 3px 8px rgba(26,46,74,0.1);}
+.drag-item.dragging{opacity:0.35;cursor:grabbing;}
+.drag-item.matched{
+  border-color:var(--green);background:#f0fdf4;
+  color:var(--green);cursor:default;
+  transform:none;box-shadow:none;
+}
+.di-handle{font-size:0.75rem;color:#ccc;flex-shrink:0;}
+.drag-item.matched .di-handle{display:none;}
+.di-check{font-size:0.8rem;display:none;flex-shrink:0;}
+.drag-item.matched .di-check{display:block;}
+.di-snd{
+  margin-left:auto;background:none;border:none;
+  cursor:pointer;font-size:0.78rem;opacity:0.3;
+  transition:opacity 0.15s;flex-shrink:0;
+}
+.di-snd:hover{opacity:1;}
+.drag-item.matched .di-snd{opacity:0.5;}
+
+/* Strefy — prawa */
+.drop-zones-wrap{}
+.dz-label{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
+.drop-zones{display:flex;flex-direction:column;gap:6px;}
+
+.drop-zone{
+  background:var(--white);
+  border:1.5px dashed var(--border);
+  border-radius:9px;
+  padding:10px 13px;
+  min-height:46px;
+  display:flex;align-items:center;gap:8px;
+  transition:all 0.15s;
+}
+.drop-zone.over{border-color:var(--navy);background:#f0f4f8;border-style:solid;}
+.drop-zone.correct{border-color:var(--green);background:#f0fdf4;border-style:solid;}
+.drop-zone.wrong{border-color:var(--red);background:#fef2f2;border-style:solid;animation:shake 0.3s;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+.dz-pl{font-size:0.78rem;font-weight:700;color:var(--navy);flex:1;line-height:1.4;}
+.dz-answer{
+  font-family:'Courier Prime',monospace;font-size:0.7rem;font-weight:700;
+  color:var(--green);opacity:0;transition:opacity 0.3s;margin-left:auto;white-space:nowrap;
+}
+.drop-zone.correct .dz-answer{opacity:1;}
+.dz-hint{font-size:0.65rem;color:#bbb;font-style:italic;margin-left:auto;white-space:nowrap;}
+.drop-zone.correct .dz-hint{display:none;}
+
+/* Wynik rundy 1 */
+.r1-result{
+  font-size:0.75rem;font-weight:700;color:var(--muted);
+  text-align:center;padding:8px;display:block;
+}
+.r1-result.done{color:var(--green);}
+
+/* ── RUNDA 2 — Sytuacje ── */
+.situations-wrap{margin-bottom:16px;}
+.sit-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:10px;padding:14px 16px;
+  margin-bottom:8px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.05);
+}
+.sit-ctx{font-size:0.62rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;}
+.sit-q{font-size:0.88rem;font-weight:900;color:var(--navy);line-height:1.5;margin-bottom:10px;}
+.sit-opts{display:flex;flex-direction:column;gap:6px;}
+.sit-opt{
+  background:var(--bg);border:1.5px solid var(--border);
+  border-radius:8px;padding:9px 13px;
+  font-family:'Courier Prime',monospace;font-size:0.8rem;font-weight:700;
+  color:var(--navy);cursor:pointer;
+  display:flex;align-items:center;gap:9px;
+  transition:all 0.15s;width:100%;text-align:left;
+}
+.sit-opt:hover:not(:disabled){border-color:var(--navy);background:var(--white);}
+.sit-opt.ok{background:#f0fdf4;border-color:var(--green);color:var(--green);}
+.sit-opt.no{background:#fef2f2;border-color:var(--red);color:var(--red);}
+.sit-opt:disabled{cursor:default;}
+.so-letter{width:20px;height:20px;border-radius:50%;background:rgba(26,46,74,0.1);display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:900;font-family:'Nunito',sans-serif;color:var(--navy);flex-shrink:0;transition:all 0.13s;}
+.sit-opt.ok .so-letter{background:var(--green);color:#fff;}
+.sit-opt.no .so-letter{background:var(--red);color:#fff;}
+.sit-fb{font-size:0.72rem;font-weight:700;margin-top:8px;padding:7px 10px;border-radius:7px;display:none;line-height:1.5;}
+.sit-fb.show{display:block;}
+.sit-fb.ok{background:#f0fdf4;border:1px solid #86efac;color:var(--green);}
+.sit-fb.no{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);}
+
+/* ── SŁOWNIK ── */
+.vocab-section{margin-bottom:14px;}
+.vocab-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.vocab-card-item{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:9px;padding:9px 11px;
+  transition:all 0.13s;
+  box-shadow:0 1px 3px rgba(0,0,0,0.04);
+}
+.vocab-card-item:hover{border-color:var(--navy);transform:translateY(-1px);}
+.vi-en{font-family:'Courier Prime',monospace;font-size:0.75rem;font-weight:700;color:var(--navy);}
+.vi-pl{font-size:0.62rem;color:var(--muted);font-weight:700;margin-top:2px;}
+
+/* EKRAN KOŃCOWY */
+.end-wrap{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;padding:24px;text-align:center;
+  display:none;margin-bottom:14px;
+}
+.end-wrap.show{display:block;}
+.end-icon{font-size:2.5rem;margin-bottom:8px;}
+.end-title{font-size:1.2rem;font-weight:900;color:var(--navy);margin-bottom:4px;}
+.end-sub{font-size:0.78rem;color:var(--muted);margin-bottom:14px;}
+.btn-restart{background:var(--navy);color:#fff;border:none;border-radius:9px;padding:11px 28px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:900;cursor:pointer;transition:all 0.15s;}
+.btn-restart:hover{background:#2a4a6a;}
+
+/* FOOTER */
+.footer{display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+
+@media(max-width:580px){
+  .dnd-layout{grid-template-columns:1fr;}
+  .vocab-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Awaria na trasie</div>
+    <div class="h-sub">Lekcja 21 · Moduł 4 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">21 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">Runda 1 / 2</div>
+</div>
+
+<!-- ══ RUNDA 1 ══ -->
+<div id="round1">
+  <div class="round-info">
+    <div class="round-tag">Runda 1 / 2</div>
+    <div class="round-title">Przeciągnij frazę do sytuacji</div>
+    <div class="round-sub">Dopasuj angielski opis awarii do polskiego odpowiednika</div>
+  </div>
+
+  <div class="dnd-layout">
+    <div class="drag-pool-wrap">
+      <div class="dp-label">Frazy angielskie</div>
+      <div class="drag-pool" id="dragPool"></div>
+    </div>
+    <div class="drop-zones-wrap">
+      <div class="dz-label">Opisy po polsku</div>
+      <div class="drop-zones" id="dropZones"></div>
+    </div>
+  </div>
+
+  <div class="r1-result" id="r1Result">Przeciągnij frazy do odpowiednich opisów →</div>
+</div>
+
+<!-- ══ RUNDA 2 ══ -->
+<div id="round2" style="display:none;">
+  <div class="round-info">
+    <div class="round-tag">Runda 2 / 2</div>
+    <div class="round-title">Co mówisz w tej sytuacji?</div>
+    <div class="round-sub">Wybierz właściwą frazę angielską</div>
+  </div>
+  <div class="situations-wrap" id="situationsWrap"></div>
+  <div style="text-align:center;margin-bottom:14px;" id="r2Actions" style="display:none;">
+    <button class="btn-restart" onclick="showEnd()" id="btnShowEnd" style="display:none;">WYNIKI →</button>
+  </div>
+</div>
+
+<!-- SŁOWNIK -->
+<div class="vocab-section" id="vocabSection">
+  <div style="font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;">Słownik</div>
+  <div class="vocab-grid" id="vocabGrid"></div>
+</div>
+
+<!-- EKRAN KOŃCOWY -->
+<div class="end-wrap" id="endWrap">
+  <div class="end-icon" id="endIcon">🏆</div>
+  <div class="end-title" id="endTitle">Awaria opanowana!</div>
+  <div class="end-sub" id="endSub">Znasz frazy awaryjne po angielsku</div>
+  <button class="btn-restart" onclick="restart()">↺ Zagraj jeszcze raz</button>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d on"></div>
+  </div>
+</div>
+
+</div>
+<script>
+/* ══ DANE ══ */
+const dndPairs = [
+  { en:'I have a flat tyre.',          pl:'Złapałem gumę.' },
+  { en:'The engine has broken down.',   pl:'Silnik padł.' },
+  { en:'I am stuck in the mud.',        pl:'Wjechałem w błoto.' },
+  { en:'The trailer is overheating.',   pl:'Naczepa się przegrzewa.' },
+  { en:'I need a tow truck.',           pl:'Potrzebuję holownika.' },
+  { en:'The brakes are not working.',   pl:'Hamulce nie działają.' },
+  { en:'I have a fuel leak.',           pl:'Mam wyciek paliwa.' },
+  { en:'I am stranded on the motorway.',pl:'Stoję unieruchomiony na autostradzie.' },
+];
+
+const situations = [
+  {
+    ctx:'Dzwonisz do pomocy drogowej',
+    q:'Twój silnik nagle wysiada na autostradzie A2. Pierwsza rzecz którą mówisz:',
+    opts:[
+      { t:'"My truck has broken down on the motorway. I need assistance."', correct:true },
+      { t:'"I have a problem with my documents."', correct:false },
+      { t:'"The brakes are overheating."', correct:false },
+    ],
+    tip:'Broken down = zepsuty / nie odpalający. I need assistance = potrzebuję pomocy. Zawsze podaj lokalizację!',
+  },
+  {
+    ctx:'Podajesz lokalizację',
+    q:'Dyspozytor pyta "What is your exact location?" Co odpowiadasz?',
+    opts:[
+      { t:'"I am near Frankfurt, somewhere on the road."', correct:false },
+      { t:'"I am on the A2 motorway, kilometre marker 187, near Hannover."', correct:true },
+      { t:'"I don\'t know exactly where I am."', correct:false },
+    ],
+    tip:'Kilometre marker = słupek kilometrowy. Zawsze znaj swój km i najbliższe miasto — to skraca czas przybycia pomocy.',
+  },
+  {
+    ctx:'Opisujesz usterkę mechanikowi',
+    q:'Mechanik pyta "What seems to be the problem?" — co mówisz przy przebitej oponie?',
+    opts:[
+      { t:'"I have a flat tyre on the rear left axle."', correct:true },
+      { t:'"Something is wrong with my truck."', correct:false },
+      { t:'"The engine is making a noise."', correct:false },
+    ],
+    tip:'Flat tyre = przebita opona. Rear left axle = tylna lewa oś. Im precyzyjniej opiszesz tym szybciej mechanik znajdzie problem.',
+  },
+  {
+    ctx:'Strażnik autostradowy podchodzi do Ciebie',
+    q:'Pytają czy Twój pojazd stwarza zagrożenie. Co odpowiadasz gdy stoisz bezpiecznie na pasie awaryjnym?',
+    opts:[
+      { t:'"Yes, it is dangerous. Help me now."', correct:false },
+      { t:'"No, I am on the hard shoulder with hazard lights on and warning triangles set up."', correct:true },
+      { t:'"I don\'t know, please check yourself."', correct:false },
+    ],
+    tip:'Hard shoulder = pas awaryjny. Hazard lights = światła awaryjne. Warning triangles = trójkąty ostrzegawcze. Pokaż że działałeś zgodnie z przepisami.',
+  },
+  {
+    ctx:'Firmy drogówka zatrzymuje Cię po awarii',
+    q:'Policjant pyta czy masz dokumenty pojazdu. Co odpowiadasz gdy masz wszystko:',
+    opts:[
+      { t:'"Here are the vehicle documents, insurance and my driver\'s licence."', correct:true },
+      { t:'"My documents are in the truck, I need to check."', correct:false },
+      { t:'"I have only my driver card."', correct:false },
+    ],
+    tip:'Vehicle documents = dokumenty pojazdu. Insurance = ubezpieczenie. Driver\'s licence = prawo jazdy. Miej je zawsze pod ręką.',
+  },
+];
+
+const vocab = [
+  { en:'flat tyre',       pl:'przebita opona' },
+  { en:'breakdown',       pl:'awaria / zepsuta' },
+  { en:'tow truck',       pl:'holownik' },
+  { en:'hard shoulder',   pl:'pas awaryjny' },
+  { en:'hazard lights',   pl:'światła awaryjne' },
+  { en:'warning triangle',pl:'trójkąt ostrzegawczy' },
+  { en:'fuel leak',       pl:'wyciek paliwa' },
+  { en:'axle',            pl:'oś' },
+  { en:'overheating',     pl:'przegrzewanie' },
+  { en:'stranded',        pl:'unieruchomiony' },
+  { en:'assistance',      pl:'pomoc drogowa' },
+  { en:'kilometre marker',pl:'słupek km' },
+];
+
+/* ══ STAN ══ */
+let dndMatched = 0;
+let r2Score = 0;
+let r2Answered = 0;
+let dragged = null;
+let touchDragged = null;
+let touchClone = null;
+
+/* ══ BUDUJ INTERFEJS ══ */
+function buildDnd() {
+  const shuffled = [...dndPairs].sort(()=>Math.random()-0.5);
+
+  document.getElementById('dragPool').innerHTML = shuffled.map((p,i)=>`
+    <div class="drag-item" id="di${i}" draggable="true" data-en="${p.en}"
+         ondragstart="dStart(event,'${p.en.replace(/'/g,"\\'")}','di${i}')" ondragend="dEnd(event)">
+      <span class="di-handle">⠿</span>
+      ${p.en}
+      <span class="di-check">✓</span>
+      <button class="di-snd" onclick="event.stopPropagation();speak('${p.en.replace(/'/g,"\\'")}', this)">🔊</button>
+    </div>
+  `).join('');
+
+  document.getElementById('dropZones').innerHTML = dndPairs.map((p,i)=>`
+    <div class="drop-zone" id="dz${i}" data-answer="${p.en}"
+         ondragover="dOver(event)" ondragleave="dLeave(event)" ondrop="dDrop(event)">
+      <div class="dz-pl">${p.pl}</div>
+      <div class="dz-answer">${p.en}</div>
+      <div class="dz-hint">upuść</div>
+    </div>
+  `).join('');
+
+  // Touch
+  document.querySelectorAll('.drag-item').forEach(el=>{
+    el.addEventListener('touchstart', tStart, {passive:false});
+    el.addEventListener('touchmove',  tMove,  {passive:false});
+    el.addEventListener('touchend',   tEnd,   {passive:false});
+  });
+}
+
+function buildSituations() {
+  document.getElementById('situationsWrap').innerHTML = situations.map((s,si)=>`
+    <div class="sit-card" id="sc${si}">
+      <div class="sit-ctx">${s.ctx}</div>
+      <div class="sit-q">${s.q}</div>
+      <div class="sit-opts">
+        ${s.opts.map((o,oi)=>`
+          <button class="sit-opt" id="so${si}_${oi}" onclick="pickSit(${si},${oi},${o.correct})">
+            <div class="so-letter">${['A','B','C'][oi]}</div>
+            ${o.t}
+          </button>
+        `).join('')}
+      </div>
+      <div class="sit-fb" id="sfb${si}"></div>
+    </div>
+  `).join('');
+}
+
+function buildVocab() {
+  document.getElementById('vocabGrid').innerHTML = vocab.map(v=>`
+    <div class="vocab-card-item" style="cursor:pointer; transition:all 0.15s;" onmouseover="this.style.borderColor='var(--navy)'; this.style.transform='translateY(-1px)';" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='none';">
+      <div class="vi-en">${v.en}</div>
+      <div class="vi-pl">${v.pl}</div>
+    </div>
+  `).join('');
+}
+
+/* ══ DRAG & DROP — mouse ══ */
+function dStart(e, en, id) {
+  dragged = {en, id};
+  setTimeout(()=>document.getElementById(id)?.classList.add('dragging'),0);
+}
+function dEnd(e){ e.target.classList.remove('dragging'); }
+function dOver(e){ e.preventDefault(); e.currentTarget.classList.add('over'); }
+function dLeave(e){ e.currentTarget.classList.remove('over'); }
+function dDrop(e){
+  e.preventDefault();
+  const zone = e.currentTarget;
+  zone.classList.remove('over');
+  if(!dragged || zone.classList.contains('correct')) return;
+  if(dragged.en === zone.dataset.answer){
+    zone.classList.add('correct');
+    document.getElementById(dragged.id)?.classList.add('matched');
+    dndMatched++;
+    updateProgress();
+    if(dndMatched === dndPairs.length) {
+      setTimeout(()=>{
+        document.getElementById('r1Result').textContent = '✓ Wszystkie dopasowane!';
+        document.getElementById('r1Result').classList.add('done');
+        setTimeout(startRound2, 800);
+      }, 400);
+    }
+  } else {
+    zone.classList.add('wrong');
+    setTimeout(()=>zone.classList.remove('wrong'), 500);
+  }
+  dragged = null;
+}
+
+/* ══ DRAG & DROP — touch ══ */
+function tStart(e){
+  if(this.classList.contains('matched')) return;
+  e.preventDefault();
+  touchDragged = this.dataset.en;
+  touchClone = this.cloneNode(true);
+  touchClone.style.cssText=`position:fixed;pointer-events:none;z-index:9999;opacity:0.88;
+    width:${this.offsetWidth}px;background:#fff;border:1.5px solid var(--navy);
+    border-radius:9px;padding:10px 13px;font-family:'Courier Prime',monospace;
+    font-size:0.82rem;font-weight:700;color:#1a2e4a;`;
+  document.body.appendChild(touchClone);
+  const t=e.touches[0];
+  touchClone.style.left=(t.clientX-touchClone.offsetWidth/2)+'px';
+  touchClone.style.top=(t.clientY-25)+'px';
+}
+function tMove(e){
+  e.preventDefault();
+  if(!touchClone) return;
+  const t=e.touches[0];
+  touchClone.style.left=(t.clientX-touchClone.offsetWidth/2)+'px';
+  touchClone.style.top=(t.clientY-25)+'px';
+  document.querySelectorAll('.drop-zone').forEach(z=>z.classList.remove('over'));
+  const el=document.elementFromPoint(t.clientX,t.clientY);
+  const zone=el?.closest('.drop-zone');
+  if(zone&&!zone.classList.contains('correct')) zone.classList.add('over');
+}
+function tEnd(e){
+  e.preventDefault();
+  if(touchClone){touchClone.remove();touchClone=null;}
+  document.querySelectorAll('.drop-zone').forEach(z=>z.classList.remove('over'));
+  if(!touchDragged) return;
+  const t=e.changedTouches[0];
+  const el=document.elementFromPoint(t.clientX,t.clientY);
+  const zone=el?.closest('.drop-zone');
+  if(zone){
+    const fakeSrc = document.querySelector(`.drag-item[data-en="${touchDragged}"]`);
+    dragged = {en:touchDragged, id: fakeSrc?.id};
+    dDrop({preventDefault:()=>{},currentTarget:zone});
+  }
+  touchDragged=null;
+}
+
+/* ══ RUNDA 2 ══ */
+function startRound2(){
+  document.getElementById('round1').style.display='none';
+  document.getElementById('round2').style.display='block';
+  document.getElementById('progTxt').textContent='Runda 2 / 2';
+  document.getElementById('progFill').style.width='50%';
+  buildSituations();
+}
+
+function pickSit(si, oi, correct){
+  document.querySelectorAll(`#sc${si} .sit-opt`).forEach(b=>b.disabled=true);
+  const btn = document.getElementById(`so${si}_${oi}`);
+  const fb  = document.getElementById(`sfb${si}`);
+  if(correct){
+    btn.classList.add('ok');
+    fb.className='sit-fb show ok';
+    fb.textContent='✅ '+situations[si].tip;
+    r2Score++;
+  } else {
+    btn.classList.add('no');
+    const ci = situations[si].opts.findIndex(o=>o.correct);
+    document.getElementById(`so${si}_${ci}`).classList.add('ok');
+    fb.className='sit-fb show no';
+    fb.textContent='❌ '+situations[si].tip;
+  }
+  r2Answered++;
+  if(r2Answered === situations.length){
+    setTimeout(()=>{
+      document.getElementById('btnShowEnd').style.display='inline-block';
+    },600);
+  }
+}
+
+/* ══ KONIEC ══ */
+function showEnd(){
+  document.getElementById('round2').style.display='none';
+  document.getElementById('endWrap').classList.add('show');
+  document.getElementById('progFill').style.width='100%';
+  document.getElementById('progTxt').textContent='Ukończono!';
+  const total = r2Score;
+  const max   = situations.length;
+  if(total===max){
+    document.getElementById('endIcon').textContent='🏆';
+    document.getElementById('endTitle').textContent='Awaria opanowana!';
+    document.getElementById('endSub').textContent='Wynik idealny — znasz wszystkie frazy awaryjne.';
+  } else if(total>=3){
+    document.getElementById('endIcon').textContent='🥈';
+    document.getElementById('endTitle').textContent='Dobra robota!';
+    document.getElementById('endSub').textContent='Prawie idealnie — powtórz trudniejsze frazy.';
+  } else {
+    document.getElementById('endIcon').textContent='💪';
+    document.getElementById('endTitle').textContent='Ćwicz dalej!';
+    document.getElementById('endSub').textContent='Powtórz lekcję — awaria wymaga pewności siebie!';
+  }
+}
+
+function restart(){
+  dndMatched=0; r2Score=0; r2Answered=0; dragged=null;
+  document.getElementById('endWrap').classList.remove('show');
+  document.getElementById('round2').style.display='none';
+  document.getElementById('round1').style.display='block';
+  document.getElementById('r1Result').textContent='Przeciągnij frazy do odpowiednich opisów →';
+  document.getElementById('r1Result').classList.remove('done');
+  document.getElementById('progFill').style.width='0%';
+  document.getElementById('progTxt').textContent='Runda 1 / 2';
+  document.getElementById('btnShowEnd').style.display='none';
+  buildDnd();
+}
+
+function updateProgress(){
+  const pct = (dndMatched/dndPairs.length)*50;
+  document.getElementById('progFill').style.width=pct+'%';
+}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  // Frazy z Rund 1
+  'I have a flat tyre.': 'audio/L21/i_have_a_flat_tyre_l21.mp3',
+  'The engine has broken down.': 'audio/L21/the_engine_has_broken_down_l21.mp3',
+  'I am stuck in the mud.': 'audio/L21/i_am_stuck_in_the_mud_l21.mp3',
+  'The trailer is overheating.': 'audio/L21/the_trailer_is_overheating_l21.mp3',
+  'I need a tow truck.': 'audio/L21/i_need_a_tow_truck_l21.mp3',
+  'The brakes are not working.': 'audio/L21/the_brakes_are_not_working_l21.mp3',
+  'I have a fuel leak.': 'audio/L21/i_have_a_fuel_leak_l21.mp3',
+  'I am stranded on the motorway.': 'audio/L21/i_am_stranded_on_the_motorway_l21.mp3',
+
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  // Czyszczenie tekstu
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  
+  if(_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '🔊';
+
+  if (btn) {
+    btn.classList.add('playing');
+    btn.textContent = '⌛'; // ikona ładowania
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("playing")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('playing');
+        btn.textContent = lbl;
+      }
+    }
+
+    _ap.onplay = () => { if (btn) btn.textContent = '🔊'; };
+    _ap.onended = resetBtn;
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak pliku MP3 w AUDIO_MAP dla:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const lbl = label || '🔊';
+  if(btn){ btn.classList.add('playing'); btn.textContent='🔊'; }
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    u.onerror = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+function speak(text, btn) {
+  _playAudio(text, btn, '🔊');
+}
+
+function speakVocab(word) {
+  _playAudio(word, null, null);
+}
+
+/* INIT */
+buildDnd();
+buildVocab();
+document.getElementById('btnShowEnd').style.display='none';
+</script>
+</body>
+</html>

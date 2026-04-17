@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 23 — Wypadek i ubezpieczenie</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--navy:#1a2e4a;--red:#d63528;--green:#15803d;--bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;--orange:#e07820;}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:700px;margin:0 auto;}
+
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;}
+
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--red),var(--orange));border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* INTRO */
+.intro-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.intro-bar{height:4px;background:linear-gradient(90deg,var(--red),var(--orange));border-radius:99px;margin-bottom:14px;}
+.intro-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.intro-icon{font-size:1.6rem;}
+.intro-title{font-size:0.88rem;font-weight:900;color:var(--navy);}
+.intro-sub{font-size:0.72rem;color:var(--muted);margin-top:2px;}
+.intro-ctx{background:var(--bg);border-radius:8px;padding:10px 13px;font-size:0.75rem;font-weight:700;color:var(--navy);line-height:1.6;border-left:3px solid var(--red);}
+.intro-count{font-size:0.65rem;font-weight:900;color:var(--red);text-transform:uppercase;letter-spacing:1.5px;margin-top:10px;}
+
+/* RAPORT */
+.report-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);margin-bottom:12px;}
+.rc-head{background:var(--navy);padding:10px 18px;display:flex;align-items:center;justify-content:space-between;}
+.rc-title{font-size:0.65rem;font-weight:900;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;}
+.rc-found{font-size:0.65rem;font-weight:900;color:rgba(255,255,255,0.7);}
+.rc-body{padding:20px;}
+
+/* Text z błędami */
+.report-text{font-family:'Courier Prime',monospace;font-size:0.92rem;line-height:2.2;color:var(--navy);}
+.word{cursor:default;border-radius:3px;padding:1px 2px;transition:all 0.15s;}
+.word.clickable{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-decoration-color:var(--muted);}
+.word.clickable:hover{background:rgba(214,53,40,0.08);text-decoration-color:var(--red);}
+.word.wrong{background:rgba(214,53,40,0.12);color:var(--red);text-decoration:none;cursor:pointer;}
+.word.wrong:hover{background:rgba(214,53,40,0.2);}
+.word.found-error{background:rgba(214,53,40,0.15);color:var(--red);text-decoration:line-through;cursor:default;}
+.word.correct-shown{background:rgba(21,128,61,0.12);color:var(--green);cursor:default;font-weight:700;}
+.word.false-alarm{animation:pulse-red 0.4s;}
+@keyframes pulse-red{0%,100%{background:transparent}50%{background:rgba(214,53,40,0.15)}}
+
+/* Panel błędu */
+.error-panel{display:none;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:10px;padding:13px 16px;margin-top:14px;}
+.error-panel.show{display:block;}
+.ep-wrong{font-family:'Courier Prime',monospace;font-size:0.88rem;color:var(--red);font-weight:700;text-decoration:line-through;margin-bottom:4px;}
+.ep-correct{font-family:'Courier Prime',monospace;font-size:1rem;color:var(--green);font-weight:700;margin-bottom:6px;}
+.ep-explain{font-size:0.75rem;color:var(--navy);font-weight:700;line-height:1.5;margin-bottom:10px;}
+.ep-snd{background:none;border:1.5px solid var(--border);border-radius:7px;padding:5px 12px;font-family:'Nunito',sans-serif;font-size:0.7rem;font-weight:700;color:var(--navy);cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;}
+.ep-snd:hover{border-color:var(--navy);}
+.ep-snd.playing{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+.hint-row{display:flex;align-items:center;justify-content:space-between;margin-top:16px;}
+.hint-btn{background:none;border:1.5px solid var(--border);border-radius:7px;padding:5px 12px;font-family:'Nunito',sans-serif;font-size:0.7rem;font-weight:700;color:var(--muted);cursor:pointer;transition:all 0.15s;}
+.hint-btn:hover{border-color:var(--navy);color:var(--navy);}
+.found-label{font-size:0.7rem;font-weight:900;color:var(--muted);}
+.found-label span{color:var(--red);}
+
+/* Wynik rundy */
+.round-result{background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:12px 16px;text-align:center;display:none;margin-top:12px;}
+.round-result.show{display:block;}
+.rr-txt{font-size:0.82rem;font-weight:900;color:var(--green);margin-bottom:8px;}
+.btn-next-round{background:var(--navy);color:#fff;border:none;border-radius:8px;padding:10px 24px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:900;cursor:pointer;}
+.btn-next-round:hover{background:#2a4a6a;}
+
+/* KONIEC */
+.end-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:26px 22px;text-align:center;display:none;box-shadow:0 2px 8px rgba(0,0,0,0.05);margin-bottom:14px;}
+.end-card.show{display:block;}
+.end-icon{font-size:2.8rem;margin-bottom:10px;}
+.end-title{font-size:1.2rem;font-weight:900;color:var(--navy);margin-bottom:6px;}
+.end-sub{font-size:0.8rem;color:var(--muted);margin-bottom:18px;}
+.sc-row{display:flex;justify-content:center;gap:14px;margin-bottom:18px;}
+.sc-box{background:var(--bg);border-radius:10px;padding:12px 22px;border:1.5px solid var(--border);text-align:center;}
+.sc-num{font-size:1.8rem;font-weight:900;color:var(--navy);}
+.sc-lbl{font-size:0.6rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.vocab-box{background:var(--bg);border-radius:10px;padding:13px 15px;text-align:left;margin-bottom:16px;}
+.vb-title{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:9px;}
+.vb-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.vb-row{display:flex;align-items:center;gap:6px;font-size:0.73rem;padding:3px 4px;border-radius:5px;transition:all 0.13s;}
+.vb-row:hover{background:rgba(26,46,74,0.05);}
+.vb-dot{width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;}
+.vb-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);}
+.vb-pl{font-size:0.63rem;color:var(--muted);}
+.btn-restart{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:11px 28px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:900;cursor:pointer;}
+.btn-restart:hover{background:#2a4a6a;}
+
+.footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Wypadek i ubezpieczenie</div>
+    <div class="h-sub">Lekcja 23 &middot; Modu&#322; 4 &middot; Angielski z Mareczkiem &middot; Crosshaul</div>
+  </div>
+  <div class="h-badge">23 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">Raport 1 / 3</div>
+</div>
+
+<div class="intro-card" id="introCard">
+  <div class="intro-bar"></div>
+  <div class="intro-head">
+    <div class="intro-icon">&#128657;</div>
+    <div>
+      <div class="intro-title">Znajd&#378; b&#322;&#261;d w raporcie wypadku</div>
+      <div class="intro-sub">Mareczek napisa&#322; raport po angielsku — ale s&#261; w nim b&#322;&#281;dy!</div>
+    </div>
+  </div>
+  <div class="intro-ctx">
+    Przeczytaj raport uwa&#380;nie. Kliknij na <strong>podkre&#347;lone s&#322;owo</strong> je&#347;li my&#347;lisz, &#380;e jest b&#322;&#281;done. W ka&#380;dym raporcie s&#261; <strong>3 b&#322;&#281;dy</strong> — znajd&#378; je wszystkie!
+  </div>
+  <div class="intro-count">3 raporty &middot; 3 b&#322;&#281;dy w ka&#380;dym &middot; 9 b&#322;&#281;d&#243;w razem</div>
+</div>
+
+<div class="report-card" id="reportCard">
+  <div class="rc-head">
+    <div class="rc-title" id="rcTitle">RAPORT 1 / 3</div>
+    <div class="rc-found">Znaleziono: <span id="foundCount">0</span> / 3</div>
+  </div>
+  <div class="rc-body">
+    <div class="report-text" id="reportText"></div>
+    <div class="error-panel" id="errorPanel">
+      <div class="ep-wrong" id="epWrong"></div>
+      <div class="ep-correct" id="epCorrect"></div>
+      <div class="ep-explain" id="epExplain"></div>
+      <button class="ep-snd" id="epSnd" onclick="speakCorrect()">&#128266; Pos&#322;uchaj wymowy</button>
+    </div>
+    <div class="hint-row">
+      <button class="hint-btn" onclick="showHint()">&#128161; Podpowied&#378;</button>
+      <div class="found-label">B&#322;&#281;dy: <span id="foundLabel">0</span> / 3</div>
+    </div>
+    <div class="round-result" id="roundResult">
+      <div class="rr-txt" id="rrTxt"></div>
+      <button class="btn-next-round" onclick="nextRound()">DALEJ &#8594;</button>
+    </div>
+  </div>
+</div>
+
+<div class="end-card" id="endCard">
+  <div class="end-icon">&#128657;</div>
+  <div class="end-title" id="endTitle">Dobra robota!</div>
+  <div class="end-sub" id="endSub">Znasz s&#322;ownictwo wypadkowe.</div>
+  <div class="sc-row">
+    <div class="sc-box"><div class="sc-num" id="scNum">0/9</div><div class="sc-lbl">B&#322;&#281;d&#243;w znalezionych</div></div>
+    <div class="sc-box"><div class="sc-num" id="scHints">0</div><div class="sc-lbl">U&#380;ytych podpowiedzi</div></div>
+  </div>
+  <div class="vocab-box">
+    <div class="vb-title">S&#322;ownik &mdash; Lekcja 23</div>
+    <div class="vb-grid" id="vocabGrid"></div>
+  </div>
+  <button class="btn-restart" onclick="restart()">&#8635; Zagraj jeszcze raz</button>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM &middot; CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d on"></div>
+  </div>
+</div>
+
+</div>
+<script>
+// Każdy raport ma text podzielony na tokeny
+// Błędy oznaczone jako {wrong:"...", correct:"...", explain:"..."}
+// Słowa klikalne (mogą być błędne) oznaczone jako {w:"...", clickable:true}
+
+var REPORTS = [
+  {
+    title: "Raport 1 — Stłuczka na parkingu",
+    context: "Mareczek opisuje stłuczkę na parkingu magazynu.",
+    tokens: [
+      {w:"On"},{w:"14"},{w:"March"},{w:"2025,"},{w:"I"},{w:"was"},
+      {w:"parked"},{w:"in"},{w:"the"},{w:"warehouse"},
+      {w:"parking",clickable:true},{w:"lot."},{w:"Another"},
+      {w:"bike",clickable:true,wrong:true,correct:"truck",explain:"Bike = rower lub motocykl. W raporcie wypadku ciężarówkę nazywamy truck lub lorry."},
+      {w:"hit"},{w:"my"},{w:"trailer"},{w:"from"},
+      {w:"the",clickable:true},{w:"behind."},
+      {w:"The"},{w:"driver"},{w:"of"},{w:"the"},{w:"other"},
+      {w:"truck"},{w:"was"},
+      {w:"drive",clickable:true,wrong:true,correct:"driving",explain:"Drive → driving. Po 'was' używamy formy -ing (czas Past Continuous): was driving = jechał."},
+      {w:"too"},{w:"fast."},{w:"I"},{w:"have"},
+      {w:"camera",clickable:true,wrong:true,correct:"photographic",explain:"Camera = aparat fotograficzny. W raporcie piszemy 'photographic evidence' = dowód fotograficzny."},
+      {w:"evidence."},{w:"My"},{w:"insurance"},
+      {w:"number",clickable:true},{w:"is"},{w:"PL-2025-8812."},
+    ]
+  },
+  {
+    title: "Raport 2 — Kolizja na autostradzie",
+    context: "Mareczek opisuje kolizję na autostradzie A2.",
+    tokens: [
+      {w:"On"},{w:"22"},{w:"April,"},{w:"at"},{w:"approximately"},{w:"06:30,"},
+      {w:"I"},{w:"was"},
+      {w:"driving",clickable:true},{w:"on"},{w:"the"},{w:"A2"},{w:"motorway."},
+      {w:"The"},{w:"weather"},{w:"was"},
+      {w:"goods",clickable:true,wrong:true,correct:"clear",explain:"Goods = towar, ładunek. W opisie pogody używamy 'clear' (czyste niebo) lub 'dry' (sucho)."},
+      {w:"and"},{w:"the"},{w:"road"},{w:"was"},{w:"dry."},{w:"A"},{w:"car"},
+      {w:"suddenly"},
+      {w:"jump",clickable:true,wrong:true,correct:"changed",explain:"Jump = skakać. Poprawne słowo to 'changed' — Past Simple od 'change': suddenly changed lane = nagle zmienił pas."},
+      {w:"lane"},{w:"without"},{w:"signalling."},{w:"I"},
+      {w:"brake",clickable:true,wrong:true,correct:"braked",explain:"Brake → braked. Czas przeszły (Past Simple): I braked = zahamowałem."},
+      {w:"but"},{w:"could"},{w:"not"},{w:"stop"},{w:"in"},{w:"time."},
+      {w:"The"},{w:"damage"},{w:"is"},{w:"on"},{w:"my"},
+      {w:"front",clickable:true},{w:"bumper."},{w:"I"},
+      {w:"called"},{w:"the"},
+      {w:"police",clickable:true},{w:"immediately."},
+    ]
+  },
+  {
+    title: "Raport 3 — Wypadek przy rozładunku",
+    context: "Mareczek opisuje wypadek podczas rozładunku towaru.",
+    tokens: [
+      {w:"During"},{w:"unloading"},{w:"at"},{w:"the"},{w:"warehouse"},
+      {w:"in"},{w:"Hamburg,"},{w:"a"},{w:"forklift"},
+      {w:"move",clickable:true,wrong:true,correct:"hit",explain:"Move = ruszyć, przesunąć. Poprawne słowo to 'hit' = uderzyć. Hit jest nieregularny: hit → hit → hit."},
+      {w:"my"},{w:"trailer."},{w:"The"},{w:"damage"},{w:"is"},
+      {w:"on"},{w:"the"},
+      {w:"left",clickable:true},{w:"side."},{w:"I"},
+      {w:"make"},
+      {w:"a"},{w:"copy",clickable:true,wrong:true,correct:"reservation",explain:"Copy = kopia. Poprawne słowo to 'reservation' = zastrzeżenie. I make a reservation on the CMR = wnoszę zastrzeżenie na CMR."},{w:"on"},{w:"the"},{w:"CMR."},{w:"The"},
+      {w:"warehouse"},{w:"manager"},
+      {w:"sign",clickable:true,wrong:true,correct:"signed",explain:"Sign → signed. Czas przeszły (Past Simple): signed the document = podpisał document."},
+      {w:"the"},{w:"damage"},{w:"report."},{w:"My"},
+      {w:"insurance",clickable:true},{w:"company"},{w:"is"},
+      {w:"PZU"},{w:"Poland."},{w:"Reference:"},{w:"ACC-2025-441."},
+    ]
+  },
+];
+
+var VOCAB = [
+  {en:"accident report",  pl:"raport wypadku"},
+  {en:"collision",        pl:"kolizja"},
+  {en:"damage",           pl:"uszkodzenie"},
+  {en:"insurance",        pl:"ubezpieczenie"},
+  {en:"photographic evidence", pl:"dowód fotograficzny"},
+  {en:"reservation",      pl:"zastrzeżenie"},
+  {en:"I braked",         pl:"zahamowałem"},
+  {en:"hit (hit-hit)",    pl:"uderzyć (nieregularny)"},
+];
+
+var cur = 0;
+var foundTotal = 0;
+var hintsTotal = 0;
+var foundInRound = 0;
+var currentError = null;
+
+function buildReport(idx) {
+  var r = REPORTS[idx];
+  foundInRound = 0;
+  currentError = null;
+
+  document.getElementById("rcTitle").textContent = "RAPORT " + (idx+1) + " / " + REPORTS.length;
+  document.getElementById("foundCount").textContent = "0";
+  document.getElementById("foundLabel").textContent = "0";
+  document.getElementById("errorPanel").className = "error-panel";
+  document.getElementById("roundResult").className = "round-result";
+  document.getElementById("progFill").style.width = ((idx / REPORTS.length) * 100) + "%";
+  document.getElementById("progTxt").textContent = "Raport " + (idx+1) + " / " + REPORTS.length;
+
+  var html = "";
+  for (var i = 0; i < r.tokens.length; i++) {
+    var t = r.tokens[i];
+    if (t.clickable) {
+      html += '<span class="word clickable" data-idx="' + i + '" onclick="clickWord(' + idx + ',' + i + ')">' + t.w + '</span> ';
+    } else {
+      html += '<span class="word">' + t.w + '</span> ';
+    }
+  }
+  document.getElementById("reportText").innerHTML = html;
+}
+
+function clickWord(rIdx, tIdx) {
+  var t = REPORTS[rIdx].tokens[tIdx];
+  var el = document.querySelector('[data-idx="' + tIdx + '"]');
+
+  if (!el || el.classList.contains("found-error") || el.classList.contains("correct-shown")) return;
+
+  if (t.wrong) {
+    // Znaleziono błąd!
+    el.classList.remove("clickable");
+    el.classList.add("found-error");
+
+    // Pokaż poprawne słowo obok
+    var next = el.nextSibling;
+    var span = document.createElement("span");
+    span.className = "word correct-shown";
+    span.textContent = t.correct + " ";
+    el.parentNode.insertBefore(span, next);
+
+    // Panel błędu
+    document.getElementById("epWrong").textContent = t.w + " \u2192";
+    document.getElementById("epCorrect").textContent = t.correct;
+    document.getElementById("epExplain").textContent = t.explain;
+    document.getElementById("errorPanel").className = "error-panel show";
+    
+    // Zresetowanie statusu przycisku wymowy
+    var sndBtn = document.getElementById("epSnd");
+    sndBtn.classList.remove("playing");
+    sndBtn.innerHTML = "&#128266; Pos&#322;uchaj wymowy";
+
+    foundInRound++;
+    foundTotal++;
+    document.getElementById("foundCount").textContent = foundInRound;
+    document.getElementById("foundLabel").textContent = foundInRound;
+
+    if (foundInRound === 3) {
+      setTimeout(showRoundResult, 600);
+    }
+  } else {
+    // Nie błąd
+    el.classList.add("false-alarm");
+    setTimeout(function() { el.classList.remove("false-alarm"); }, 400);
+  }
+}
+
+function showHint() {
+  hintsTotal++;
+  var r = REPORTS[cur];
+  // Podświetl pierwszy nieznaleziony błąd
+  for (var i = 0; i < r.tokens.length; i++) {
+    var t = r.tokens[i];
+    if (t.wrong) {
+      var el = document.querySelector('[data-idx="' + i + '"]');
+      if (el && !el.classList.contains("found-error")) {
+        el.classList.add("wrong");
+        break;
+      }
+    }
+  }
+}
+
+function showRoundResult() {
+  var rr = document.getElementById("roundResult");
+  var txt = document.getElementById("rrTxt");
+  txt.textContent = "\u2705 Wszystkie 3 b\u0142\u0119dy znalezione!";
+  var nb = rr.querySelector(".btn-next-round");
+  nb.textContent = cur < REPORTS.length - 1 ? "NAST\u0118PNY RAPORT \u2192" : "WYNIKI \u2192";
+  rr.classList.add("show");
+}
+
+function nextRound() {
+  cur++;
+  if (cur >= REPORTS.length) {
+    showEnd();
+  } else {
+    document.getElementById("errorPanel").className = "error-panel";
+    buildReport(cur);
+  }
+}
+
+function showEnd() {
+  document.getElementById("reportCard").style.display = "none";
+  document.getElementById("introCard").style.display = "none";
+  document.getElementById("endCard").classList.add("show");
+  document.getElementById("progFill").style.width = "100%";
+  document.getElementById("progTxt").textContent = "Uko\u0144czono!";
+  document.getElementById("scNum").textContent = foundTotal + "/9";
+  document.getElementById("scHints").textContent = hintsTotal;
+
+  if (foundTotal >= 8) {
+    document.getElementById("endTitle").textContent = "Doskonale!";
+    document.getElementById("endSub").textContent = "Znasz wszystkie b\u0142\u0119dy \u2014 jeste\u015b gotowy pisac raporty po angielsku.";
+  } else if (foundTotal >= 6) {
+    document.getElementById("endTitle").textContent = "Dobra robota!";
+    document.getElementById("endSub").textContent = "Powtorz trudniejsze raporty i zagraj jeszcze raz.";
+  } else {
+    document.getElementById("endTitle").textContent = "\u0106wicz dalej!";
+    document.getElementById("endSub").textContent = "Zagraj jeszcze raz \u2014 te bl\u0119dy s\u0105 czeste w angielskich raportach.";
+  }
+
+  // Wypełnianie słownika i podpinanie zdarzeń interaktywnych
+  var h = "";
+  for (var i = 0; i < VOCAB.length; i++) {
+    var v = VOCAB[i];
+    h += "<div class='vb-row' style='cursor:pointer;'  onmouseover=\"this.style.background='rgba(26,46,74,0.05)'\" onmouseout=\"this.style.background='transparent'\">";
+    h += "<div class='vb-dot'></div><div class='vb-en'>" + v.en + "</div><div class='vb-pl'>&#8212; " + v.pl + "</div></div>";
+  }
+  document.getElementById("vocabGrid").innerHTML = h;
+}
+
+function restart() {
+  cur = 0; foundTotal = 0; hintsTotal = 0; foundInRound = 0; currentError = null;
+  document.getElementById("reportCard").style.display = "block";
+  document.getElementById("introCard").style.display = "block";
+  document.getElementById("endCard").classList.remove("show");
+  buildReport(0);
+}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  'truck': 'audio/L23/truck_l23.mp3',
+  'driving': 'audio/L23/driving_l23.mp3',
+  'photographic': 'audio/L23/photographic_l23.mp3',
+  'clear': 'audio/L23/clear_l23.mp3',
+  'changed': 'audio/L23/changed_l23.mp3',
+  'braked': 'audio/L23/braked_l23.mp3',
+  'hit': 'audio/L23/hit_l23.mp3',
+  'reservation': 'audio/L23/reservation_l23.mp3',
+  'signed': 'audio/L23/signed_l23.mp3',
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  // Oczyszczanie tekstu dla dopasowania klucza
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  
+  if(_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '\uD83D\uDD0A Posłuchaj wymowy'; // Domyślna ikona w utf-8 dla zgodności z kodem HTML
+
+  if (btn) {
+    btn.classList.add('playing');
+    btn.textContent = '⌛ Ładowanie...';
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("playing")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('playing');
+        btn.innerHTML = lbl;
+      }
+    }
+
+    _ap.onplay = () => { if (btn) btn.textContent = '🔊 Odtwarzam...'; };
+    _ap.onended = resetBtn;
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak pliku MP3 w AUDIO_MAP dla:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const lbl = label || '\uD83D\uDD0A Posłuchaj wymowy';
+  if(btn){ btn.classList.add('playing'); btn.textContent='🔊 Odtwarzam (Bot)...'; }
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend = ()=>{ if(btn){ btn.classList.remove('playing'); btn.innerHTML = lbl; } };
+    u.onerror = ()=>{ if(btn){ btn.classList.remove('playing'); btn.innerHTML = lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+// Funkcja przypięta do przycisku z głośnikiem
+function speakCorrect() {
+  var text = document.getElementById("epCorrect").textContent;
+  var btn = document.getElementById("epSnd");
+  _playAudio(text, btn, '&#128266; Pos&#322;uchaj wymowy');
+}
+
+// Funkcja wywoływana przy kliknięciu w słowniczek
+function speakVocab(word) {
+  _playAudio(word, null, null);
+}
+
+/* INIT */
+buildReport(0);
+</script>
+</body>
+</html>

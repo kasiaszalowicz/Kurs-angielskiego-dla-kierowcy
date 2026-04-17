@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 11 — Inspekcja palety</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --yellow:#ffe566;--orange:#e07820;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:900px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-left{display:flex;flex-direction:column;gap:2px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--red),var(--orange));border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* INSTRUKCJA */
+.instr{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:10px;padding:10px 16px;
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+  font-size:0.75rem;font-weight:700;color:var(--navy);
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+}
+.instr-icon{font-size:1.1rem;flex-shrink:0;}
+.instr em{font-style:normal;color:var(--red);font-family:'Courier Prime',monospace;}
+.found-count{margin-left:auto;font-size:0.68rem;font-weight:900;color:var(--muted);white-space:nowrap;}
+
+/* MAIN LAYOUT */
+.main{display:grid;grid-template-columns:1fr 280px;gap:14px;margin-bottom:14px;}
+
+/* ILUSTRACJA PALETY */
+.pallet-wrap{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+  position:relative;
+}
+.pw-top{
+  background:var(--navy);padding:8px 16px;
+  font-size:0.6rem;font-weight:900;
+  color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;
+}
+.pallet-svg-wrap{position:relative;width:100%;}
+.pallet-svg{width:100%;display:block;}
+
+/* Hotspot błędu */
+.err-hs{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  cursor:pointer;
+  z-index:10;
+}
+.err-dot{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--red);border:3px solid var(--white);
+  box-shadow:0 2px 8px rgba(214,53,40,0.5);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.62rem;font-weight:900;color:#fff;
+  font-family:'Nunito',sans-serif;
+  transition:all 0.2s;
+  animation:errpulse 2s infinite;
+}
+@keyframes errpulse{
+  0%,100%{box-shadow:0 2px 8px rgba(214,53,40,0.5),0 0 0 0 rgba(214,53,40,0.25);}
+  50%{box-shadow:0 2px 8px rgba(214,53,40,0.5),0 0 0 8px rgba(214,53,40,0);}
+}
+.err-hs:hover .err-dot{transform:scale(1.15);animation:none;}
+.err-hs.found .err-dot{
+  background:var(--green);animation:none;
+  box-shadow:0 2px 8px rgba(21,128,61,0.4);
+}
+.err-hs.found .err-dot::after{content:'✓';font-size:0.8rem;}
+.err-hs.found .err-dot span{display:none;}
+
+/* PRAWY PANEL */
+.right-col{display:flex;flex-direction:column;gap:12px;}
+
+/* Karta aktywnego błędu */
+.error-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+  flex-shrink:0;
+}
+.ec-head{background:var(--red);padding:8px 14px;font-size:0.6rem;font-weight:900;color:#fff;letter-spacing:1.5px;text-transform:uppercase;}
+.ec-body{padding:14px 15px;}
+.ec-empty{font-size:0.78rem;color:var(--muted);font-weight:700;text-align:center;padding:12px 0;}
+.ec-tag{display:inline-block;background:rgba(214,53,40,0.1);color:var(--red);font-size:0.6rem;font-weight:900;padding:2px 9px;border-radius:99px;letter-spacing:1px;margin-bottom:8px;}
+.ec-en{font-family:'Courier Prime',monospace;font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:3px;line-height:1.4;}
+.ec-pl{font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:8px;}
+.ec-tip{font-size:0.72rem;line-height:1.6;color:var(--navy);padding:8px 10px;background:var(--bg);border-radius:7px;border-left:2.5px solid var(--navy);}
+.ec-sound{margin-top:9px;width:100%;background:none;border:1.5px solid var(--border);border-radius:7px;padding:7px;font-family:'Nunito',sans-serif;font-size:0.72rem;font-weight:700;color:var(--navy);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.ec-sound:hover{border-color:var(--navy);background:var(--bg);}
+.ec-sound.pl{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+/* Lista błędów */
+.errors-list{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;overflow:hidden;flex:1;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.el-head{background:var(--navy);padding:8px 14px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;}
+.el-body{padding:8px 10px;}
+.el-row{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 7px;border-radius:7px;
+  cursor:pointer;transition:all 0.13s;
+  margin-bottom:2px;
+}
+.el-row:hover{background:var(--bg);}
+.el-row.active{background:rgba(214,53,40,0.07);}
+.el-row.found{opacity:0.55;}
+.el-num{
+  width:20px;height:20px;border-radius:50%;
+  background:var(--red);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.58rem;font-weight:900;
+  flex-shrink:0;transition:all 0.15s;
+}
+.el-row.found .el-num{background:var(--green);}
+.el-en{font-family:'Courier Prime',monospace;font-size:0.72rem;font-weight:700;color:var(--navy);}
+.el-row.active .el-en{color:var(--red);}
+.el-check{margin-left:auto;font-size:0.7rem;color:var(--green);display:none;flex-shrink:0;}
+.el-row.found .el-check{display:block;}
+
+/* DOLNA SEKCJA */
+.bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+
+/* Słownik */
+.vocab-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.vc-head{background:var(--navy);padding:8px 14px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;}
+.vc-body{padding:8px 12px;display:grid;grid-template-columns:1fr 1fr;gap:2px;}
+.v-row{display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:5px;font-size:0.72rem;cursor:pointer;transition:all 0.13s;}
+.v-row:hover{background:var(--bg);}
+.v-dot{width:5px;height:5px;border-radius:50%;background:var(--navy);flex-shrink:0;}
+.v-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);font-size:0.7rem;}
+.v-pl{font-size:0.62rem;color:var(--muted);margin-left:2px;}
+
+/* Quiz */
+.quiz-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.qc-head{background:var(--red);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;}
+.qc-title{font-size:0.65rem;font-weight:900;color:#fff;letter-spacing:1.5px;text-transform:uppercase;}
+.qc-prog{font-size:0.62rem;color:rgba(255,255,255,0.6);font-weight:700;}
+.qc-body{padding:13px 14px;}
+.q-q{font-size:0.82rem;font-weight:700;line-height:1.5;margin-bottom:10px;padding:8px 11px;background:var(--bg);border-radius:7px;border-left:2.5px solid var(--navy);}
+.q-opt{background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.78rem;font-weight:700;cursor:pointer;margin-bottom:6px;width:100%;text-align:left;color:var(--navy);display:flex;align-items:center;gap:9px;transition:all 0.13s;font-family:'Nunito',sans-serif;}
+.q-opt:last-child{margin-bottom:0;}
+.q-opt:hover:not(:disabled){border-color:var(--navy);background:var(--white);}
+.q-opt.ok{background:#f0fdf4;border-color:var(--green);color:var(--green);}
+.q-opt.no{background:#fef2f2;border-color:var(--red);color:var(--red);}
+.q-opt:disabled{cursor:default;}
+.q-ltr{width:20px;height:20px;border-radius:50%;background:rgba(26,46,74,0.1);display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:900;color:var(--navy);flex-shrink:0;transition:all 0.13s;}
+.q-opt.ok .q-ltr{background:var(--green);color:#fff;}
+.q-opt.no .q-ltr{background:var(--red);color:#fff;}
+.q-fb{font-size:0.72rem;font-weight:700;margin-top:8px;padding:7px 10px;border-radius:7px;display:none;line-height:1.5;}
+.q-fb.show{display:block;}
+.q-fb.ok{background:#f0fdf4;border:1px solid #86efac;color:var(--green);}
+.q-fb.no{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);}
+.q-next{margin-top:8px;width:100%;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:10px;font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:900;cursor:pointer;display:none;transition:all 0.15s;}
+.q-next:hover{background:#2a4a6a;}
+.q-next.show{display:block;}
+.q-done{background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:12px;text-align:center;font-size:0.8rem;font-weight:700;color:var(--green);display:none;}
+.q-done.show{display:block;}
+
+/* EKRAN KOŃCOWY INSPEKCJI */
+.inspection-done{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;padding:20px;text-align:center;
+  margin-bottom:14px;display:none;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.inspection-done.show{display:block;}
+.id-icon{font-size:2.5rem;margin-bottom:8px;}
+.id-title{font-size:1.1rem;font-weight:900;color:var(--green);margin-bottom:4px;}
+.id-sub{font-size:0.78rem;color:var(--muted);margin-bottom:14px;}
+.id-btn{background:var(--navy);color:#fff;border:none;border-radius:9px;padding:10px 24px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:900;cursor:pointer;transition:all 0.15s;}
+.id-btn:hover{background:#2a4a6a;}
+
+/* FOOTER */
+.footer{display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+
+@media(max-width:650px){
+  .main{grid-template-columns:1fr;}
+  .bottom-row{grid-template-columns:1fr;}
+  .vc-body{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div class="h-left">
+    <div class="h-title">Inspekcja palety</div>
+    <div class="h-sub">Lekcja 11 · Moduł 2 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">11 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">0 / 6 błędów znalezionych</div>
+</div>
+
+<div class="instr">
+  <div class="instr-icon">🔍</div>
+  <div>Na palecie jest <em>6 błędów</em>. Kliknij czerwone kółko przy błędzie — poznasz angielską frazę której użyjesz przy reklamacji.</div>
+  <div class="found-count" id="foundCount">0 / 6</div>
+</div>
+
+<div class="main">
+
+  <!-- ILUSTRACJA PALETY -->
+  <div class="pallet-wrap">
+    <div class="pw-top">Inspekcja — kliknij czerwone kółko przy błędzie</div>
+    <div class="pallet-svg-wrap" id="paletSvgWrap">
+
+      <svg class="pallet-svg" viewBox="0 0 600 380" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- TŁO — podłoga magazynu -->
+        <rect width="600" height="380" fill="#e8e2d8"/>
+        <!-- Linie podłogi -->
+        <line x1="0" y1="340" x2="600" y2="340" stroke="rgba(0,0,0,0.08)" stroke-width="1.5"/>
+        <line x1="100" y1="340" x2="100" y2="380" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>
+        <line x1="200" y1="340" x2="200" y2="380" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>
+        <line x1="300" y1="340" x2="300" y2="380" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>
+        <line x1="400" y1="340" x2="400" y2="380" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>
+        <line x1="500" y1="340" x2="500" y2="380" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>
+
+        <!-- ══ PALETA DREWNIANA ══ -->
+        <!-- Cień palety -->
+        <ellipse cx="302" cy="348" rx="185" ry="12" fill="rgba(0,0,0,0.12)"/>
+        <!-- Deski górne -->
+        <rect x="108" y="294" width="388" height="12" rx="1" fill="#c8a870" stroke="#a08050" stroke-width="1.5"/>
+        <rect x="108" y="294" width="388" height="3" fill="#d8b880" opacity="0.6"/>
+        <!-- Linie desek górnych -->
+        <line x1="150" y1="296" x2="150" y2="306" stroke="#a08050" stroke-width="1"/>
+        <line x1="195" y1="296" x2="195" y2="306" stroke="#a08050" stroke-width="1"/>
+        <line x1="240" y1="296" x2="240" y2="306" stroke="#a08050" stroke-width="1"/>
+        <line x1="290" y1="296" x2="290" y2="306" stroke="#a08050" stroke-width="1"/>
+        <line x1="340" y1="296" x2="340" y2="306" stroke="#a08050" stroke-width="1"/>
+        <line x1="390" y1="296" x2="390" y2="306" stroke="#a08050" stroke-width="1"/>
+        <line x1="435" y1="296" x2="435" y2="306" stroke="#a08050" stroke-width="1"/>
+        <line x1="475" y1="296" x2="475" y2="306" stroke="#a08050" stroke-width="1"/>
+        <!-- Nogi palety -->
+        <rect x="112" y="306" width="52" height="22" fill="#b09060" stroke="#906040" stroke-width="1.5"/>
+        <rect x="276" y="306" width="52" height="22" fill="#b09060" stroke="#906040" stroke-width="1.5"/>
+        <rect x="440" y="306" width="52" height="22" fill="#b09060" stroke="#906040" stroke-width="1.5"/>
+        <!-- Deski dolne -->
+        <rect x="108" y="328" width="388" height="10" rx="1" fill="#c8a870" stroke="#a08050" stroke-width="1.5"/>
+        <!-- BŁĄD 1 — uszkodzona deska dolna (pęknięcie) -->
+        <line x1="230" y1="328" x2="248" y2="338" stroke="#7a3a10" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="248" y1="328" x2="230" y2="338" stroke="#7a3a10" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+        <path d="M232,330 Q238,325 245,332 Q250,337 244,338" fill="none" stroke="#5a2a08" stroke-width="1.5" stroke-linecap="round"/>
+
+        <!-- ══ KARTONY NA PALECIE — 3 warstwy ══ -->
+        <!-- WARSTWA 1 (dół) — 4 kartony -->
+        <rect x="112" y="222" width="92" height="72" rx="2" fill="#f0d888" stroke="#c8b060" stroke-width="2"/>
+        <rect x="208" y="222" width="92" height="72" rx="2" fill="#f0d888" stroke="#c8b060" stroke-width="2"/>
+        <rect x="304" y="222" width="92" height="72" rx="2" fill="#f0d888" stroke="#c8b060" stroke-width="2"/>
+        <rect x="400" y="222" width="92" height="72" rx="2" fill="#f0d888" stroke="#c8b060" stroke-width="2"/>
+        <!-- Kreski na kartonach dół -->
+        <line x1="158" y1="222" x2="158" y2="294" stroke="#c8b060" stroke-width="1" stroke-dasharray="4,3"/>
+        <line x1="254" y1="222" x2="254" y2="294" stroke="#c8b060" stroke-width="1" stroke-dasharray="4,3"/>
+        <line x1="350" y1="222" x2="350" y2="294" stroke="#c8b060" stroke-width="1" stroke-dasharray="4,3"/>
+        <line x1="446" y1="222" x2="446" y2="294" stroke="#c8b060" stroke-width="1" stroke-dasharray="4,3"/>
+
+        <!-- BŁĄD 2 — karton odwrócony (strzałka wskazująca w dół) -->
+        <!-- Karton 4 odwrócony — inne zabarwienie + strzałka w dół -->
+        <rect x="400" y="222" width="92" height="72" rx="2" fill="#e8c878" stroke="#c8b060" stroke-width="2"/>
+        <text x="446" y="252" text-anchor="middle" fill="#8a6030" font-size="10" font-family="Arial" font-weight="bold">▼ WRONG WAY</text>
+        <text x="446" y="268" text-anchor="middle" fill="#8a6030" font-size="8" font-family="Arial">↓ side up</text>
+
+        <!-- WARSTWA 2 (środek) — 4 kartony -->
+        <rect x="112" y="152" width="92" height="70" rx="2" fill="#f5e098" stroke="#c8b060" stroke-width="2"/>
+        <rect x="208" y="152" width="92" height="70" rx="2" fill="#f5e098" stroke="#c8b060" stroke-width="2"/>
+        <rect x="304" y="152" width="92" height="70" rx="2" fill="#f5e098" stroke="#c8b060" stroke-width="2"/>
+        <rect x="400" y="152" width="92" height="70" rx="2" fill="#f5e098" stroke="#c8b060" stroke-width="2"/>
+        <!-- Kreski warstwy 2 -->
+        <line x1="158" y1="152" x2="158" y2="222" stroke="#c8b060" stroke-width="1" stroke-dasharray="4,3"/>
+        <line x1="254" y1="152" x2="254" y2="222" stroke="#c8b060" stroke-width="1" stroke-dasharray="4,3"/>
+        <line x1="350" y1="152" x2="350" y2="222" stroke="#c8b060" stroke-width="1" stroke-dasharray="4,3"/>
+        <line x1="446" y1="152" x2="446" y2="222" stroke="#c8b060" stroke-width="1" stroke-dasharray="4,3"/>
+        <!-- Etykieta FRAGILE na kartonie 2/2 -->
+        <rect x="218" y="162" width="72" height="20" rx="2" fill="#fff" stroke="#d63528" stroke-width="1.5"/>
+        <text x="254" y="176" text-anchor="middle" fill="#d63528" font-size="9" font-weight="bold" font-family="Arial">⚠ FRAGILE</text>
+
+        <!-- WARSTWA 3 (góra) — 4 kartony ale jeden przesunięty -->
+        <rect x="112" y="84" width="92" height="68" rx="2" fill="#fffacc" stroke="#d8c860" stroke-width="2"/>
+        <rect x="208" y="84" width="92" height="68" rx="2" fill="#fffacc" stroke="#d8c860" stroke-width="2"/>
+        <rect x="304" y="84" width="92" height="68" rx="2" fill="#fffacc" stroke="#d8c860" stroke-width="2"/>
+        <!-- BŁĄD 3 — karton przesunięty / wystający -->
+        <rect x="416" y="72" width="92" height="80" rx="2" fill="#fffacc" stroke="#d8c860" stroke-width="2"/>
+        <!-- Zaznaczenie że jest przesunięty -->
+        <line x1="400" y1="72" x2="416" y2="72" stroke="#d63528" stroke-width="2" stroke-dasharray="4,3"/>
+        <line x1="400" y1="152" x2="416" y2="152" stroke="#d63528" stroke-width="2" stroke-dasharray="4,3"/>
+        <!-- Kreski warstwy 3 -->
+        <line x1="158" y1="84" x2="158" y2="152" stroke="#d8c860" stroke-width="1" stroke-dasharray="4,3"/>
+        <line x1="254" y1="84" x2="254" y2="152" stroke="#d8c860" stroke-width="1" stroke-dasharray="4,3"/>
+        <line x1="350" y1="84" x2="350" y2="152" stroke="#d8c860" stroke-width="1" stroke-dasharray="4,3"/>
+
+        <!-- ══ FOLIA STRETCH — z błędem ══ -->
+        <!-- Folia po lewej stronie — OK -->
+        <rect x="108" y="84" width="6" height="222" rx="2" fill="rgba(180,220,255,0.5)" stroke="rgba(100,160,220,0.6)" stroke-width="1"/>
+        <!-- BŁĄD 4 — folia rozerwana po prawej -->
+        <!-- Folia prawa — górna część -->
+        <rect x="490" y="84" width="6" height="100" rx="2" fill="rgba(180,220,255,0.5)" stroke="rgba(100,160,220,0.6)" stroke-width="1"/>
+        <!-- Przerwa — rozerwana folia -->
+        <path d="M490,184 Q496,195 490,210" fill="none" stroke="rgba(100,160,220,0.4)" stroke-width="1" stroke-dasharray="3,2"/>
+        <!-- Folia dolna część -->
+        <rect x="490" y="210" width="6" height="96" rx="2" fill="rgba(180,220,255,0.5)" stroke="rgba(100,160,220,0.6)" stroke-width="1"/>
+        <!-- Postrzępione krawędzie rozerwania -->
+        <path d="M489,184 L493,188 L489,192 L494,196 L490,200 L495,204 L490,208" fill="none" stroke="rgba(100,160,220,0.7)" stroke-width="1.5" stroke-linecap="round"/>
+        <!-- Folia góra -->
+        <rect x="112" y="78" width="388" height="8" rx="2" fill="rgba(180,220,255,0.4)" stroke="rgba(100,160,220,0.5)" stroke-width="1"/>
+
+        <!-- BŁĄD 5 — brak paska zabezpieczającego (oznaczony linią przerywaną) -->
+        <!-- Miejsce gdzie powinien być pasek -->
+        <line x1="112" y1="200" x2="496" y2="200" stroke="rgba(214,53,40,0.3)" stroke-width="2" stroke-dasharray="8,6"/>
+        <text x="310" y="213" text-anchor="middle" fill="rgba(214,53,40,0.5)" font-size="8" font-family="Arial">— brak paska —</text>
+
+        <!-- BŁĄD 6 — etykieta brakująca / blank -->
+        <!-- Miejsce na etykietę — puste -->
+        <rect x="130" y="104" width="55" height="34" rx="2" fill="#fff" stroke="#d63528" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="157" y="118" text-anchor="middle" fill="#d63528" font-size="7" font-family="Arial">NO</text>
+        <text x="157" y="130" text-anchor="middle" fill="#d63528" font-size="7" font-family="Arial">LABEL</text>
+
+        <!-- Etykieta THIS SIDE UP na kartonach górnych -->
+        <text x="260" y="112" text-anchor="middle" fill="#8a7030" font-size="8" font-family="Arial" font-weight="bold">▲ THIS SIDE UP</text>
+        <text x="356" y="112" text-anchor="middle" fill="#8a7030" font-size="8" font-family="Arial" font-weight="bold">▲ THIS SIDE UP</text>
+        <text x="462" y="98" text-anchor="middle" fill="#8a7030" font-size="8" font-family="Arial" font-weight="bold">▲ THIS SIDE UP</text>
+
+        <!-- MAX LAYERS indicator -->
+        <rect x="108" y="340" width="388" height="1" stroke="none" fill="transparent"/>
+
+      </svg>
+
+      <!-- HOTSPOTY BŁĘDÓW -->
+      <!-- Błąd 1 — uszkodzona deska -->
+      <div class="err-hs" style="left:38%;top:90%;" id="eh1" onclick="findError(1)">
+        <div class="err-dot" id="ed1"><span>1</span></div>
+      </div>
+      <!-- Błąd 2 — odwrócony karton -->
+      <div class="err-hs" style="left:75%;top:68%;" id="eh2" onclick="findError(2)">
+        <div class="err-dot" id="ed2"><span>2</span></div>
+      </div>
+      <!-- Błąd 3 — karton wystający -->
+      <div class="err-hs" style="left:83%;top:38%;" id="eh3" onclick="findError(3)">
+        <div class="err-dot" id="ed3"><span>3</span></div>
+      </div>
+      <!-- Błąd 4 — rozerwana folia -->
+      <div class="err-hs" style="left:84%;top:54%;" id="eh4" onclick="findError(4)">
+        <div class="err-dot" id="ed4"><span>4</span></div>
+      </div>
+      <!-- Błąd 5 — brak paska -->
+      <div class="err-hs" style="left:50%;top:54%;" id="eh5" onclick="findError(5)">
+        <div class="err-dot" id="ed5"><span>5</span></div>
+      </div>
+      <!-- Błąd 6 — brak etykiety -->
+      <div class="err-hs" style="left:23%;top:34%;" id="eh6" onclick="findError(6)">
+        <div class="err-dot" id="ed6"><span>6</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PRAWY PANEL -->
+  <div class="right-col">
+
+    <div class="error-card">
+      <div class="ec-head">Znaleziony błąd</div>
+      <div class="ec-body" id="ecBody">
+        <div class="ec-empty">← Kliknij czerwone kółko<br>przy błędzie na palecie</div>
+      </div>
+    </div>
+
+    <div class="errors-list">
+      <div class="el-head">Lista błędów</div>
+      <div class="el-body" id="elBody"></div>
+    </div>
+
+  </div>
+</div><!-- /main -->
+
+<!-- Ekran końcowy inspekcji -->
+<div class="inspection-done" id="inspDone">
+  <div class="id-icon">✅</div>
+  <div class="id-title">Inspekcja zakończona!</div>
+  <div class="id-sub">Znalazłeś wszystkie 6 błędów. Znasz frazy reklamacyjne dla palety.</div>
+  <button class="id-btn" onclick="resetInspection()">↺ Inspekcja od nowa</button>
+</div>
+
+<!-- DOLNA SEKCJA -->
+<div class="bottom-row">
+
+  <div class="vocab-card">
+    <div class="vc-head">Słownik — Lekcja 11</div>
+    <div class="vc-body">
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">damaged board</div><div class="v-pl">uszkodzona deska</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">wrong way up</div><div class="v-pl">odwrócony</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">overhanging</div><div class="v-pl">wystający</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">torn stretch wrap</div><div class="v-pl">rozerwana folia</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">missing strap</div><div class="v-pl">brak paska</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">missing label</div><div class="v-pl">brak etykiety</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">I make a reservation</div><div class="v-pl">zgłaszam zastrzeżenie</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">photographic evidence</div><div class="v-pl">dowód fotograficzny</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">I do not sign this</div><div class="v-pl">nie podpisuję tego</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">damage report</div><div class="v-pl">protokół szkody</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">fragile goods</div><div class="v-pl">towar kruchy</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">this side up</div><div class="v-pl">tą stroną do góry</div></div>
+    </div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="qc-head">
+      <div class="qc-title">Quiz</div>
+      <div class="qc-prog" id="qprog">1 / 5</div>
+    </div>
+    <div class="qc-body">
+      <div class="q-q" id="qq"></div>
+      <div id="qopts"></div>
+      <div class="q-fb" id="qfb"></div>
+      <button class="q-next" id="qnext" onclick="nextQ()">DALEJ →</button>
+      <div class="q-done" id="qdone">✅ Quiz ukończony! Znasz frazy inspekcji palety.</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d"></div><div class="f-d on"></div><div class="f-d"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ════════════════════
+   BŁĘDY NA PALECIE
+════════════════════ */
+const errors = {
+  1: {
+    tag:'BŁĄD 1 — deska',
+    en:'"The pallet board is damaged."',
+    pl:'Deska palety jest uszkodzona.',
+    tip:'Damaged board = uszkodzona deska. Zgłoś to zanim podpiszesz dokumenty!',
+  },
+  2: {
+    tag:'BŁĄD 2 — orientacja',
+    en:'"This box is the wrong way up."',
+    pl:'Ten karton jest odwrócony.',
+    tip:'Wrong way up = odwrócony / do góry nogami. This side up = tą stroną do góry.',
+  },
+  3: {
+    tag:'BŁĄD 3 — wystający karton',
+    en:'"One box is overhanging the pallet."',
+    pl:'Jeden karton wystaje poza paletę.',
+    tip:'Overhanging = wystający poza krawędź. Niebezpiecznie — może spaść podczas transportu!',
+  },
+  4: {
+    tag:'BŁĄD 4 — folia',
+    en:'"The stretch wrap is torn."',
+    pl:'Folia stretch jest rozerwana.',
+    tip:'Stretch wrap = folia stretch. Torn = rozerwana. I make a reservation on the CMR = zgłaszam zastrzeżenie na liście przewozowym.',
+  },
+  5: {
+    tag:'BŁĄD 5 — brak paska',
+    en:'"There is a missing strap on this pallet."',
+    pl:'Brak jednego paska zabezpieczającego.',
+    tip:'Missing strap = brakujący pasek. Straps = paski / taśmy zabezpieczające ładunek.',
+  },
+  6: {
+    tag:'BŁĄD 6 — etykieta',
+    en:'"This pallet has no label."',
+    pl:'Ta paleta nie ma etykiety.',
+    tip:'Missing label = brak etykiety. Bez etykiety nie można zidentyfikować towaru przy dostawie!',
+  },
+};
+
+const errorList = [
+  { id:1, en:'"The pallet board is damaged."' },
+  { id:2, en:'"Box is the wrong way up."' }, 
+  { id:3, en:'"Box is overhanging the pallet."' }, 
+  { id:4, en:'"The stretch wrap is torn."' },
+  { id:5, en:'"There is a missing strap."' }, 
+  { id:6, en:'"This pallet has no label."' },
+];
+
+let found = new Set();
+let currentErr = null;
+
+/* Buduj listę */
+function buildList() {
+  const el = document.getElementById('elBody');
+  el.innerHTML = errorList.map(e => `
+    <div class="el-row" id="elr${e.id}" onclick="findError(${e.id})">
+      <div class="el-num">${e.id}</div>
+      <div class="el-en">${e.en}</div>
+      <div class="el-check">✓</div>
+    </div>
+  `).join('');
+}
+
+/* Znajdź błąd */
+function findError(n) {
+  if(currentErr) {
+    document.getElementById('elr'+currentErr)?.classList.remove('active');
+  }
+  currentErr = n;
+  document.getElementById('elr'+n)?.classList.add('active');
+
+  const e = errors[n];
+
+  if(!found.has(n)) {
+    found.add(n);
+    document.getElementById('eh'+n)?.classList.add('found');
+    document.getElementById('elr'+n)?.classList.add('found');
+    updateProgress();
+    if(found.size === 6) {
+      setTimeout(()=>document.getElementById('inspDone').classList.add('show'), 600);
+    }
+  }
+
+  // POPRAWKA: Przekazujemy tylko number błędu (n) do funkcji, a nie cały text
+  document.getElementById('ecBody').innerHTML = `
+    <div class="ec-tag">${e.tag}</div>
+    <div class="ec-en">${e.en}</div>
+    <div class="ec-pl">${e.pl}</div>
+    <div class="ec-tip">${e.tip}</div>
+    <button class="ec-sound" id="ecSound" onclick="speakErrorPhrase(${n})">🔊 Posłuchaj wymowy</button>
+  `;
+}
+
+function updateProgress() {
+  const pct = (found.size / 6) * 100;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progTxt').textContent = `${found.size} / 6 błędów znalezionych`;
+  document.getElementById('foundCount').textContent = `${found.size} / 6`;
+}
+
+function resetInspection() {
+  found.clear(); currentErr = null;
+  document.getElementById('inspDone').classList.remove('show');
+  document.getElementById('progFill').style.width = '0%';
+  document.getElementById('progTxt').textContent = '0 / 6 błędów znalezionych';
+  document.getElementById('foundCount').textContent = '0 / 6';
+  document.getElementById('ecBody').innerHTML = '<div class="ec-empty">← Kliknij czerwone kółko<br>przy błędzie na palecie</div>';
+  for(let i=1;i<=6;i++){
+    document.getElementById('eh'+i)?.classList.remove('found');
+    document.getElementById('elr'+i)?.classList.remove('found','active');
+  }
+}
+
+/* ════════════════
+   QUIZ
+════════════════ */
+const qs = [
+  { q:'Karton jest odwrócony. Co mówisz?',
+    opts:['This box is missing.','This box is the wrong way up.','This box is overhanging.','This box is fragile.'],
+    and:1, tip:'Wrong way up = odwrócony / do góry nogami. Sprawdzaj orientację kartonów!' },
+  { q:'Folia stretch jest rozerwana. Co mówisz?',
+    opts:['The strap is missing.','The label is missing.','The stretch wrap is torn.','The board is damaged.'],
+    and:2, tip:'Stretch wrap = folia stretch. Torn = rozerwana / podarta.' },
+  { q:'Co to jest "missing strap"?',
+    opts:['Brak etykiety','Uszkodzona deska','Brakujący pasek zabezpieczający','Rozerwana folia'],
+    and:2, tip:'Missing strap = brakujący pasek. Straps = paski / taśmy do zabezpieczania ładunku.' },
+  { q:'Jak zgłosisz zastrzeżenie na liście przewozowym?',
+    opts:['I sign the CMR.','I make a reservation on the CMR.','I refuse the delivery.','I take a photo.'],
+    and:1, tip:'I make a reservation on the CMR = zgłaszam zastrzeżenie na liście przewozowym. Kluczowa fraza!' },
+  { q:'Karton wystaje poza krawędź palety. Co mówisz?',
+    opts:['One box is overhanging the pallet.','One box is upside down.','One box is missing a label.','One box is too heavy.'],
+    and:0, tip:'Overhanging = wystający poza krawędź palety. Niebezpieczne podczas transportu!' },
+];
+let qi=0;
+
+function renderQ() {
+  if(qi>=qs.length){
+    document.getElementById('qq').style.display='none';
+    document.getElementById('qopts').innerHTML='';
+    document.getElementById('qfb').className='q-fb';
+    document.getElementById('qnext').classList.remove('show');
+    document.getElementById('qprog').textContent='';
+    document.getElementById('qdone').classList.add('show');
+    return;
+  }
+  const q=qs[qi];
+  document.getElementById('qprog').textContent=`${qi+1} / ${qs.length}`;
+  document.getElementById('qq').textContent=q.q;
+  document.getElementById('qfb').className='q-fb';
+  document.getElementById('qnext').classList.remove('show');
+  document.getElementById('qopts').innerHTML=q.opts.map((o,i)=>`
+    <button class="q-opt" onclick="qa(this,${i===q.and})">
+      <div class="q-ltr">${['A','B','C','D'][i]}</div>${o}
+    </button>
+  `).join('');
+}
+function qa(btn,c){
+  document.querySelectorAll('.q-opt').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('qfb');
+  if(c){btn.classList.add('ok');fb.className='q-fb show ok';fb.textContent='✅ '+qs[qi].tip;}
+  else{btn.classList.add('no');document.querySelectorAll('.q-opt')[qs[qi].and].classList.add('ok');fb.className='q-fb show no';fb.textContent='❌ '+qs[qi].tip;}
+  qi++;document.getElementById('qnext').classList.add('show');
+}
+function nextQ(){renderQ();}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  // Frazy błędów
+  'The pallet board is damaged.': 'audio/L11/the_pallet_board_is_damaged_l11.mp3',
+  'This box is the wrong way up.': 'audio/L11/this_box_is_the_wrong_way_up_l11.mp3',
+  'One box is overhanging the pallet.': 'audio/L11/one_box_is_overhanging_the_pallet_l11.mp3',
+  'The stretch wrap is torn.': 'audio/L11/the_stretch_wrap_is_torn_l11.mp3',
+  'There is a missing strap on this pallet.': 'audio/L11/there_is_a_missing_strap_on_this_pallet_l11.mp3',
+  'This pallet has no label.': 'audio/L11/this_pallet_has_no_label_l11.mp3',
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  // Oczyszczamy text z cudzysłowów
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  
+  if(_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '🔊 Posłuchaj wymowy';
+
+  if (btn) {
+    btn.classList.add('pl');
+    btn.textContent = '⌛ Ładowanie...';
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("pl")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('pl');
+        btn.textContent = lbl;
+      }
+    }
+
+    _ap.onplay = () => {
+      if (btn) btn.textContent = '🔊 Odtwarzam...';
+    };
+
+    _ap.onended = resetBtn;
+
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak pliku MP3 dla:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) {
+      if(btn) { btn.classList.remove('pl'); btn.textContent = "❌ Brak audio"; }
+      return;
+  }
+  window.speechSynthesis.cancel();
+  const lbl = label || '🔊 Posłuchaj wymowy';
+  if(btn){ 
+    btn.classList.add('pl'); 
+    btn.textContent = '🔊 Odtwarzam (Bot)...'; 
+  }
+  
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend  = ()=>{ if(btn){ btn.classList.remove('pl'); btn.textContent = lbl; } };
+    u.onerror= ()=>{ if(btn){ btn.classList.remove('pl'); btn.textContent = lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+// POPRAWKA: Nowa funkcja, która pobiera text po ID błędu
+function speakErrorPhrase(id) {
+  const text = errors[id].en;
+  const btn = document.getElementById('ecSound');
+  _playAudio(text, btn, '🔊 Posłuchaj wymowy');
+}
+
+function speakVocab(word) {
+  _playAudio(word, null, null);
+}
+
+// Podpięcie słownika na kliknięcia
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".vocab-card .v-row").forEach(row => {
+        let enWord = row.querySelector(".v-en").textContent;
+        row.addEventListener('mouseover', () => row.style.background = 'rgba(26,46,74,0.05)');
+        row.addEventListener('mouseout', () => row.style.background = 'transparent');
+    });
+});
+
+/* INIT */
+buildList();
+renderQ();
+</script>
+</body>
+</html>

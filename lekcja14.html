@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 14 — Odbiór dostawy</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --accent:#2563eb;--accent-light:#eff6ff;--accent-border:#bfdbfe;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:680px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--navy));border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* FLIPBOOK */
+.flipbook-wrap{
+  perspective:1200px;
+  margin-bottom:14px;
+}
+
+.flipbook{
+  position:relative;
+  width:100%;
+}
+
+/* Strona dokumentu */
+.page{
+  background:var(--white);
+  border:1.5px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,0.08);
+  animation:pageIn 0.35s ease;
+  transform-origin:left center;
+}
+@keyframes pageIn{
+  from{opacity:0;transform:translateX(30px);}
+  to{opacity:1;transform:translateX(0);}
+}
+.page.leaving{
+  animation:pageOut 0.25s ease forwards;
+}
+@keyframes pageOut{
+  to{opacity:0;transform:translateX(-30px);}
+}
+
+/* Pasek koloru na górze strony */
+.page-color-bar{
+  height:5px;
+  background:linear-gradient(90deg,var(--accent),#7c3aed);
+  border-radius:12px 12px 0 0;
+}
+
+/* Nagłówek strony */
+.page-head{
+  padding:14px 20px 10px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.ph-step{
+  font-size:0.6rem;font-weight:900;
+  color:var(--accent);text-transform:uppercase;letter-spacing:2px;
+}
+.ph-num{
+  background:var(--accent);color:#fff;
+  font-size:0.62rem;font-weight:900;
+  padding:3px 10px;border-radius:99px;letter-spacing:1px;
+}
+
+/* Treść strony */
+.page-body{padding:20px;}
+
+/* Ilustracja kontekstu — ikonka + opis */
+.page-ctx{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;
+  background:var(--accent-light);
+  border:1.5px solid var(--accent-border);
+  border-radius:9px;
+  margin-bottom:16px;
+}
+.ctx-icon{font-size:1.4rem;flex-shrink:0;}
+.ctx-txt{font-size:0.75rem;font-weight:700;color:var(--accent);line-height:1.5;}
+
+/* Główna fraza */
+.phrase-en{
+  font-family:'Courier Prime',monospace;
+  font-size:1.15rem;font-weight:700;
+  color:var(--navy);
+  line-height:1.4;
+  margin-bottom:6px;
+}
+.phrase-pl{
+  font-size:0.78rem;font-weight:700;color:var(--muted);
+  margin-bottom:14px;
+  font-style:italic;
+}
+
+/* Przykład użycia */
+.example-box{
+  background:var(--bg);border-radius:9px;padding:12px 14px;
+  border-left:3px solid var(--accent);
+  margin-bottom:14px;
+}
+.ex-label{font-size:0.58rem;font-weight:900;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px;}
+.ex-en{font-family:'Courier Prime',monospace;font-size:0.88rem;font-weight:700;color:var(--navy);line-height:1.5;margin-bottom:3px;}
+.ex-pl{font-size:0.68rem;color:var(--muted);font-style:italic;}
+
+/* Wskazówka */
+.tip-box{
+  font-size:0.73rem;line-height:1.6;color:var(--navy);
+  padding:9px 12px;background:rgba(37,99,235,0.05);
+  border-radius:8px;border:1px solid var(--accent-border);
+  margin-bottom:14px;
+}
+
+/* Przycisk wymowy */
+.btn-sound{
+  width:100%;background:none;border:1.5px solid var(--accent-border);
+  border-radius:9px;padding:9px;
+  font-family:'Nunito',sans-serif;font-size:0.75rem;font-weight:700;
+  color:var(--accent);cursor:pointer;transition:all 0.15s;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.btn-sound:hover{background:var(--accent-light);border-color:var(--accent);}
+.btn-sound.playing{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* Nawigacja */
+.nav-row{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;margin-bottom:14px;
+}
+.btn-prev{
+  background:var(--bg);color:var(--navy);
+  border:1.5px solid var(--border);border-radius:10px;
+  padding:12px 20px;font-family:'Nunito',sans-serif;
+  font-size:0.82rem;font-weight:900;cursor:pointer;transition:all 0.15s;
+}
+.btn-prev:hover{border-color:var(--navy);}
+.btn-prev:disabled{opacity:0.3;cursor:default;}
+.btn-next{
+  background:var(--accent);color:#fff;
+  border:none;border-radius:10px;
+  padding:12px 28px;font-family:'Nunito',sans-serif;
+  font-size:0.82rem;font-weight:900;cursor:pointer;transition:all 0.15s;
+  flex:1;
+}
+.btn-next:hover{background:#1d4ed8;transform:translateY(-1px);}
+.page-dots{display:flex;gap:5px;align-items:center;}
+.pd{width:7px;height:7px;border-radius:50%;background:rgba(26,46,74,0.15);transition:all 0.3s;}
+.pd.on{background:var(--accent);width:18px;border-radius:99px;}
+
+/* EKRAN KOŃCOWY */
+.end-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;padding:24px;text-align:center;
+  display:none;margin-bottom:14px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.08);
+}
+.end-card.show{display:block;}
+.end-color-bar{height:5px;background:linear-gradient(90deg,var(--accent),#7c3aed);border-radius:99px;margin-bottom:20px;}
+.end-icon{font-size:2.5rem;margin-bottom:10px;}
+.end-title{font-size:1.2rem;font-weight:900;color:var(--navy);margin-bottom:5px;}
+.end-sub{font-size:0.78rem;color:var(--muted);margin-bottom:18px;}
+
+.vocab-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:18px;text-align:left;}
+.vg-row{display:flex;align-items:center;gap:7px;padding:6px 8px;background:var(--accent-light);border-radius:7px;border:1px solid var(--accent-border);cursor:pointer;transition:all 0.13s;}
+.vg-row:hover{background:#dbeafe;}
+.vg-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+.vg-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);font-size:0.7rem;}
+.vg-pl{font-size:0.62rem;color:var(--muted);}
+
+.btn-restart{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px 32px;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:900;cursor:pointer;transition:all 0.15s;}
+.btn-restart:hover{background:#1d4ed8;}
+
+/* QUIZ */
+.quiz-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:14px;}
+.qc-head{background:var(--accent);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;}
+.qc-title{font-size:0.65rem;font-weight:900;color:#fff;letter-spacing:1.5px;text-transform:uppercase;}
+.qc-prog{font-size:0.62rem;color:rgba(255,255,255,0.6);font-weight:700;}
+.qc-body{padding:13px 14px;}
+.q-q{font-size:0.82rem;font-weight:700;line-height:1.5;margin-bottom:10px;padding:8px 11px;background:var(--bg);border-radius:7px;border-left:2.5px solid var(--accent);}
+.q-opt{background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.78rem;font-weight:700;cursor:pointer;margin-bottom:6px;width:100%;text-align:left;color:var(--navy);display:flex;align-items:center;gap:9px;transition:all 0.13s;font-family:'Nunito',sans-serif;}
+.q-opt:last-child{margin-bottom:0;}
+.q-opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-light);}
+.q-opt.ok{background:#f0fdf4;border-color:var(--green);color:var(--green);}
+.q-opt.no{background:#fef2f2;border-color:var(--red);color:var(--red);}
+.q-opt:disabled{cursor:default;}
+.q-ltr{width:20px;height:20px;border-radius:50%;background:rgba(37,99,235,0.1);display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:900;color:var(--accent);flex-shrink:0;transition:all 0.13s;}
+.q-opt.ok .q-ltr{background:var(--green);color:#fff;}
+.q-opt.no .q-ltr{background:var(--red);color:#fff;}
+.q-fb{font-size:0.72rem;font-weight:700;margin-top:8px;padding:7px 10px;border-radius:7px;display:none;line-height:1.5;}
+.q-fb.show{display:block;}
+.q-fb.ok{background:#f0fdf4;border:1px solid #86efac;color:var(--green);}
+.q-fb.no{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);}
+.q-next{margin-top:8px;width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px;font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:900;cursor:pointer;display:none;transition:all 0.15s;}
+.q-next:hover{background:#1d4ed8;}
+.q-next.show{display:block;}
+.q-done{background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:12px;text-align:center;font-size:0.8rem;font-weight:700;color:var(--green);display:none;}
+.q-done.show{display:block;}
+
+/* FOOTER */
+.footer{display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Odbiór dostawy</div>
+    <div class="h-sub">Lekcja 14 · Moduł 2 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">14 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">Strona 1 / 8</div>
+</div>
+
+<!-- FLIPBOOK -->
+<div class="flipbook-wrap">
+  <div class="flipbook" id="flipbook"></div>
+</div>
+
+<!-- NAWIGACJA -->
+<div class="nav-row">
+  <button class="btn-prev" id="btnPrev" onclick="prevPage()" disabled>← Wstecz</button>
+  <div class="page-dots" id="pageDots"></div>
+  <button class="btn-next" id="btnNext" onclick="nextPage()">Dalej →</button>
+</div>
+
+<!-- EKRAN KOŃCOWY -->
+<div class="end-card" id="endCard">
+  <div class="end-color-bar"></div>
+  <div class="end-icon">✅</div>
+  <div class="end-title">Dostawa przyjęta!</div>
+  <div class="end-sub">Znasz wszystkie frazy do podpisania dokumentów dostawy.</div>
+  <div class="vocab-grid" id="vocabGrid"></div>
+  <button class="btn-restart" onclick="restart()">↺ Przeglądaj jeszcze raz</button>
+</div>
+
+<!-- QUIZ -->
+<div class="quiz-card" id="quizCard" style="display:none;">
+  <div class="qc-head">
+    <div class="qc-title">Quiz</div>
+    <div class="qc-prog" id="qprog">1 / 5</div>
+  </div>
+  <div class="qc-body">
+    <div class="q-q" id="qq"></div>
+    <div id="qopts"></div>
+    <div class="q-fb" id="qfb"></div>
+    <button class="q-next" id="qnext" onclick="nextQ()">DALEJ →</button>
+    <div class="q-done" id="qdone">✅ Lekcja 14 ukończona! Znasz procedurę odbioru dostawy.</div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d on"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div>
+<script>
+/* ════════════════
+   8 STRON
+════════════════ */
+const PAGES = [
+  {
+    step:'Krok 1 — Przybycie',
+    ctx:{icon:'🚛', txt:'Mareczek dociera do magazynu odbiorcy. Czas na finał dostawy.'},
+    en:'"Please sign here."',
+    pl:'Proszę podpisać tutaj.',
+    vocab:'sign / signature',
+    vocabPl:'podpisać / podpis',
+    ex:{en:'"Please sign here and write today\'s date."', pl:'Proszę podpisać tutaj i napisać dzisiejszą datę.'},
+    tip:'Sign = podpisać. Signature = podpis. Magazynier wskaże Ci gdzie podpisać — zawsze sprawdź dokumenty przed podpisaniem!',
+  },
+  {
+    step:'Krok 2 — Potwierdzenie odbioru',
+    ctx:{icon:'📋', txt:'Magazynier prosi o potwierdzenie że towar dotarł.'},
+    en:'"Please confirm receipt."',
+    pl:'Proszę potwierdzić odbiór.',
+    vocab:'receipt',
+    vocabPl:'potwierdzenie odbioru',
+    ex:{en:'"Please confirm receipt of the goods."', pl:'Proszę potwierdzić odbiór towaru.'},
+    tip:'Receipt tutaj = potwierdzenie odbioru (nie paragon!). Confirm receipt = potwierdzić odbiór. Ważna fraza na CMR.',
+  },
+  {
+    step:'Krok 3 — Data',
+    ctx:{icon:'📅', txt:'Dokument wymaga dzisiejszej daty.'},
+    en:'"Please write today\'s date."',
+    pl:'Proszę napisać dzisiejszą datę.',
+    vocab:'date',
+    vocabPl:'data',
+    ex:{en:'"What is today\'s date? Please write it here."', pl:'Jaka jest dzisiejsza data? Proszę ją tutaj wpisać.'},
+    tip:'Date = data. Today\'s date = dzisiejsza data. What\'s today\'s date? = Jaka jest dzisiejsza data? Kluczowe na dokumentach przewozowych.',
+  },
+  {
+    step:'Krok 4 — Kopia dokumentu',
+    ctx:{icon:'📄', txt:'Mareczek potrzebuje podpisanej kopii dla siebie.'},
+    en:'"Can I get a signed copy?"',
+    pl:'Czy mogę dostać podpisaną kopię?',
+    vocab:'copy',
+    vocabPl:'kopia',
+    ex:{en:'"Can I get a signed copy of the CMR?"', pl:'Czy mogę dostać podpisaną kopię CMR?'},
+    tip:'Copy = kopia. Signed copy = podpisana kopia. Zawsze bierz podpisaną kopię CMR dla siebie — to Twój dowód dostawy!',
+  },
+  {
+    step:'Krok 5 — Kontrola dostawy',
+    ctx:{icon:'🔍', txt:'Magazynier sprawdza czy dostawa jest kompletna.'},
+    en:'"The delivery is complete."',
+    pl:'Dostawa jest kompletna.',
+    vocab:'delivery complete',
+    vocabPl:'dostawa kompletna',
+    ex:{en:'"Everything is here. The delivery is complete."', pl:'Wszystko jest tutaj. Dostawa jest kompletna.'},
+    tip:'Delivery complete = dostawa kompletna. Używane gdy wszystkie palety / sztuki są na miejscu. Incomplete delivery = dostawa niekompletna.',
+  },
+  {
+    step:'Krok 6 — Pytanie o potrzeby',
+    ctx:{icon:'🤝', txt:'Profesjonalne zakończenie — pytasz czy coś jeszcze potrzeba.'},
+    en:'"Is there anything else you need?"',
+    pl:'Czy potrzebuje Pan czegoś jeszcze?',
+    vocab:'anything else',
+    vocabPl:'coś jeszcze',
+    ex:{en:'"Documents are signed. Is there anything else you need?"', pl:'Dokumenty podpisane. Czy potrzebuje Pan czegoś jeszcze?'},
+    tip:'"Is there anything else you need?" = Czy potrzebuje Pan czegoś jeszcze? Profesjonalne zakończenie każdej dostawy.',
+  },
+  {
+    step:'Krok 7 — Pytanie o wyjazd',
+    ctx:{icon:'🚪', txt:'Mareczek pyta kiedy może odjechać.'},
+    en:'"What time can I leave?"',
+    pl:'O której mogę odjechać?',
+    vocab:'leave',
+    vocabPl:'odjechać / wyjść',
+    ex:{en:'"Everything is signed. What time can I leave?"', pl:'Wszystko podpisane. O której mogę odjechać?'},
+    tip:'Leave = odjechać / wyjść. What time can I leave? = O której mogę odjechać? Can I go now? = Czy mogę już jechać?',
+  },
+  {
+    step:'Krok 8 — Pożegnanie',
+    ctx:{icon:'👋', txt:'Dostawa zakończona. Czas na profesjonalne pożegnanie.'},
+    en:'"Thank you — have a good day!"',
+    pl:'Dziękuję — dobrego dnia!',
+    vocab:'have a good day',
+    vocabPl:'dobrego dnia',
+    ex:{en:'"Thank you for your help — have a good day!"', pl:'Dziękuję za pomoc — dobrego dnia!'},
+    tip:'"Have a good day!" = Dobrego dnia! Have a good trip! = Dobrej drogi! Małe grzeczności budują dobrą reputację kierowcy.',
+    last:true,
+  },
+];
+
+let cur = 0;
+
+/* ════════════════
+   RENDER STRONY
+════════════════ */
+function renderPage(idx, dir='next') {
+  const p    = PAGES[idx];
+  const flip = document.getElementById('flipbook');
+
+  // Animacja wychodzenia
+  const old = flip.querySelector('.page');
+  if(old) {
+    old.classList.add('leaving');
+    setTimeout(()=>old.remove(), 250);
+  }
+
+  setTimeout(()=>{
+    const page = document.createElement('div');
+    page.className = 'page';
+    page.innerHTML = `
+      <div class="page-color-bar"></div>
+      <div class="page-head">
+        <div class="ph-step">${p.step}</div>
+        <div class="ph-num">${idx+1} / ${PAGES.length}</div>
+      </div>
+      <div class="page-body">
+        <div class="page-ctx">
+          <div class="ctx-icon">${p.ctx.icon}</div>
+          <div class="ctx-txt">${p.ctx.txt}</div>
+        </div>
+        <div class="phrase-en">${p.en}</div>
+        <div class="phrase-pl">${p.pl}</div>
+        <div class="example-box">
+          <div class="ex-label">Przykład użycia</div>
+          <div class="ex-en">${p.ex.en}</div>
+          <div class="ex-pl">${p.ex.pl}</div>
+        </div>
+        <div class="tip-box">💡 ${p.tip}</div>
+        <button class="btn-sound" id="pgSound" onclick="speakPage(${idx})">🔊 Posłuchaj wymowy</button>
+      </div>
+    `;
+    flip.appendChild(page);
+  }, old ? 260 : 0);
+
+  // Przyciski
+  document.getElementById('btnPrev').disabled = idx === 0;
+  document.getElementById('btnNext').textContent = p.last ? 'Zakończ ✓' : 'Dalej →';
+
+  // Dots
+  updateDots(idx);
+
+  // Progress
+  const pct = ((idx+1) / PAGES.length) * 100;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progTxt').textContent = `Strona ${idx+1} / ${PAGES.length}`;
+}
+
+function updateDots(idx) {
+  const dots = document.getElementById('pageDots');
+  dots.innerHTML = PAGES.map((_,i)=>`<div class="pd ${i===idx?'on':''}"></div>`).join('');
+}
+
+function nextPage() {
+  if(cur < PAGES.length-1) {
+    cur++;
+    renderPage(cur, 'next');
+  } else {
+    showEnd();
+  }
+}
+
+function prevPage() {
+  if(cur > 0) {
+    cur--;
+    renderPage(cur, 'prev');
+  }
+}
+
+/* ════════════════
+   KONIEC
+════════════════ */
+function showEnd() {
+  document.getElementById('flipbook').innerHTML = '';
+  document.querySelector('.flipbook-wrap').style.display = 'none';
+  document.querySelector('.nav-row').style.display = 'none';
+  document.getElementById('endCard').classList.add('show');
+  document.getElementById('quizCard').style.display = 'block';
+  document.getElementById('progFill').style.width = '100%';
+  document.getElementById('progTxt').textContent = 'Ukończono!';
+
+  const grid = document.getElementById('vocabGrid');
+  grid.innerHTML = PAGES.map(p=>`
+    <div class="vg-row">
+      <div class="vg-dot"></div>
+      <div class="vg-en">${p.vocab}</div>
+      <div class="vg-pl">— ${p.vocabPl}</div>
+    </div>
+  `).join('');
+
+  renderQ();
+}
+
+function restart() {
+  cur = 0;
+  document.querySelector('.flipbook-wrap').style.display = 'block';
+  document.querySelector('.nav-row').style.display = 'flex';
+  document.getElementById('endCard').classList.remove('show');
+  document.getElementById('quizCard').style.display = 'none';
+  document.getElementById('flipbook').innerHTML = '';
+  renderPage(0);
+}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  'Please sign here and write today\'s date.': 'audio/L14/please_sign_here_and_write_todays_date_l14.mp3',
+  'Please confirm receipt of the goods.': 'audio/L14/please_confirm_receipt_of_the_goods_l14.mp3',
+  'What is today\'s date? Please write it here.': 'audio/L14/what_is_todays_date_please_write_it_here_l14.mp3',
+  'Can I get a signed copy of the CMR?': 'audio/L14/can_i_get_a_signed_copy_of_the_cmr_l14.mp3',
+  'Everything is here. The delivery is complete.': 'audio/L14/everything_is_here_the_delivery_is_complete_l14.mp3',
+  'Documents are signed. Is there anything else you need?': 'audio/L14/documents_are_signed_is_there_anything_else_you_need_l14.mp3',
+  'Everything is signed. What time can I leave?': 'audio/L14/everything_is_signed_what_time_can_i_leave_l14.mp3',
+  'Thank you for your help — have a good day!': 'audio/L14/thank_you_for_your_help_have_a_good_day_l14.mp3',
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  // Usuwamy cudzysłowy do dopasowania klucza
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  
+  if(_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '🔊 Posłuchaj wymowy';
+
+  if (btn) {
+    btn.classList.add('playing');
+    btn.textContent = '⌛ Ładowanie...';
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("playing")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('playing');
+        btn.textContent = lbl;
+      }
+    }
+
+    _ap.onplay = () => {
+      if (btn) btn.textContent = '🔊 Odtwarzam...';
+    };
+
+    _ap.onended = resetBtn;
+
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak pliku MP3 dla:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) {
+      if(btn) { btn.classList.remove('playing'); btn.textContent = "❌ Brak audio"; }
+      return;
+  }
+  window.speechSynthesis.cancel();
+  const lbl = label || '🔊 Posłuchaj wymowy';
+  if(btn){ 
+    btn.classList.add('playing'); 
+    btn.textContent = '🔊 Odtwarzam (Bot)...'; 
+  }
+  
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend  = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    u.onerror= ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+function speakPage(idx) {
+  const text = PAGES[idx].ex.en;
+  const btn  = document.getElementById('pgSound');
+  _playAudio(text, btn, '🔊 Posłuchaj wymowy');
+}
+
+function speakVocab(text) {
+  _playAudio(text, null, null);
+}
+
+/* ════════════════
+   QUIZ
+════════════════ */
+const qs=[
+  {q:'Magazynier wskazuje na document i mówi "Please sign here." Co robisz?',
+   opts:['Pytam o datę','Podpisuję dokument','Proszę o kopię','Potwierdzam odbiór'],
+   and:1,tip:'Sign = podpisać. Please sign here = proszę podpisać tutaj. Zawsze sprawdź document zanim podpiszesz!'},
+  {q:'Jak zapytać o podpisaną kopię CMR?',
+   opts:['"Can I leave now?"','"Is delivery complete?"','"Can I get a signed copy?"','"Please confirm receipt."'],
+   and:2,tip:'Signed copy = podpisana kopia. Can I get a signed copy? = Czy mogę dostać podpisaną kopię?'},
+  {q:'Co znaczy "delivery complete"?',
+   opts:['Dostawa opóźniona','Dostawa kompletna','Dostawa anulowana','Dostawa częściowa'],
+   and:1,tip:'Delivery complete = dostawa kompletna. Wszystkie sztuki / palety dostarczone.'},
+  {q:'Chcesz zapytać kiedy możesz odjechać. Co mówisz?',
+   opts:['"Can I get a copy?"','"What time can I leave?"','"Please sign here."','"Have a good day!"'],
+   and:1,tip:'Leave = odjechać / wyjść. What time can I leave? = O której mogę odjechać?'},
+  {q:'Co to profesjonalne pożegnanie po angielsku po zakończeniu dostawy?',
+   opts:['"See you!"','"Bye bye!"','"Thank you — have a good day!"','"Good trip!"'],
+   and:2,tip:'"Thank you — have a good day!" = Dziękuję — dobrego dnia! Małe grzeczności budują dobrą reputację.'},
+];
+let qi=0;
+
+function renderQ(){
+  if(qi>=qs.length){
+    document.getElementById('qq').style.display='none';
+    document.getElementById('qopts').innerHTML='';
+    document.getElementById('qfb').className='q-fb';
+    document.getElementById('qnext').classList.remove('show');
+    document.getElementById('qprog').textContent='';
+    document.getElementById('qdone').classList.add('show');
+    return;
+  }
+  const q=qs[qi];
+  document.getElementById('qprog').textContent=`${qi+1} / ${qs.length}`;
+  document.getElementById('qq').textContent=q.q;
+  document.getElementById('qfb').className='q-fb';
+  document.getElementById('qnext').classList.remove('show');
+  document.getElementById('qopts').innerHTML=q.opts.map((o,i)=>`
+    <button class="q-opt" onclick="qa(this,${i===q.and})">
+      <div class="q-ltr">${['A','B','C','D'][i]}</div>${o}
+    </button>
+  `).join('');
+}
+function qa(btn,c){
+  document.querySelectorAll('.q-opt').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('qfb');
+  if(c){btn.classList.add('ok');fb.className='q-fb show ok';fb.textContent='✅ '+qs[qi].tip;}
+  else{btn.classList.add('no');document.querySelectorAll('.q-opt')[qs[qi].and].classList.add('ok');fb.className='q-fb show no';fb.textContent='❌ '+qs[qi].tip;}
+  qi++;document.getElementById('qnext').classList.add('show');
+}
+function nextQ(){renderQ();}
+
+/* INIT */
+renderPage(0);
+</script>
+</body>
+</html>

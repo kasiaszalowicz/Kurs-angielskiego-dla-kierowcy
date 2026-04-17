@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 27 — Parking i nocleg</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--navy:#1a2e4a;--red:#d63528;--green:#15803d;--bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;--orange:#e07820;}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:580px;margin:0 auto;}
+
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;}
+
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:var(--navy);border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* Nocna karta */
+.night-card{background:var(--navy);border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(26,46,74,0.2);margin-bottom:12px;}
+
+.sky{background:#0d1f35;padding:20px 18px 16px;text-align:center;}
+.sky-stars{font-size:0.72rem;color:rgba(255,255,255,0.2);letter-spacing:6px;margin-bottom:10px;}
+.sky-truck{font-size:3rem;margin-bottom:6px;display:block;}
+.sky-time{font-size:0.62rem;font-weight:900;color:rgba(255,255,255,0.3);letter-spacing:2px;text-transform:uppercase;}
+.sky-loc{font-size:0.68rem;color:rgba(255,255,255,0.2);margin-top:3px;font-style:italic;}
+
+.step-body{padding:18px 20px;}
+.step-num{font-size:0.58rem;font-weight:900;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;}
+
+.step-phrase{font-family:'Courier Prime',monospace;font-size:1.05rem;font-weight:700;color:#fff;margin-bottom:5px;line-height:1.4;}
+.step-pl{font-size:0.72rem;color:rgba(255,255,255,0.4);margin-bottom:14px;}
+
+.step-actions{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+.vocab-tag{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:4px 10px;font-size:0.65rem;font-weight:900;color:rgba(255,255,255,0.7);}
+.vocab-tag.lit{background:rgba(21,128,61,0.25);border-color:rgba(74,222,128,0.4);color:#4ade80;}
+.btn-snd{background:none;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:4px 12px;font-family:'Nunito',sans-serif;font-size:0.68rem;font-weight:700;color:rgba(255,255,255,0.6);cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;}
+.btn-snd:hover{border-color:rgba(255,255,255,0.5);color:#fff;}
+.btn-snd.playing{background:rgba(255,255,255,0.15);color:#fff;}
+
+.btn-next{width:100%;background:#fff;color:var(--navy);border:none;border-radius:9px;padding:13px;font-family:'Nunito',sans-serif;font-size:0.88rem;font-weight:900;cursor:pointer;transition:all 0.15s;}
+.btn-next:hover{background:#f0f4f8;}
+
+/* Dots */
+.step-dots{display:flex;justify-content:center;gap:5px;padding:14px 0 0;}
+.sd{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.15);transition:all 0.3s;}
+.sd.on{background:#fff;width:18px;border-radius:99px;}
+.sd.done{background:rgba(74,222,128,0.6);}
+
+/* Słownik */
+.vocab-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}
+.vc-head{background:var(--navy);padding:8px 14px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;}
+.vc-grid{display:grid;grid-template-columns:1fr 1fr;padding:8px 12px;gap:3px;}
+.vr{display:flex;align-items:center;gap:6px;font-size:0.72rem;padding:4px 6px;border-radius:6px;transition:all 0.2s;}
+
+.vr.active{background:rgba(26,46,74,0.08);}
+.vdot{width:5px;height:5px;border-radius:50%;background:var(--navy);flex-shrink:0;transition:background 0.2s;}
+.vr.active .vdot{background:var(--red);}
+.ven{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);}
+.vr.active .ven{color:var(--red);}
+.vpl{font-size:0.6rem;color:var(--muted);}
+
+/* KONIEC */
+.end-card{background:var(--navy);border-radius:14px;overflow:hidden;display:none;margin-bottom:12px;}
+.end-card.show{display:block;}
+.end-sky{background:#0d1f35;padding:24px 18px;text-align:center;}
+.end-icon{font-size:3rem;display:block;margin-bottom:8px;}
+.end-title{font-size:1.2rem;font-weight:900;color:#fff;margin-bottom:4px;}
+.end-sub{font-size:0.78rem;color:rgba(255,255,255,0.45);}
+.end-body{padding:18px 20px;}
+.end-score{background:rgba(255,255,255,0.06);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.es-label{font-size:0.62rem;font-weight:900;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:1.5px;}
+.es-val{font-size:1.4rem;font-weight:900;color:#fff;}
+
+/* Quiz */
+.quiz-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.qc-head{background:var(--red);padding:9px 16px;display:flex;align-items:center;justify-content:space-between;}
+.qc-title{font-size:0.65rem;font-weight:900;color:#fff;letter-spacing:1.5px;}
+.qc-prog{font-size:0.62rem;color:rgba(255,255,255,0.6);font-weight:700;}
+.qc-body{padding:14px 16px;}
+.q-q{font-size:0.82rem;font-weight:700;line-height:1.5;margin-bottom:10px;padding:8px 11px;background:var(--bg);border-radius:7px;border-left:2.5px solid var(--navy);}
+.q-opt{background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.78rem;font-weight:700;cursor:pointer;margin-bottom:6px;width:100%;text-align:left;color:var(--navy);display:flex;align-items:center;gap:9px;transition:all 0.13s;font-family:'Nunito',sans-serif;}
+.q-opt:last-child{margin-bottom:0;}
+.q-opt:hover:not(:disabled){border-color:var(--navy);background:var(--white);}
+.q-opt.ok{background:#f0fdf4;border-color:var(--green);color:var(--green);}
+.q-opt.no{background:#fef2f2;border-color:var(--red);color:var(--red);}
+.q-opt:disabled{cursor:default;}
+.q-ltr{width:20px;height:20px;border-radius:50%;background:rgba(26,46,74,0.1);display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:900;color:var(--navy);flex-shrink:0;}
+.q-opt.ok .q-ltr{background:var(--green);color:#fff;}
+.q-opt.no .q-ltr{background:var(--red);color:#fff;}
+.q-fb{font-size:0.72rem;font-weight:700;margin-top:8px;padding:7px 10px;border-radius:7px;display:none;line-height:1.5;}
+.q-fb.show{display:block;}
+.q-fb.ok{background:#f0fdf4;border:1px solid #86efac;color:var(--green);}
+.q-fb.no{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);}
+.q-next{margin-top:8px;width:100%;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:10px;font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:900;cursor:pointer;display:none;}
+.q-next.show{display:block;}
+.q-done{background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:12px;text-align:center;font-size:0.8rem;font-weight:700;color:var(--green);display:none;}
+.q-done.show{display:block;}
+
+.btn-restart{width:100%;background:#fff;color:var(--navy);border:none;border-radius:9px;padding:12px;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:900;cursor:pointer;}
+.footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Parking i nocleg</div>
+    <div class="h-sub">Lekcja 27 &middot; Modu&#322; 4 &middot; Angielski z Mareczkiem &middot; Crosshaul</div>
+  </div>
+  <div class="h-badge">27 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">Krok 1 / 8</div>
+</div>
+
+<div class="night-card" id="nightCard">
+  <div class="sky" id="skySection">
+    <div class="sky-stars">* &nbsp; * &nbsp; * &nbsp; * &nbsp; * &nbsp; * &nbsp; *</div>
+    <span class="sky-truck" id="skyTruck">&#128666;</span>
+    <div class="sky-time" id="skyTime"></div>
+    <div class="sky-loc" id="skyLoc"></div>
+  </div>
+  <div class="step-body">
+    <div class="step-num" id="stepNum">KROK 1 / 8</div>
+    
+    <div class="step-phrase" id="stepPhrase"></div>
+    <div class="step-pl" id="stepPl"></div>
+    <div class="step-actions">
+      <div class="vocab-tag" id="vocabTag"></div>
+      <button class="btn-snd" id="sndBtn" onclick="speakStep()">&#128266; Pos&#322;uchaj</button>
+    </div>
+    <button class="btn-next" id="btnNext" onclick="nextStep()">DALEJ &#8594;</button>
+    <div class="step-dots" id="stepDots"></div>
+  </div>
+</div>
+
+<div class="vocab-card" id="vocabCard">
+  <div class="vc-head">S&#322;ownik</div>
+  <div class="vc-grid" id="vocabGrid"></div>
+</div>
+
+<div class="quiz-card" id="quizCard" style="display:none;">
+  <div class="qc-head">
+    <div class="qc-title">Quiz</div>
+    <div class="qc-prog" id="qprog">1 / 5</div>
+  </div>
+  <div class="qc-body">
+    <div class="q-q" id="qq"></div>
+    <div id="qopts"></div>
+    <div class="q-fb" id="qfb"></div>
+    <button class="q-next" id="qnext" onclick="nextQ()">DALEJ &#8594;</button>
+    <div class="q-done" id="qdone">&#10003; Lekcja 27 uko&#324;czona! Mareczek spa&#322; dobrze. &#128564;</div>
+  </div>
+</div>
+
+<div class="end-card" id="endCard">
+  <div class="end-sky">
+    <span class="end-icon">&#128564;</span>
+    <div class="end-title">Mareczek &#347;pi!</div>
+    <div class="end-sub">Znasz wszystkie zwroty noclegowe.</div>
+  </div>
+  <div class="end-body">
+    <div class="end-score">
+      <div class="es-label">Kroki</div>
+      <div class="es-val">8 / 8 &#10003;</div>
+    </div>
+    <button class="btn-restart" onclick="restart()">&#8635; Zagraj jeszcze raz</button>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM &middot; CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d on"></div>
+  </div>
+</div>
+
+</div>
+<script>
+/* ════════════
+   DANE LEKCJI
+════════════ */
+var STEPS = [
+  {
+    time:"22:47",
+    loc:"A4 — jeszcze 180 km do Berlina",
+    truck:"&#128666;",
+    phrase:'"Where is the nearest truck stop?"',
+    pl:"Gdzie jest najbliższy truck stop?",
+    vocab:"truck stop",
+  },
+  {
+    time:"23:02",
+    loc:"Truck stop Autohof Großbeeren",
+    truck:"&#128664;",
+    phrase:'"Is there safe parking here?"',
+    pl:"Czy jest tu bezpieczny parking?",
+    vocab:"safe parking",
+  },
+  {
+    time:"23:08",
+    loc:"Parking TIR — strefa B",
+    truck:"&#128667;",
+    phrase:'"Can I park here overnight?"',
+    pl:"Czy mogę tu zaparkowac na noc?",
+    vocab:"overnight",
+  },
+  {
+    time:"23:11",
+    loc:"Recepcja truck stopu",
+    truck:"&#128685;",
+    phrase:'"How much is overnight parking?"',
+    pl:"Ile kosztuje parking na noc?",
+    vocab:"overnight parking",
+  },
+  {
+    time:"23:19",
+    loc:"Przy kasie",
+    truck:"&#128104;",
+    phrase:'"Do you have shower tokens?"',
+    pl:"Czy mają Państwo żetony do prysznica?",
+    vocab:"shower token",
+  },
+  {
+    time:"23:31",
+    loc:"Parking — Mareczek szuka wtyczki",
+    truck:"&#128267;",
+    phrase:'"Is there electricity hookup?"',
+    pl:"Czy jest podłączenie do prądu?",
+    vocab:"electricity hookup",
+  },
+  {
+    time:"23:47",
+    loc:"Brama wyjazdowa",
+    truck:"&#128682;",
+    phrase:'"What time does the gate close?"',
+    pl:"O której zamykają bramę?",
+    vocab:"gate",
+  },
+  {
+    time:"00:03",
+    loc:"Kabina — światła gasną",
+    truck:"&#127769;",
+    phrase:'"Is this area safe at night?"',
+    pl:"Czy ta okolica jest bezpieczna w nocy?",
+    vocab:"safe at night",
+  },
+];
+
+var VOCAB = [
+  {en:"safe parking",       pl:"bezpieczny parking"},
+  {en:"overnight",          pl:"na noc"},
+  {en:"electricity hookup", pl:"podłączenie do prądu"},
+  {en:"shower token",       pl:"żeton do prysznica"},
+  {en:"gate",               pl:"brama"},
+  {en:"truck stop",         pl:"zajazd dla kierowców"},
+  {en:"overnight parking",  pl:"parking na noc"},
+  {en:"safe at night",      pl:"bezpieczny w nocy"},
+];
+
+var QS = [
+  {q:"Mareczek szuka miejsca na noc. Co pyta?",
+   opts:['"Is there safe parking here?"','"Can I have a receipt?"','"Where is the motorway?"','"Is there electricity?"'],
+   and:0, tip:"Safe parking = bezpieczny parking. Zawsze pytaj o bezpieczeństwo miejsca!"},
+  {q:"Co znaczy 'shower token'?",
+   opts:["Paragon za prysznic","Number kabiny","Zeton do prysznica","Klucz do łazienki"],
+   and:2, tip:"Shower token = żeton do prysznica. Na większości truck stopów w Europie prysznice są płatne."},
+  {q:"Jak zapytać o cenę parkingu na noc?",
+   opts:['"Is there safe parking?"','"Can I park here overnight?"','"How much is overnight parking?"','"What time does the gate close?"'],
+   and:2, tip:"How much is overnight parking? = Ile kosztuje parking na noc?"},
+  {q:"Co to 'electricity hookup'?",
+   opts:["Tankowanie","Podłączenie do prądu","Ochrona","Podłączenie do internetu"],
+   and:1, tip:"Electricity hookup = podłączenie do prądu. Potrzebne do ogrzewania postojowego."},
+  {q:"Mareczek chce wiedzieć kiedy zamykają bramę. Co pyta?",
+   opts:['"Is this area safe at night?"','"What time does the gate close?"','"Can I park overnight?"','"Is there a truck stop?"'],
+   and:1, tip:"Gate = brama. What time does the gate close? = o której zamykają bramę?"},
+];
+
+var cur = 0, qi = 0;
+
+function renderDots() {
+  var h = "";
+  for (var i = 0; i < STEPS.length; i++) {
+    var c = "sd";
+    if (i < cur) c += " done";
+    else if (i === cur) c += " on";
+    h += "<div class='" + c + "'></div>";
+  }
+  document.getElementById("stepDots").innerHTML = h;
+}
+
+function renderVocab() {
+  var h = "";
+  var active = cur < STEPS.length ? STEPS[cur].vocab : "";
+  for (var i = 0; i < VOCAB.length; i++) {
+    var v = VOCAB[i];
+    var isActive = v.en === active;
+    h += "<div class='vr" + (isActive ? " active" : "") + "' style='cursor:pointer;'>"; 
+    h += "<div class='vdot'></div><div class='ven'>" + v.en + "</div><div class='vpl'>" + v.pl + "</div></div>";
+  }
+  document.getElementById("vocabGrid").innerHTML = h;
+}
+
+function render() {
+  var s = STEPS[cur];
+  document.getElementById("stepNum").textContent = "KROK " + (cur+1) + " / " + STEPS.length;
+  document.getElementById("skyTime").textContent = s.time;
+  document.getElementById("skyLoc").textContent = s.loc;
+  document.getElementById("skyTruck").innerHTML = s.truck;
+  
+  document.getElementById("stepPhrase").textContent = s.phrase;
+  document.getElementById("stepPl").textContent = s.pl;
+  document.getElementById("vocabTag").textContent = s.vocab;
+  document.getElementById("vocabTag").className = "vocab-tag lit";
+  document.getElementById("progFill").style.width = ((cur / STEPS.length) * 100) + "%";
+  document.getElementById("progTxt").textContent = "Krok " + (cur+1) + " / " + STEPS.length;
+  var snd = document.getElementById("sndBtn");
+  snd.classList.remove("playing");
+  snd.textContent = "\uD83D\uDD0A Pos\u0142uchaj";
+  document.getElementById("btnNext").textContent = cur < STEPS.length - 1 ? "DALEJ \u2192" : "QUIZ \u2192";
+  renderDots();
+  renderVocab();
+}
+
+function nextStep() {
+  cur++;
+  if (cur >= STEPS.length) {
+    showQuiz();
+  } else {
+    render();
+  }
+}
+
+function showQuiz() {
+  document.getElementById("nightCard").style.display = "none";
+  document.getElementById("quizCard").style.display = "block";
+  document.getElementById("progFill").style.width = "90%";
+  document.getElementById("progTxt").textContent = "Quiz";
+  renderQ();
+}
+
+function renderQ() {
+  if (qi >= QS.length) {
+    document.getElementById("qq").style.display = "none";
+    document.getElementById("qopts").innerHTML = "";
+    document.getElementById("qfb").className = "q-fb";
+    document.getElementById("qnext").classList.remove("show");
+    document.getElementById("qprog").textContent = "";
+    document.getElementById("qdone").classList.add("show");
+    document.getElementById("progFill").style.width = "100%";
+    document.getElementById("progTxt").textContent = "Ukończono!";
+    return;
+  }
+  var q = QS[qi];
+  document.getElementById("qprog").textContent = (qi+1) + " / " + QS.length;
+  document.getElementById("qq").textContent = q.q;
+  document.getElementById("qfb").className = "q-fb";
+  document.getElementById("qnext").classList.remove("show");
+  var h = "";
+  for (var i = 0; i < q.opts.length; i++) {
+    h += "<button class='q-opt' onclick='qa(this," + (i===q.and) + ")'><div class='q-ltr'>" + ["A","B","C","D"][i] + "</div>" + q.opts[i] + "</button>";
+  }
+  document.getElementById("qopts").innerHTML = h;
+}
+
+function qa(btn, correct) {
+  document.querySelectorAll(".q-opt").forEach(function(b){b.disabled=true;});
+  var fb = document.getElementById("qfb");
+  if (correct) {
+    btn.classList.add("ok");
+    fb.className = "q-fb show ok";
+    fb.textContent = "\u2705 " + QS[qi].tip;
+  } else {
+    btn.classList.add("no");
+    document.querySelectorAll(".q-opt")[QS[qi].and].classList.add("ok");
+    fb.className = "q-fb show no";
+    fb.textContent = "\u274C " + QS[qi].tip;
+  }
+  qi++;
+  document.getElementById("qnext").classList.add("show");
+}
+
+function nextQ() { renderQ(); }
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  'Where is the nearest truck stop?': 'audio/L27/where_is_the_nearest_truck_stop_l27.mp3',
+  'Is there safe parking here?': 'audio/L27/is_there_safe_parking_here_l27.mp3',
+  'Can I park here overnight?': 'audio/L27/can_i_park_here_overnight_l27.mp3',
+  'How much is overnight parking?': 'audio/L27/how_much_is_overnight_parking_l27.mp3',
+  'Do you have shower tokens?': 'audio/L27/do_you_have_shower_tokens_l27.mp3',
+  'Is there electricity hookup?': 'audio/L27/is_there_electricity_hookup_l27.mp3',
+  'What time does the gate close?': 'audio/L27/what_time_does_the_gate_close_l27.mp3',
+  'Is this area safe at night?': 'audio/L27/is_this_area_safe_at_night_l27.mp3',
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  if (_ap) { _ap.pause(); _ap.currentTime = 0; _ap = null; }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '\uD83D\uDD0A Posłuchaj';
+
+  if (btn) { btn.classList.add('playing'); btn.textContent = '⌛ Ładowanie...'; }
+
+  if (mp3) {
+    const timestamp = new Date().getTime();
+    const audioUrl = encodeURIComponent(mp3) + "?v=" + timestamp;
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("playing")) resetBtn();
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) { btn.classList.remove('playing'); btn.textContent = lbl; }
+    }
+
+    _ap.onplay = () => { if (btn) btn.textContent = '🔊 Odtwarzam...'; };
+    _ap.onended = resetBtn;
+    _ap.onerror = () => { clearTimeout(watchdog); _webSpeech(clean, btn, lbl); };
+    _ap.play().catch(() => _webSpeech(clean, btn, lbl));
+  } else {
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label) {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const lbl = label || '\uD83D\uDD0A Posłuchaj';
+  if (btn) { btn.classList.add("playing"); btn.textContent = "🔊 Bot..."; }
+  
+  setTimeout(() => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-GB"; u.rate = 0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x => x.name === "Google UK English Female") || voices.find(x => x.lang === "en-GB");
+    if (v) u.voice = v;
+    u.onend = () => { if (btn) { btn.classList.remove("playing"); btn.textContent = lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 200);
+}
+
+function speakStep() {
+  var s = cur < STEPS.length ? STEPS[cur] : STEPS[STEPS.length-1];
+  var btn = document.getElementById("sndBtn");
+  _playAudio(s.phrase, btn);
+}
+
+function speakVocab(text) {
+  _playAudio(text, null, null);
+}
+
+function restart() {
+  cur = 0; qi = 0;
+  document.getElementById("nightCard").style.display = "block";
+  document.getElementById("quizCard").style.display = "none";
+  document.getElementById("endCard").classList.remove("show");
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

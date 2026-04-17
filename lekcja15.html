@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 15 — Kontrola drogowa</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --orange:#e07820;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:900px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--red),var(--orange));border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* INSTRUKCJA */
+.instr{background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:0.75rem;font-weight:700;color:var(--navy);box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.instr em{font-style:normal;color:var(--red);font-family:'Courier Prime',monospace;}
+.found-count{margin-left:auto;font-size:0.68rem;font-weight:900;color:var(--muted);white-space:nowrap;}
+
+/* MAIN */
+.main{display:grid;grid-template-columns:1fr 280px;gap:14px;margin-bottom:14px;}
+
+/* ILUSTRACJA */
+.scene-wrap{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.sw-top{background:var(--navy);padding:8px 16px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;}
+.scene-svg-wrap{position:relative;width:100%;}
+.scene-svg{width:100%;display:block;}
+
+/* Hotspot */
+.err-hs{position:absolute;transform:translate(-50%,-50%);cursor:pointer;z-index:10;}
+.err-dot{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--red);border:3px solid var(--white);
+  box-shadow:0 2px 8px rgba(214,53,40,0.5);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.62rem;font-weight:900;color:#fff;
+  font-family:'Nunito',sans-serif;
+  transition:all 0.2s;
+  animation:errpulse 2s infinite;
+}
+@keyframes errpulse{
+  0%,100%{box-shadow:0 2px 8px rgba(214,53,40,0.5),0 0 0 0 rgba(214,53,40,0.25);}
+  50%{box-shadow:0 2px 8px rgba(214,53,40,0.5),0 0 0 8px rgba(214,53,40,0);}
+}
+.err-hs:hover .err-dot{transform:scale(1.15);animation:none;}
+.err-hs.found .err-dot{background:var(--green);animation:none;box-shadow:0 2px 8px rgba(21,128,61,0.4);}
+.err-hs.found .err-dot::after{content:'✓';font-size:0.8rem;}
+.err-hs.found .err-dot span{display:none;}
+
+/* PRAWY PANEL */
+.right-col{display:flex;flex-direction:column;gap:12px;}
+
+.error-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);flex-shrink:0;}
+.ec-head{background:var(--red);padding:8px 14px;font-size:0.6rem;font-weight:900;color:#fff;letter-spacing:1.5px;text-transform:uppercase;}
+.ec-body{padding:14px 15px;}
+.ec-empty{font-size:0.78rem;color:var(--muted);font-weight:700;text-align:center;padding:12px 0;line-height:1.7;}
+.ec-tag{display:inline-block;background:rgba(214,53,40,0.1);color:var(--red);font-size:0.6rem;font-weight:900;padding:2px 9px;border-radius:99px;letter-spacing:1px;margin-bottom:8px;}
+.ec-en{font-family:'Courier Prime',monospace;font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:3px;line-height:1.4;}
+.ec-pl{font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:8px;}
+.ec-tip{font-size:0.72rem;line-height:1.6;color:var(--navy);padding:8px 10px;background:var(--bg);border-radius:7px;}
+.ec-sound{margin-top:9px;width:100%;background:none;border:1.5px solid var(--border);border-radius:7px;padding:7px;font-family:'Nunito',sans-serif;font-size:0.72rem;font-weight:700;color:var(--navy);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.ec-sound:hover{border-color:var(--navy);background:var(--bg);}
+.ec-sound.pl{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+.errors-list{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;flex:1;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.el-head{background:var(--navy);padding:8px 14px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;}
+.el-body{padding:8px 10px;}
+.el-row{display:flex;align-items:center;gap:8px;padding:6px 7px;border-radius:7px;cursor:pointer;transition:all 0.13s;margin-bottom:2px;}
+.el-row:hover{background:var(--bg);}
+.el-row.active{background:rgba(214,53,40,0.07);}
+.el-row.found{opacity:0.55;}
+.el-num{width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:900;flex-shrink:0;transition:all 0.15s;}
+.el-row.found .el-num{background:var(--green);}
+.el-en{font-family:'Courier Prime',monospace;font-size:0.72rem;font-weight:700;color:var(--navy);}
+.el-row.active .el-en{color:var(--red);}
+.el-check{margin-left:auto;font-size:0.7rem;color:var(--green);display:none;flex-shrink:0;}
+.el-row.found .el-check{display:block;}
+
+/* DOLNA SEKCJA */
+.bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+
+.vocab-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.vc-head{background:var(--navy);padding:8px 14px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;}
+.vc-body{padding:8px 12px;display:grid;grid-template-columns:1fr 1fr;gap:2px;}
+.v-row{display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:5px;font-size:0.72rem;cursor:pointer;transition:all 0.13s;}
+.v-row:hover{background:var(--bg);}
+.v-dot{width:5px;height:5px;border-radius:50%;background:var(--navy);flex-shrink:0;}
+.v-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);font-size:0.7rem;}
+.v-pl{font-size:0.62rem;color:var(--muted);margin-left:2px;}
+
+.quiz-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.qc-head{background:var(--red);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;}
+.qc-title{font-size:0.65rem;font-weight:900;color:#fff;letter-spacing:1.5px;text-transform:uppercase;}
+.qc-prog{font-size:0.62rem;color:rgba(255,255,255,0.6);font-weight:700;}
+.qc-body{padding:13px 14px;}
+.q-q{font-size:0.82rem;font-weight:700;line-height:1.5;margin-bottom:10px;padding:8px 11px;background:var(--bg);border-radius:7px;border-left:2.5px solid var(--navy);}
+.q-opt{background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.78rem;font-weight:700;cursor:pointer;margin-bottom:6px;width:100%;text-align:left;color:var(--navy);display:flex;align-items:center;gap:9px;transition:all 0.13s;font-family:'Nunito',sans-serif;}
+.q-opt:last-child{margin-bottom:0;}
+.q-opt:hover:not(:disabled){border-color:var(--navy);background:var(--white);}
+.q-opt.ok{background:#f0fdf4;border-color:var(--green);color:var(--green);}
+.q-opt.no{background:#fef2f2;border-color:var(--red);color:var(--red);}
+.q-opt:disabled{cursor:default;}
+.q-ltr{width:20px;height:20px;border-radius:50%;background:rgba(26,46,74,0.1);display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:900;color:var(--navy);flex-shrink:0;transition:all 0.13s;}
+.q-opt.ok .q-ltr{background:var(--green);color:#fff;}
+.q-opt.no .q-ltr{background:var(--red);color:#fff;}
+.q-fb{font-size:0.72rem;font-weight:700;margin-top:8px;padding:7px 10px;border-radius:7px;display:none;line-height:1.5;}
+.q-fb.show{display:block;}
+.q-fb.ok{background:#f0fdf4;border:1px solid #86efac;color:var(--green);}
+.q-fb.no{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);}
+.q-next{margin-top:8px;width:100%;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:10px;font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:900;cursor:pointer;display:none;transition:all 0.15s;}
+.q-next:hover{background:#2a4a6a;}
+.q-next.show{display:block;}
+.q-done{background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:12px;text-align:center;font-size:0.8rem;font-weight:700;color:var(--green);display:none;}
+.q-done.show{display:block;}
+
+.inspection-done{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:20px;text-align:center;margin-bottom:14px;display:none;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.inspection-done.show{display:block;}
+.id-icon{font-size:2.5rem;margin-bottom:8px;}
+.id-title{font-size:1.1rem;font-weight:900;color:var(--green);margin-bottom:4px;}
+.id-sub{font-size:0.78rem;color:var(--muted);margin-bottom:14px;}
+.id-btn{background:var(--navy);color:#fff;border:none;border-radius:9px;padding:10px 24px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:900;cursor:pointer;transition:all 0.15s;}
+.id-btn:hover{background:#2a4a6a;}
+
+/* FOOTER */
+.footer{display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+
+@media(max-width:650px){
+  .main{grid-template-columns:1fr;}
+  .bottom-row{grid-template-columns:1fr;}
+  .vc-body{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Kontrola drogowa</div>
+    <div class="h-sub">Lekcja 15 · Moduł 3 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">15 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">0 / 6 problemów znalezionych</div>
+</div>
+
+<div class="instr">
+  <div>🔍</div>
+  <div>Policjant sprawdza ciężarówkę. Na pojeździe jest <em>6 problemów</em>. Kliknij czerwone kółko — poznaj frazę po angielsku.</div>
+  <div class="found-count" id="foundCount">0 / 6</div>
+</div>
+
+<div class="main">
+
+  <!-- SCENA SVG -->
+  <div class="scene-wrap">
+    <div class="sw-top">Kontrola drogowa — kliknij czerwone kółko przy problemie</div>
+    <div class="scene-svg-wrap" id="sceneSvgWrap">
+
+      <svg class="scene-svg" viewBox="0 0 600 380" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- TŁO — niebo jako główne tło -->
+        <rect width="600" height="380" fill="#c8e8f0"/>
+
+        <!-- Trawa -->
+        <rect y="0" width="600" height="55" fill="#6aba5a"/>
+
+        <!-- Asfalt -->
+        <rect y="230" width="600" height="150" fill="#4a4a48"/>
+        <!-- Linia środkowa -->
+        <line x1="0" y1="310" x2="600" y2="310" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-dasharray="20,14"/>
+        <!-- Pobocze -->
+        <rect y="220" width="600" height="14" fill="#b8b090"/>
+
+        <!-- NACZEPA -->
+        <rect x="30" y="160" width="310" height="90" rx="4" fill="#d8d4c8" stroke="#a8a4a0" stroke-width="2.5"/>
+
+        <!-- KABINA -->
+        <rect x="330" y="148" width="72" height="102" rx="8" fill="#4a8a4a" stroke="#2a6a2a" stroke-width="2.5"/>
+        <!-- Szyba -->
+        <rect x="368" y="155" width="32" height="30" rx="3" fill="rgba(140,210,240,0.55)" stroke="#2a6a2a" stroke-width="1.5"/>
+
+
+        <!-- KOŁA -->
+        <!-- Koło przednie — PROBLEM 1 łysa opona -->
+        <circle cx="360" cy="257" r="20" fill="#1a1a18" stroke="#0a0a08" stroke-width="2"/>
+        <circle cx="360" cy="257" r="10" fill="#555"/>
+        <circle cx="360" cy="257" r="20" fill="none" stroke="#8a7050" stroke-width="3" stroke-dasharray="3,2" opacity="0.8"/>
+        <!-- Koła tylne -->
+        <circle cx="130" cy="257" r="20" fill="#1a1a18" stroke="#0a0a08" stroke-width="2"/>
+        <circle cx="130" cy="257" r="10" fill="#555"/>
+        <circle cx="200" cy="257" r="20" fill="#1a1a18" stroke="#0a0a08" stroke-width="2"/>
+        <circle cx="200" cy="257" r="10" fill="#555"/>
+        <circle cx="270" cy="257" r="20" fill="#1a1a18" stroke="#0a0a08" stroke-width="2"/>
+        <circle cx="270" cy="257" r="10" fill="#555"/>
+
+        <!-- PROBLEM 2 — tylne światło zepsute -->
+        <rect x="28" y="170" width="10" height="22" rx="2" fill="#555" stroke="#333" stroke-width="1.5"/>
+        <!-- Normalne światło dla porównania -->
+        <rect x="28" y="196" width="10" height="16" rx="2" fill="#ffe566" stroke="#c8a020" stroke-width="1.5"/>
+
+        <!-- PROBLEM 3 — nieczytelna tablica -->
+        <rect x="368" y="242" width="42" height="16" rx="2" fill="#888" stroke="#555" stroke-width="1.5"/>
+        <rect x="370" y="244" width="38" height="12" rx="1" fill="#6a6a6a"/>
+        <text x="389" y="253" text-anchor="middle" fill="#444" font-size="7" font-weight="bold" font-family="Arial">XX??XX</text>
+
+        <!-- PROBLEM 4 — uszkodzona plandeka -->
+        <rect x="150" y="158" width="80" height="50" rx="0" fill="#c8c0a8" stroke="#a8a090" stroke-width="1.5"/>
+        <path d="M188,168 Q198,175 192,182" fill="rgba(0,0,0,0.15)" stroke="#666" stroke-width="2" stroke-linecap="round"/>
+        <path d="M193,167 Q200,176 196,183" fill="none" stroke="#555" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="2,1"/>
+
+        <!-- PROBLEM 5 — przeciążona oś -->
+        <line x1="80" y1="240" x2="310" y2="240" stroke="#888" stroke-width="4" stroke-linecap="round"/>
+        <path d="M140,240 Q200,250 260,240" fill="none" stroke="#d63528" stroke-width="2.5" stroke-dasharray="5,3"/>
+
+        <!-- PROBLEM 6 — brak trójkąta -->
+        <rect x="60" y="163" width="28" height="28" rx="3" fill="rgba(214,53,40,0.06)" stroke="#d63528" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="74" y="175" text-anchor="middle" fill="#d63528" font-size="8" font-family="Arial">⚠</text>
+        <text x="74" y="185" text-anchor="middle" fill="#d63528" font-size="6" font-family="Arial">BRAK</text>
+
+      </svg>
+
+      <!-- HOTSPOTY -->
+      <!-- 1. Zużyta opona -->
+      <div class="err-hs" style="left:62%;top:72%;" id="eh1" onclick="findError(1)">
+        <div class="err-dot" id="ed1"><span>1</span></div>
+      </div>
+      <!-- 2. Zepsute światło -->
+      <div class="err-hs" style="left:7%;top:50%;" id="eh2" onclick="findError(2)">
+        <div class="err-dot" id="ed2"><span>2</span></div>
+      </div>
+      <!-- 3. Nieczytelna tablica -->
+      <div class="err-hs" style="left:57%;top:68%;" id="eh3" onclick="findError(3)">
+        <div class="err-dot" id="ed3"><span>3</span></div>
+      </div>
+      <!-- 4. Uszkodzona plandeka -->
+      <div class="err-hs" style="left:34%;top:54%;" id="eh4" onclick="findError(4)">
+        <div class="err-dot" id="ed4"><span>4</span></div>
+      </div>
+      <!-- 5. Przeciążenie osi -->
+      <div class="err-hs" style="left:35%;top:66%;" id="eh5" onclick="findError(5)">
+        <div class="err-dot" id="ed5"><span>5</span></div>
+      </div>
+      <!-- 6. Brak trójkąta -->
+      <div class="err-hs" style="left:14%;top:50%;" id="eh6" onclick="findError(6)">
+        <div class="err-dot" id="ed6"><span>6</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PRAWY PANEL -->
+  <div class="right-col">
+    <div class="error-card">
+      <div class="ec-head">Znaleziony problem</div>
+      <div class="ec-body" id="ecBody">
+        <div class="ec-empty">← Kliknij czerwone kółko<br>przy problemie na pojeździe</div>
+      </div>
+    </div>
+    <div class="errors-list">
+      <div class="el-head">Lista problemów</div>
+      <div class="el-body" id="elBody"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Ekran końcowy inspekcji -->
+<div class="inspection-done" id="inspDone">
+  <div class="id-icon">✅</div>
+  <div class="id-title">Kontrola zakończona!</div>
+  <div class="id-sub">Znalazłeś wszystkie 6 problemów. Znasz frazy do kontroli drogowej.</div>
+  <button class="id-btn" onclick="resetInspection()">↺ Kontrola od nowa</button>
+</div>
+
+<!-- DOLNA SEKCJA -->
+<div class="bottom-row">
+  <div class="vocab-card">
+    <div class="vc-head">Słownik — Lekcja 15</div>
+    <div class="vc-body">
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">bald tyre</div><div class="v-pl">łysa opona</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">rear light</div><div class="v-pl">tylne światło</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">number plate</div><div class="v-pl">tablica rejestr.</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">tarpaulin</div><div class="v-pl">plandeka</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">overloaded</div><div class="v-pl">przeciążony</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">warning triangle</div><div class="v-pl">trójkąt ostrzeg.</div></div>
+      <div class="v-row"><div class="v-dot" style="background:var(--red)"></div><div class="v-en">roadworthy</div><div class="v-pl">sprawny techn.</div></div>
+      <div class="v-row"><div class="v-dot" style="background:var(--orange)"></div><div class="v-en">fine / penalty</div><div class="v-pl">mandat / kara</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">speed limiter</div><div class="v-pl">ogranicznik prędkości</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">pull over</div><div class="v-pl">zatrzymaj się</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">driving licence</div><div class="v-pl">prawo jazdy</div></div>
+      <div class="v-row"><div class="v-dot"></div><div class="v-en">insurance</div><div class="v-pl">ubezpieczenie</div></div>
+    </div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="qc-head">
+      <div class="qc-title">Quiz</div>
+      <div class="qc-prog" id="qprog">1 / 5</div>
+    </div>
+    <div class="qc-body">
+      <div class="q-q" id="qq"></div>
+      <div id="qopts"></div>
+      <div class="q-fb" id="qfb"></div>
+      <button class="q-next" id="qnext" onclick="nextQ()">DALEJ →</button>
+      <div class="q-done" id="qdone">✅ Lekcja 15 ukończona! Znasz terminologię kontroli drogowej.</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d"></div><div class="f-d on"></div><div class="f-d"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div>
+<script>
+const errors = {
+  1:{tag:'PROBLEM 1 — opona',en:'"The front tyre is bald."',pl:'Przednia opona jest łysa.',tip:'Bald tyre = łysa opona (bez bieżnika). The tyre is worn out = opona jest zużyta. Może skutkować mandatem i zakazem dalszej jazdy.'},
+  2:{tag:'PROBLEM 2 — światło',en:'"The rear light is not working."',pl:'Tylne światło nie działa.',tip:'Rear light = tylne światło. Not working = nie działa. The brake light is out = światło hamowania jest zepsute.'},
+  3:{tag:'PROBLEM 3 — tablica',en:'"The number plate is not readable."',pl:'Tablica rejestracyjna jest nieczytelna.',tip:'Number plate = tablica rejestracyjna. Not readable = nieczytelna. Policjant może wystawić mandat za zabrudzoną tablicę.'},
+  4:{tag:'PROBLEM 4 — plandeka',en:'"The tarpaulin is damaged."',pl:'Plandeka jest uszkodzona.',tip:'Tarpaulin = plandeka. Damaged = uszkodzona. The cover is torn = pokrycie jest podarte. Ładunek musi być zabezpieczony!'},
+  5:{tag:'PROBLEM 5 — przeciążenie',en:'"The axle is overloaded."',pl:'Oś jest przeciążona.',tip:'Overloaded = przeciążony. The axle weight exceeds the limit = nacisk na oś przekracza limit. You need to redistribute the load = trzeba przeładować.'},
+  6:{tag:'PROBLEM 6 — trójkąt',en:'"The warning triangle is missing."',pl:'Brakuje trójkąta ostrzegawczego.',tip:'Warning triangle = trójkąt ostrzegawczy. Missing = brakujący. The warning triangle is missing = brakuje trójkąta. Obowiązkowy w każdym pojeździe!'},
+};
+
+const errorList=[
+  {id:1,en:'"The front tyre is bald."'},
+  {id:2,en:'"The rear light is not working."'},
+  {id:3,en:'"The number plate is not readable."'},
+  {id:4,en:'"The tarpaulin is damaged."'},
+  {id:5,en:'"The axle is overloaded."'},
+  {id:6,en:'"The warning triangle is missing."'},
+];
+
+let found=new Set();
+let currentErr=null;
+
+function buildList(){
+  const el=document.getElementById('elBody');
+  el.innerHTML=errorList.map(e=>`
+    <div class="el-row" id="elr${e.id}" onclick="findError(${e.id})">
+      <div class="el-num">${e.id}</div>
+      <div class="el-en">${e.en}</div>
+      <div class="el-check">✓</div>
+    </div>
+  `).join('');
+}
+
+function findError(n){
+  if(currentErr){document.getElementById('elr'+currentErr)?.classList.remove('active');}
+  currentErr=n;
+  document.getElementById('elr'+n)?.classList.add('active');
+  const e=errors[n];
+  if(!found.has(n)){
+    found.add(n);
+    document.getElementById('eh'+n)?.classList.add('found');
+    document.getElementById('elr'+n)?.classList.add('found');
+    updateProgress();
+    if(found.size===6){setTimeout(()=>document.getElementById('inspDone').classList.add('show'),600);}
+  }
+  
+  // Zmiana: Przekazujemy 'n' (ID) zamiast całego tekstu z cudzysłowami
+  document.getElementById('ecBody').innerHTML=`
+    <div class="ec-tag">${e.tag}</div>
+    <div class="ec-en">${e.en}</div>
+    <div class="ec-pl">${e.pl}</div>
+    <div class="ec-tip">${e.tip}</div>
+    <button class="ec-sound" id="ecSound" onclick="speakErrorPhrase(${n})">🔊 Posłuchaj wymowy</button>
+  `;
+}
+
+function updateProgress(){
+  const pct=(found.size/6)*100;
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progTxt').textContent=`${found.size} / 6 problemów znalezionych`;
+  document.getElementById('foundCount').textContent=`${found.size} / 6`;
+}
+
+function resetInspection(){
+  found.clear();currentErr=null;
+  document.getElementById('inspDone').classList.remove('show');
+  document.getElementById('progFill').style.width='0%';
+  document.getElementById('progTxt').textContent='0 / 6 problemów znalezionych';
+  document.getElementById('foundCount').textContent='0 / 6';
+  document.getElementById('ecBody').innerHTML='<div class="ec-empty">← Kliknij czerwone kółko<br>przy problemie na pojeździe</div>';
+  for(let i=1;i<=6;i++){
+    document.getElementById('eh'+i)?.classList.remove('found');
+    document.getElementById('elr'+i)?.classList.remove('found','active');
+  }
+}
+
+/* QUIZ */
+const qs=[
+  {q:'Policjant pyta "Is the vehicle roadworthy?" Co to znaczy?',
+   opts:['Czy pojazd jest ubezpieczony?','Czy pojazd jest sprawny technicznie?','Czy masz prawo jazdy?','Czy tablica jest czytelna?'],
+   and:1,tip:'Roadworthy = sprawny technicznie / dopuszczony do ruchu. The vehicle is roadworthy = pojazd jest sprawny technicznie.'},
+  {q:'Co znaczy "bald tyre"?',
+   opts:['Złamana oś','Zepsute światło','Łysa opona bez bieżnika','Nieczytelna tablica'],
+   and:2,tip:'Bald tyre = łysa opona (bez bieżnika). The tyre is worn out = opona jest zużyta.'},
+  {q:'Jak powiesz że brakuje trójkąta ostrzegawczego?',
+   opts:['"The tarpaulin is damaged."','"The warning triangle is missing."','"The axle is overloaded."','"The rear light is out."'],
+   and:1,tip:'Warning triangle = trójkąt ostrzegawczy. Missing = brakujący. Obowiązkowy w każdej ciężarówce!'},
+  {q:'Co to "fine / penalty"?',
+   opts:['Prawo jazdy','Ubezpieczenie','Mandat / kara','Ogranicznik prędkości'],
+   and:2,tip:'Fine = mandat / grzywna. Penalty = kara. I disagree with this fine = nie zgadzam się z tym mandatem.'},
+  {q:'Policjant mówi "Pull over." Co robisz?',
+   opts:['Pokazujesz dokumenty','Zatrzymujesz pojazd na poboczu','Sprawdzasz prędkościomierz','Dzwonisz do dyspozytora'],
+   and:1,tip:'Pull over = zatrzymaj się / zjechaj na pobocze. Zawsze reaguj spokojnie i bez dyskusji.'},
+];
+let qi=0;
+
+function renderQ(){
+  if(qi>=qs.length){
+    document.getElementById('qq').style.display='none';
+    document.getElementById('qopts').innerHTML='';
+    document.getElementById('qfb').className='q-fb';
+    document.getElementById('qnext').classList.remove('show');
+    document.getElementById('qprog').textContent='';
+    document.getElementById('qdone').classList.add('show');
+    return;
+  }
+  const q=qs[qi];
+  document.getElementById('qprog').textContent=`${qi+1} / ${qs.length}`;
+  document.getElementById('qq').textContent=q.q;
+  document.getElementById('qfb').className='q-fb';
+  document.getElementById('qnext').classList.remove('show');
+  document.getElementById('qopts').innerHTML=q.opts.map((o,i)=>`
+    <button class="q-opt" onclick="qa(this,${i===q.and})">
+      <div class="q-ltr">${['A','B','C','D'][i]}</div>${o}
+    </button>
+  `).join('');
+}
+function qa(btn,c){
+  document.querySelectorAll('.q-opt').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('qfb');
+  if(c){btn.classList.add('ok');fb.className='q-fb show ok';fb.textContent='✅ '+qs[qi].tip;}
+  else{btn.classList.add('no');document.querySelectorAll('.q-opt')[qs[qi].and].classList.add('ok');fb.className='q-fb show no';fb.textContent='❌ '+qs[qi].tip;}
+  qi++;document.getElementById('qnext').classList.add('show');
+}
+function nextQ(){renderQ();}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  'The front tyre is bald.': 'audio/L15/the_front_tyre_is_bald_l15.mp3',
+  'The rear light is not working.': 'audio/L15/the_rear_light_is_not_working_l15.mp3',
+  'The number plate is not readable.': 'audio/L15/the_number_plate_is_not_readable_l15.mp3',
+  'The tarpaulin is damaged.': 'audio/L15/the_tarpaulin_is_damaged_l15.mp3',
+  'The axle is overloaded.': 'audio/L15/the_axle_is_overloaded_l15.mp3',
+  'The warning triangle is missing.': 'audio/L15/the_warning_triangle_is_missing_l15.mp3',
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  // Usuwamy z tekstu ewentualne cudzysłowy i czyścimy spacje z przodu/tyłu
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  
+  if(_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '🔊 Posłuchaj wymowy';
+
+  if (btn) {
+    btn.classList.add('pl');
+    btn.textContent = '⌛ Ładowanie...';
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("pl")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('pl');
+        btn.textContent = lbl;
+      }
+    }
+
+    _ap.onplay = () => {
+      if (btn) btn.textContent = '🔊 Odtwarzam...';
+    };
+
+    _ap.onended = resetBtn;
+
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak pliku MP3 w AUDIO_MAP dla:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) {
+      if(btn) { btn.classList.remove('pl'); btn.textContent = "❌ Brak audio"; }
+      return;
+  }
+  window.speechSynthesis.cancel();
+  const lbl = label || '🔊 Posłuchaj wymowy';
+  if(btn){ 
+    btn.classList.add('pl'); 
+    btn.textContent = '🔊 Odtwarzam (Bot)...'; 
+  }
+  
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend  = ()=>{ if(btn){ btn.classList.remove('pl'); btn.textContent = lbl; } };
+    u.onerror= ()=>{ if(btn){ btn.classList.remove('pl'); btn.textContent = lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+// Funkcja wywoływana przyciskiem, tłumaczy ID na text
+function speakErrorPhrase(id) {
+  const text = errors[id].en;
+  const btn = document.getElementById('ecSound');
+  _playAudio(text, btn, '🔊 Posłuchaj wymowy');
+}
+
+// Funkcja dla słowniczka
+function speakVocab(word) {
+  _playAudio(word, null, null);
+}
+
+// Sprawiamy, by dolny słownik był interaktywny i klikalny
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".vc-body .v-row").forEach(row => {
+        let enWord = row.querySelector(".v-en");
+        if(enWord) {
+            row.style.cursor = "pointer";
+            row.addEventListener('mouseover', () => row.style.background = 'rgba(26,46,74,0.05)');
+            row.addEventListener('mouseout', () => row.style.background = 'transparent');
+        }
+    });
+});
+
+buildList();
+renderQ();
+</script>
+</body>
+</html>

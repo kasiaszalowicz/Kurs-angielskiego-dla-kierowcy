@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 24 — Karty Flash</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f5f0e8;font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;}
+.wrap{max-width:960px;margin:0 auto;}
+
+/* HEADER */
+.header{
+  background:#fff;
+  border-radius:14px;
+  padding:16px 22px;
+  margin-bottom:18px;
+  display:flex;align-items:center;justify-content:space-between;
+  border:1.5px solid #e0d8cc;
+  box-shadow:0 4px 0 #1a2e4a;
+}
+.h-left{display:flex;align-items:center;gap:12px;}
+.h-num{width:46px;height:46px;background:#1a2e4a;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:900;color:#fff;flex-shrink:0;}
+.h-title{font-size:1.2rem;font-weight:900;color:#1a2e4a;}
+.h-sub{font-size:0.72rem;color:#999;margin-top:2px;}
+.h-tags{display:flex;gap:6px;}
+.h-tag{font-size:0.65rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:1px;}
+.h-tag.blue{background:#dce8f5;color:#1a2e4a;}
+.h-tag.red{background:#fde8e8;color:#d63528;}
+
+/* PROGRESS */
+.prog-wrap{background:#fff;border-radius:10px;padding:10px 16px;margin-bottom:18px;border:1.5px solid #e0d8cc;display:flex;align-items:center;gap:12px;}
+.prog-label{font-size:0.65rem;font-weight:900;color:#1a2e4a;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;}
+.prog-bar{flex:1;height:6px;background:#f0ebe0;border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,#1a2e4a,#2c5f8a);border-radius:99px;width:0%;transition:width 0.5s;}
+.prog-count{font-size:0.72rem;font-weight:900;color:#1a2e4a;white-space:nowrap;}
+
+/* GRID KART */
+.cards-section{margin-bottom:20px;}
+.section-title{font-size:0.68rem;font-weight:900;color:#1a2e4a;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:1px;background:#e0d8cc;}
+
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+
+/* KARTA FLASH */
+.flash-card{
+  height:140px;
+  cursor:pointer;
+  perspective:600px;
+  position:relative;
+}
+.flash-inner{
+  width:100%;height:100%;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform 0.55s cubic-bezier(0.4,0,0.2,1);
+}
+.flash-card.flipped .flash-inner{transform:rotateY(180deg);}
+
+.flash-front,.flash-back{
+  position:absolute;inset:0;
+  backface-visibility:hidden;
+  border-radius:12px;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:14px;
+  border:1.5px solid #e0d8cc;
+  box-shadow:0 4px 0 #c8c0a8;
+}
+.flash-front{background:#fff;}
+.flash-back{background:#1a2e4a;transform:rotateY(180deg);}
+
+.flash-front:hover{border-color:#1a2e4a;box-shadow:0 4px 0 #1a2e4a;}
+
+.f-cat{font-size:0.6rem;font-weight:700;color:#aaa;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.f-en{font-family:'Courier Prime',monospace;font-size:0.88rem;font-weight:700;color:#1a2e4a;text-align:center;line-height:1.4;}
+.f-hint{font-size:0.6rem;color:#ccc;margin-top:8px;}
+
+.f-pl{font-family:'Courier Prime',monospace;font-size:0.88rem;font-weight:700;color:#fff;text-align:center;line-height:1.4;}
+.f-en-small{font-size:0.65rem;color:rgba(255,255,255,0.4);margin-top:5px;text-align:center;font-style:italic;}
+.f-tip{font-size:0.62rem;color:rgba(255,255,255,0.55);margin-top:7px;text-align:center;line-height:1.4;padding:0 4px;}
+
+/* STATUS KART */
+.cards-status{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.status-dot{width:10px;height:10px;border-radius:50%;cursor:pointer;border:1.5px solid transparent;transition:all 0.2s;}
+.status-dot:hover{transform:scale(1.3);}
+
+/* DIALOG */
+.dialog-section{margin-bottom:20px;}
+.dialog-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.dialog-col{background:#fff;border-radius:12px;border:1.5px solid #e0d8cc;overflow:hidden;box-shadow:0 4px 0 #c8c0a8;}
+.dc-head{padding:9px 14px;font-size:0.65rem;font-weight:900;letter-spacing:1px;text-transform:uppercase;}
+.dc-head.marek{background:#d63528;color:#fff;}
+.dc-head.hans{background:#1a2e4a;color:#fff;}
+.dc-phrase{padding:9px 14px;border-bottom:1px solid #f0ebe0;cursor:pointer;transition:background 0.15s;}
+.dc-phrase:last-child{border-bottom:none;}
+.dc-phrase:hover{background:#f5f0e8;}
+.dc-phrase.active{background:#fff8f5;border-left:3px solid #d63528;}
+.dc-en{font-family:'Courier Prime',monospace;font-size:0.8rem;font-weight:700;color:#1a2e4a;}
+.dc-pl{font-size:0.68rem;color:#aaa;margin-top:2px;font-style:italic;}
+.dc-speak{float:right;background:none;border:none;cursor:pointer;font-size:0.8rem;opacity:0.4;}
+.dc-speak:hover{opacity:1;}
+
+/* QUIZ */
+.quiz-section{}
+.quiz-wrap{background:#fff;border-radius:12px;border:1.5px solid #e0d8cc;overflow:hidden;box-shadow:0 4px 0 #c8c0a8;}
+.quiz-head{background:#1a2e4a;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;}
+.qh-title{font-size:0.65rem;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase;}
+.qh-prog{font-size:0.65rem;color:rgba(255,255,255,0.45);}
+.quiz-body{padding:14px 16px;}
+.q-q{font-size:0.85rem;font-weight:700;color:#1a2e4a;line-height:1.6;margin-bottom:11px;padding:9px 12px;background:#f5f0e8;border-radius:8px;border-left:3px solid #1a2e4a;}
+.q-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.q-opt{
+  background:#f5f0e8;
+  border:1.5px solid #d0c8b8;
+  border-radius:9px;padding:10px 12px;
+  font-size:0.78rem;cursor:pointer;
+  text-align:left;color:#1a2e4a;
+  font-weight:600;font-family:'Nunito',sans-serif;
+  display:flex;align-items:center;gap:8px;
+  transition:all 0.15s;line-height:1.4;
+}
+.q-opt:hover{border-color:#1a2e4a;background:#dce8f5;color:#1a2e4a;}
+.q-opt.ok{background:#c8f0c8;border-color:#1a7a1a;color:#1a3a1a;}
+.q-opt.no{background:#ffd8d8;border-color:#d63528;color:#5a1a1a;}
+.q-opt:disabled{cursor:default;}
+.q-letter{width:22px;height:22px;border-radius:50%;background:#1a2e4a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;flex-shrink:0;}
+.q-opt.ok .q-letter{background:#1a7a1a;}
+.q-opt.no .q-letter{background:#d63528;}
+.q-fb{font-size:0.72rem;margin-top:9px;padding:8px 11px;border-radius:7px;display:none;line-height:1.5;font-weight:600;color:#1a2e4a;}
+.q-fb.show{display:block;}
+.q-fb.ok{background:#c8f0c8;border:1px solid #1a7a1a;}
+.q-fb.no{background:#ffd8d8;border:1px solid #d63528;}
+.q-next{margin-top:9px;width:100%;background:#1a2e4a;color:#fff;border:none;border-radius:9px;padding:11px;font-size:0.78rem;font-weight:700;cursor:pointer;letter-spacing:1px;display:none;font-family:'Nunito',sans-serif;transition:all 0.2s;}
+.q-next:hover{background:#2a4a6a;}
+.q-next.show{display:block;}
+.q-done{background:#c8f0c8;border:1px solid #1a7a1a;border-radius:8px;padding:14px;text-align:center;font-size:0.8rem;color:#1a3a1a;font-weight:700;display:none;}
+.q-done.show{display:block;}
+
+/* FOOTER */
+.footer{background:#1a2e4a;border-radius:12px;padding:10px 20px;margin-top:14px;display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.62rem;color:rgba(255,255,255,0.25);letter-spacing:1px;}
+.f-dots{display:flex;gap:5px;}
+.f-d{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.2);}
+.f-d.on{background:#f5c842;}
+
+@media(max-width:680px){
+  .cards-grid{grid-template-columns:1fr 1fr;}
+  .dialog-grid{grid-template-columns:1fr;}
+  .q-grid{grid-template-columns:1fr;}
+}
+
+.snd-card{
+  position:absolute;bottom:8px;right:8px;
+  background:none;border:1.5px solid rgba(26,46,74,0.2);
+  border-radius:6px;padding:3px 9px;font-size:0.75rem;
+  color:rgba(26,46,74,0.4);cursor:pointer;transition:all 0.15s;
+  font-family:'Nunito',sans-serif;
+}
+.snd-card:hover{border-color:var(--navy);color:var(--navy);}
+.snd-card.playing{background:var(--navy);color:#fff;border-color:var(--navy);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="h-left">
+    <div class="h-num">24</div>
+    <div>
+      <div class="h-title">Problemy techniczne</div>
+      <div class="h-sub">Moduł 4 — Awarie — Angielski z Mareczkiem · Crosshaul</div>
+    </div>
+  </div>
+  <div class="h-tags">
+    <span class="h-tag blue">LEKCJA 24</span>
+    <span class="h-tag red">MODUŁ 4</span>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="prog-wrap">
+  <div class="prog-label">Karty odkryte</div>
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-count" id="progCount">0 / 8</div>
+</div>
+
+<!-- KARTY FLASH -->
+<div class="cards-section">
+  <div class="section-title">Karty flash — kliknij żeby obrócić</div>
+  <div class="cards-grid" id="cardsGrid">
+
+    <div class="flash-card" onclick="flip(this,0)">
+      <div class="flash-inner">
+        <div class="flash-front"><div class="f-cat">usterka</div><div class="f-en">"oil leak"</div><div class="f-hint">↻ kliknij</div><button class="snd-card" onclick="event.stopPropagation();speakCard('oil leak',this)">&#128266;</button></div>
+        <div class="flash-back"><div class="f-pl">wyciek oleju</div><div class="f-en-small">oil leak</div><div class="f-tip">Zatrzymaj pojazd natychmiast!</div></div>
+      </div>
+    </div>
+
+    <div class="flash-card" onclick="flip(this,1)">
+      <div class="flash-inner">
+        <div class="flash-front"><div class="f-cat">usterka</div><div class="f-en">"brakes feel soft"</div><div class="f-hint">↻ kliknij</div><button class="snd-card" onclick="event.stopPropagation();speakCard('brakes feel soft',this)">&#128266;</button></div>
+        <div class="flash-back"><div class="f-pl">miękkie hamulce</div><div class="f-en-small">brakes soft</div><div class="f-tip">Nie jedź dalej — poważna usterka!</div></div>
+      </div>
+    </div>
+
+    <div class="flash-card" onclick="flip(this,2)">
+      <div class="flash-inner">
+        <div class="flash-front"><div class="f-cat">kokpit</div><div class="f-en">"warning light"</div><div class="f-hint">↻ kliknij</div><button class="snd-card" onclick="event.stopPropagation();speakCard('warning light',this)">&#128266;</button></div>
+        <div class="flash-back"><div class="f-pl">lampka kontrolna</div><div class="f-en-small">dashboard warning</div><div class="f-tip">Dashboard = deska rozdzielcza</div></div>
+      </div>
+    </div>
+
+    <div class="flash-card" onclick="flip(this,3)">
+      <div class="flash-inner">
+        <div class="flash-front"><div class="f-cat">sprzęg</div><div class="f-en">"fifth wheel"</div><div class="f-hint">↻ kliknij</div><button class="snd-card" onclick="event.stopPropagation();speakCard('fifth wheel',this)">&#128266;</button></div>
+        <div class="flash-back"><div class="f-pl">siodło / sprzęg</div><div class="f-en-small">fifth wheel loose</div><div class="f-tip">Sprawdzaj przed każdym wyjazdem!</div></div>
+      </div>
+    </div>
+
+    <div class="flash-card" onclick="flip(this,4)">
+      <div class="flash-inner">
+        <div class="flash-front"><div class="f-cat">temperatura</div><div class="f-en">"temperature in the red"</div><div class="f-hint">↻ kliknij</div><button class="snd-card" onclick="event.stopPropagation();speakCard('temperature in the red',this)">&#128266;</button></div>
+        <div class="flash-back"><div class="f-pl">przegrzanie silnika</div><div class="f-en-small">overheating</div><div class="f-tip">STOP natychmiast — grozi uszkodzeniem!</div></div>
+      </div>
+    </div>
+
+    <div class="flash-card" onclick="flip(this,5)">
+      <div class="flash-inner">
+        <div class="flash-front"><div class="f-cat">warsztat</div><div class="f-en">"truck garage"</div><div class="f-hint">↻ kliknij</div><button class="snd-card" onclick="event.stopPropagation();speakCard('truck garage',this)">&#128266;</button></div>
+        <div class="flash-back"><div class="f-pl">warsztat dla ciężarówek</div><div class="f-en-small">nearest truck garage</div><div class="f-tip">Nearest = najbliższy</div></div>
+      </div>
+    </div>
+
+    <div class="flash-card" onclick="flip(this,6)">
+      <div class="flash-inner">
+        <div class="flash-front"><div class="f-cat">transport</div><div class="f-en">"tow truck"</div><div class="f-hint">↻ kliknij</div><button class="snd-card" onclick="event.stopPropagation();speakCard('tow truck',this)">&#128266;</button></div>
+        <div class="flash-back"><div class="f-pl">laweta</div><div class="f-en-small">arrange a tow truck</div><div class="f-tip">Arrange = załatwić / zorganizować</div></div>
+      </div>
+    </div>
+
+    <div class="flash-card" onclick="flip(this,7)">
+      <div class="flash-inner">
+        <div class="flash-front"><div class="f-cat">pilne</div><div class="f-en">"stop the engine"</div><div class="f-hint">↻ kliknij</div><button class="snd-card" onclick="event.stopPropagation();speakCard('stop the engine',this)">&#128266;</button></div>
+        <div class="flash-back"><div class="f-pl">wyłącz silnik</div><div class="f-en-small">stop the engine immediately</div><div class="f-tip">Immediately = natychmiast!</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DIALOG -->
+<div class="dialog-section">
+  <div class="section-title">Dialog — Mareczek dzwoni do Hansa</div>
+  <div class="dialog-grid">
+    <div class="dialog-col">
+      <div class="dc-head marek">🧔 Mareczek mówi</div>
+      <div class="dc-phrase" onclick="selPhrase(this)">
+        <button class="dc-speak">🔊</button>
+        <div class="dc-en">"There is an oil leak under the truck."</div>
+        <div class="dc-pl">Jest wyciek oleju pod ciężarówką.</div>
+      </div>
+      <div class="dc-phrase" onclick="selPhrase(this)">
+        <button class="dc-speak">🔊</button>
+        <div class="dc-en">"The brakes feel soft — not responding."</div>
+        <div class="dc-pl">Hamulce są miękkie — nie reagują.</div>
+      </div>
+      <div class="dc-phrase" onclick="selPhrase(this)">
+        <button class="dc-speak">🔊</button>
+        <div class="dc-en">"I have a warning light on the dashboard."</div>
+        <div class="dc-pl">Mam zapaloną lampkę kontrolną.</div>
+      </div>
+      <div class="dc-phrase" onclick="selPhrase(this)">
+        <button class="dc-speak">🔊</button>
+        <div class="dc-en">"The fifth wheel seems loose."</div>
+        <div class="dc-pl">Siodło wydaje się być luźne.</div>
+      </div>
+      <div class="dc-phrase" onclick="selPhrase(this)">
+        <button class="dc-speak">🔊</button>
+        <div class="dc-en">"Where is the nearest truck garage?"</div>
+        <div class="dc-pl">Gdzie jest najbliższy warsztat?</div>
+      </div>
+    </div>
+    <div class="dialog-col">
+      <div class="dc-head hans">🧑‍💼 Hans odpowiada</div>
+      <div class="dc-phrase" onclick="selPhrase(this)">
+        <button class="dc-speak">🔊</button>
+        <div class="dc-en">"Stop the engine immediately!"</div>
+        <div class="dc-pl">Wyłącz silnik natychmiast!</div>
+      </div>
+      <div class="dc-phrase" onclick="selPhrase(this)">
+        <button class="dc-speak">🔊</button>
+        <div class="dc-en">"Take photos and call breakdown service."</div>
+        <div class="dc-pl">Zrób zdjęcia i zadzwoń po pomoc.</div>
+      </div>
+      <div class="dc-phrase" onclick="selPhrase(this)">
+        <button class="dc-speak">🔊</button>
+        <div class="dc-en">"Wait for the mechanic — do not drive!"</div>
+        <div class="dc-pl">Czekaj na mechanika — nie jedź!</div>
+      </div>
+      <div class="dc-phrase" onclick="selPhrase(this)">
+        <button class="dc-speak">🔊</button>
+        <div class="dc-en">"I will arrange a tow truck for you."</div>
+        <div class="dc-pl">Załatwię dla Ciebie lawetę.</div>
+      </div>
+      <div class="dc-phrase" onclick="selPhrase(this)">
+        <button class="dc-speak">🔊</button>
+        <div class="dc-en">"I will inform the client about the delay."</div>
+        <div class="dc-pl">Poinformuję klienta o opóźnieniu.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="quiz-section">
+  <div class="section-title">Quiz — sprawdź się</div>
+  <div class="quiz-wrap">
+    <div class="quiz-head">
+      <div class="qh-title">⚡ Quiz — Lekcja 24</div>
+      <div class="qh-prog" id="qprog">Pytanie 1 / 5</div>
+    </div>
+    <div class="quiz-body">
+      <div class="q-q" id="qq"></div>
+      <div class="q-grid" id="qopts"></div>
+      <div class="q-fb" id="qfb"></div>
+      <button class="q-next" id="qnext" onclick="nextQ()">NASTĘPNA KARTA →</button>
+      <div class="q-done" id="qdone">Wszystkie karty zaliczone! Mareczek jest z Ciebie dumny! 🚛</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL · SZCZECIN</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d"></div><div class="f-d on"></div><div class="f-d"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+let flipped = new Set();
+
+function flip(card, idx) {
+  card.classList.toggle('flipped');
+  if(card.classList.contains('flipped')) {
+    flipped.add(idx);
+  } else {
+    flipped.delete(idx);
+  }
+  const pct = (flipped.size / 8) * 100;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progCount').textContent = flipped.size + ' / 8';
+}
+
+function selPhrase(el) {
+  document.querySelectorAll('.dc-phrase').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+const qs = [
+  {q:"Mareczek widzi wyciek oleju. Co mówi mechanikowi?",opts:["The brakes feel soft.","There is an oil leak under the truck.","The fifth wheel is loose.","I need a tow truck now."],and:1,tip:"Oil leak = wyciek oleju. Zawsze opisuj usterkę konkretnie!"},
+  {q:"Hans mówi: 'Stop the engine immediately!' Co robisz?",opts:["Przyspieszasz","Dzwonisz do klienta","Wyłączasz silnik natychmiast","Skręcasz w prawo"],and:2,tip:"Stop the engine = wyłącz silnik. Immediately = natychmiast!"},
+  {q:"Co to jest 'fifth wheel'?",opts:["Zapasowa opona","Siodło / sprzęg","Piąta oś","Hamulec ręczny"],and:1,tip:"Fifth wheel = siodło łączące ciągnik z naczepą."},
+  {q:"Jak pytasz o warsztat dla TIR?",opts:["Where is a car shop?","Where is the nearest truck garage?","I need a supermarket.","Where is a petrol station?"],and:1,tip:"Truck garage = warsztat dla ciężarówek. Nearest = najbliższy."},
+  {q:"Warning light on the dashboard = ?",opts:["Lampka kontrolna na desce rozdzielczej","Światło drogowe","Tylne światło hamowania","Reflektor przedni"],and:0,tip:"Warning light = lampka kontrolna. Dashboard = deska rozdzielcza."},
+];
+let qi = 0;
+
+function renderQ() {
+  if(qi >= qs.length) {
+    document.getElementById('qq').style.display = 'none';
+    document.getElementById('qopts').innerHTML = '';
+    document.getElementById('qfb').className = 'q-fb';
+    document.getElementById('qnext').classList.remove('show');
+    document.getElementById('qprog').textContent = '';
+    document.getElementById('qdone').classList.add('show');
+    return;
+  }
+  const q = qs[qi];
+  document.getElementById('qprog').textContent = 'Pytanie ' + (qi+1) + ' / ' + qs.length;
+  document.getElementById('qq').textContent = q.q;
+  document.getElementById('qfb').className = 'q-fb';
+  document.getElementById('qnext').classList.remove('show');
+  document.getElementById('qopts').innerHTML = q.opts.map((o,i) =>
+    `<button class="q-opt" onclick="qa(this,${i===q.and})"><div class="q-letter">${['A','B','C','D'][i]}</div>${o}</button>`
+  ).join('');
+}
+
+function qa(btn, correct) {
+  document.querySelectorAll('.q-opt').forEach(b => { b.disabled = true; });
+  const fb = document.getElementById('qfb');
+  if(correct) {
+    btn.classList.add('ok');
+    fb.className = 'q-fb show ok';
+    fb.textContent = '✅ ' + qs[qi].tip;
+  } else {
+    btn.classList.add('no');
+    document.querySelectorAll('.q-opt')[qs[qi].and].classList.add('ok');
+    fb.className = 'q-fb show no';
+    fb.textContent = '❌ ' + qs[qi].tip;
+  }
+  qi++;
+  document.getElementById('qnext').classList.add('show');
+}
+
+function nextQ() { renderQ(); }
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  'oil leak': 'audio/L24/oil_leak_l24.mp3',
+  'brakes feel soft': 'audio/L24/brakes_feel_soft_l24.mp3',
+  'warning light': 'audio/L24/warning_light_l24.mp3',
+  'fifth wheel': 'audio/L24/fifth_wheel_l24.mp3',
+  'temperature in the red': 'audio/L24/temperature_in_the_red_l24.mp3',
+  'truck garage': 'audio/L24/truck_garage_l24.mp3',
+  'tow truck': 'audio/L24/tow_truck_l24.mp3',
+  'stop the engine': 'audio/L24/stop_the_engine_l24.mp3',
+
+  // Dialog - Mareczek
+  'There is an oil leak under the truck.': 'audio/L24/there_is_an_oil_leak_under_the_truck_l24.mp3',
+  'The brakes feel soft — not responding.': 'audio/L24/the_brakes_feel_soft_not_responding_l24.mp3',
+  'I have a warning light on the dashboard.': 'audio/L24/i_have_a_warning_light_on_the_dashboard_l24.mp3',
+  'The fifth wheel seems loose.': 'audio/L24/the_fifth_wheel_seems_loose_l24.mp3',
+  'Where is the nearest truck garage?': 'audio/L24/where_is_the_nearest_truck_garage_l24.mp3',
+
+  // Dialog - Hans
+  'Stop the engine immediately!': 'audio/L24/stop_the_engine_immediately_l24.mp3',
+  'Take photos and call breakdown service.': 'audio/L24/take_photos_and_call_breakdown_service_l24.mp3',
+  'Wait for the mechanic — do not drive!': 'audio/L24/wait_for_the_mechanic_do_not_drive_l24.mp3',
+  'I will arrange a tow truck for you.': 'audio/L24/i_will_arrange_a_tow_truck_for_you_l24.mp3',
+  'I will inform the client about the delay.': 'audio/L24/i_will_inform_the_client_about_the_delay_l24.mp3'
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  // Czyszczenie tekstu z cudzysłowów
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  
+  if(_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '🔊';
+
+  if (btn) {
+    btn.classList.add('playing');
+    btn.innerHTML = '⌛'; // ikona ładowania
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("playing")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('playing');
+        btn.innerHTML = lbl;
+      }
+    }
+
+    _ap.onplay = () => { if (btn) btn.innerHTML = '🔊'; };
+    _ap.onended = resetBtn;
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak pliku MP3 dla tekstu:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const lbl = label || '🔊';
+  if(btn){ btn.classList.add('playing'); btn.innerHTML='🔊'; }
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend = ()=>{ if(btn){ btn.classList.remove('playing'); btn.innerHTML = lbl; } };
+    u.onerror = ()=>{ if(btn){ btn.classList.remove('playing'); btn.innerHTML = lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+function speakCard(text, btn) {
+  _playAudio(text, btn, '&#128266;');
+}
+
+// Podpięcie dźwięku pod przyciski dialogowe po załadowaniu
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".dc-phrase").forEach(row => {
+        let enWord = row.querySelector(".dc-en");
+        let speakBtn = row.querySelector(".dc-speak");
+        
+        if(enWord && speakBtn) {
+            speakBtn.onclick = (e) => {
+                e.stopPropagation(); // nie puszczamy eventu wyżej
+                selPhrase(row);      // podświetlamy dany wiersz
+                _playAudio(enWord.textContent, speakBtn, '🔊');
+            };
+        }
+    });
+});
+
+/* INIT */
+renderQ();
+</script>
+</body>
+</html>

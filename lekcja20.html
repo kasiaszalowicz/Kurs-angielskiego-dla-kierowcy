@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 20 — Mandat</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --pay:#15803d;--appeal:#d63528;--ask:#2563eb;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:760px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:var(--navy);border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* SCENARIUSZ */
+.scenario-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+  margin-bottom:12px;
+}
+.sc-bar{height:5px;background:linear-gradient(90deg,#d63528,#e07820);}
+.sc-head{
+  background:var(--navy);padding:10px 18px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.sc-num{background:rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:900;padding:3px 10px;border-radius:99px;letter-spacing:1px;}
+.sc-loc{font-size:0.62rem;color:rgba(255,255,255,0.4);font-family:'Courier Prime',monospace;}
+
+/* Sytuacja */
+.sc-situation{padding:16px 18px;border-bottom:1px solid var(--border);}
+.sc-sit-label{font-size:0.58rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;}
+.sc-sit-text{font-size:0.88rem;font-weight:700;color:var(--navy);line-height:1.6;padding:10px 13px;background:var(--bg);border-radius:8px;border-left:3px solid var(--navy);}
+
+/* Policjant mówi */
+.sc-cop{padding:12px 18px;border-bottom:1px solid var(--border);}
+.sc-cop-label{font-size:0.58rem;font-weight:900;color:#d63528;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;}
+.sc-cop-en{font-family:'Courier Prime',monospace;font-size:0.9rem;font-weight:700;color:var(--navy);margin-bottom:3px;line-height:1.5;}
+.sc-cop-pl{font-size:0.68rem;color:var(--muted);font-style:italic;}
+.sc-cop-snd{
+  display:inline-flex;align-items:center;gap:4px;margin-top:6px;
+  background:none;border:1px solid var(--border);border-radius:6px;
+  padding:3px 9px;font-family:'Nunito',sans-serif;font-size:0.65rem;
+  font-weight:700;color:var(--muted);cursor:pointer;transition:all 0.15s;
+}
+.sc-cop-snd:hover{border-color:var(--navy);color:var(--navy);}
+.sc-cop-snd.playing{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+/* TRZY PRZYCISKI STRATEGII */
+.strategy-section{padding:14px 18px;}
+.str-label{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;text-align:center;}
+
+.strategies{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+
+.str-btn{
+  border:2px solid var(--border);border-radius:10px;
+  padding:10px 8px;cursor:pointer;
+  transition:all 0.18s;background:var(--white);
+  text-align:center;
+}
+.str-btn:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,0.1);}
+.str-btn.pay{border-color:rgba(21,128,61,0.3);}
+.str-btn.pay:hover{border-color:var(--pay);background:#f0fdf4;}
+.str-btn.appeal{border-color:rgba(214,53,40,0.3);}
+.str-btn.appeal:hover{border-color:var(--appeal);background:#fef2f2;}
+.str-btn.ask{border-color:rgba(37,99,235,0.3);}
+.str-btn.ask:hover{border-color:var(--ask);background:#eff6ff;}
+
+.str-btn.selected.pay{border-color:var(--pay);background:#f0fdf4;}
+.str-btn.selected.appeal{border-color:var(--appeal);background:#fef2f2;}
+.str-btn.selected.ask{border-color:var(--ask);background:#eff6ff;}
+
+.str-icon{font-size:1.4rem;margin-bottom:5px;}
+.str-name{
+  font-size:0.72rem;font-weight:900;letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:2px;
+}
+.str-btn.pay .str-name{color:var(--pay);}
+.str-btn.appeal .str-name{color:var(--appeal);}
+.str-btn.ask .str-name{color:var(--ask);}
+.str-sub{font-size:0.6rem;color:var(--muted);font-weight:700;}
+
+/* Panel z frazami — po wyborze */
+.phrase-panel{
+  margin:0 18px 14px;
+  border-radius:10px;padding:13px 15px;
+  display:none;border:1.5px solid var(--border);
+}
+.phrase-panel.show{display:block;}
+.phrase-panel.pay{background:#f0fdf4;border-color:#86efac;}
+.phrase-panel.appeal{background:#fef2f2;border-color:#fca5a5;}
+.phrase-panel.ask{background:#eff6ff;border-color:#bfdbfe;}
+
+.pp-label{font-size:0.6rem;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
+.phrase-panel.pay .pp-label{color:var(--pay);}
+.phrase-panel.appeal .pp-label{color:var(--appeal);}
+.phrase-panel.ask .pp-label{color:var(--ask);}
+
+.pp-phrase{
+  font-family:'Courier Prime',monospace;font-size:0.88rem;font-weight:700;
+  color:var(--navy);line-height:1.5;margin-bottom:3px;
+}
+.pp-pl{font-size:0.68rem;color:var(--muted);font-style:italic;margin-bottom:8px;}
+.pp-tip{font-size:0.72rem;line-height:1.6;color:var(--navy);margin-bottom:8px;}
+.pp-snd{
+  background:none;border:1.5px solid var(--border);border-radius:7px;
+  padding:6px 12px;font-family:'Nunito',sans-serif;font-size:0.7rem;
+  font-weight:700;color:var(--navy);cursor:pointer;transition:all 0.15s;
+  display:inline-flex;align-items:center;gap:5px;
+}
+.pp-snd:hover{border-color:var(--navy);background:rgba(26,46,74,0.05);}
+.pp-snd.playing{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+/* Przycisk dalej */
+.btn-next{
+  display:none;width:calc(100% - 36px);margin:0 18px 16px;
+  background:var(--navy);color:#fff;border:none;border-radius:10px;
+  padding:12px;font-family:'Nunito',sans-serif;font-size:0.85rem;
+  font-weight:900;cursor:pointer;transition:all 0.15s;
+}
+.btn-next:hover{background:#2a4a6a;}
+.btn-next.show{display:block;}
+
+/* EKRAN KOŃCOWY */
+.end-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;padding:24px;text-align:center;
+  display:none;margin-bottom:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.end-card.show{display:block;}
+.end-bar{height:5px;background:linear-gradient(90deg,var(--navy),#2563eb);border-radius:99px;margin-bottom:18px;}
+.end-icon{font-size:2.5rem;margin-bottom:10px;}
+.end-title{font-size:1.2rem;font-weight:900;color:var(--navy);margin-bottom:5px;}
+.end-sub{font-size:0.78rem;color:var(--muted);margin-bottom:18px;}
+
+/* Stats strategii */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;}
+.stat-box{border-radius:10px;padding:10px 8px;text-align:center;border:1.5px solid var(--border);}
+.stat-box.pay{background:#f0fdf4;border-color:#86efac;}
+.stat-box.appeal{background:#fef2f2;border-color:#fca5a5;}
+.stat-box.ask{background:#eff6ff;border-color:#bfdbfe;}
+.stat-num{font-size:1.4rem;font-weight:900;}
+.stat-box.pay .stat-num{color:var(--pay);}
+.stat-box.appeal .stat-num{color:var(--appeal);}
+.stat-box.ask .stat-num{color:var(--ask);}
+.stat-lbl{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:2px;}
+
+/* Słownik końcowy */
+.vocab-box{background:var(--bg);border-radius:10px;padding:14px;text-align:left;margin-bottom:16px;}
+.vb-title{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:9px;}
+.vb-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.vb-row{display:flex;align-items:center;gap:6px;font-size:0.73rem;padding:3px 4px;border-radius:5px;transition:all 0.13s;}
+.vb-row:hover{background:rgba(26,46,74,0.05);}
+.vb-dot{width:6px;height:6px;border-radius:50%;background:var(--navy);flex-shrink:0;}
+.vb-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);}
+.vb-pl{font-size:0.63rem;color:var(--muted);}
+
+.btn-restart{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:12px 32px;font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:900;cursor:pointer;transition:all 0.15s;}
+.btn-restart:hover{background:#2a4a6a;}
+
+/* FOOTER */
+.footer{display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+
+@media(max-width:500px){.strategies{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Mandat</div>
+    <div class="h-sub">Lekcja 20 · Moduł 3 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">20 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">Sytuacja 1 / 6</div>
+</div>
+
+<!-- KARTA DECYZYJNA -->
+<div class="scenario-card" id="scCard">
+  <div class="sc-bar"></div>
+  <div class="sc-head">
+    <div class="sc-num" id="scNum">SYTUACJA 1 / 6</div>
+    <div class="sc-loc" id="scLoc">📍 Autostrada A4 — Niemcy</div>
+  </div>
+  <div class="sc-situation">
+    <div class="sc-sit-label">Sytuacja</div>
+    <div class="sc-sit-text" id="scSit">—</div>
+  </div>
+  <div class="sc-cop">
+    <div class="sc-cop-label">Policjant mówi</div>
+    <div class="sc-cop-en" id="scCopEn">—</div>
+    <div class="sc-cop-pl" id="scCopPl">—</div>
+    <button class="sc-cop-snd" id="scCopSnd" onclick="speakCop()">🔊 Wymowa</button>
+  </div>
+  <div class="strategy-section">
+    <div class="str-label">Wybierz swoją strategię:</div>
+    <div class="strategies">
+      <button class="str-btn pay" onclick="choose('pay')">
+        <div class="str-icon">💳</div>
+        <div class="str-name">Zapłać</div>
+        <div class="str-sub">Pay the fine</div>
+      </button>
+      <button class="str-btn appeal" onclick="choose('appeal')">
+        <div class="str-icon">✋</div>
+        <div class="str-name">Odwołaj</div>
+        <div class="str-sub">Appeal / Disagree</div>
+      </button>
+      <button class="str-btn ask" onclick="choose('ask')">
+        <div class="str-icon">❓</div>
+        <div class="str-name">Zapytaj</div>
+        <div class="str-sub">Ask / Request</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- Panel fraz — pojawia się po wyborze -->
+  <div class="phrase-panel" id="phrasePanel">
+    <div class="pp-label" id="ppLabel">—</div>
+    <div class="pp-phrase" id="ppPhrase">—</div>
+    <div class="pp-pl" id="ppPl">—</div>
+    <div class="pp-tip" id="ppTip">—</div>
+    <button class="pp-snd" id="ppSnd" onclick="speakPhrase()">🔊 Posłuchaj wymowy</button>
+  </div>
+
+  <button class="btn-next" id="btnNext" onclick="nextScene()">NASTĘPNA SYTUACJA →</button>
+</div>
+
+<!-- EKRAN KOŃCOWY -->
+<div class="end-card" id="endCard">
+  <div class="end-bar"></div>
+  <div class="end-icon">⚖️</div>
+  <div class="end-title">Lekcja 20 ukończona!</div>
+  <div class="end-sub">Znasz wszystkie strategie przy mandacie. Każda sytuacja wymaga innego podejścia.</div>
+  <div class="stats-grid">
+    <div class="stat-box pay"><div class="stat-num" id="statPay">0</div><div class="stat-lbl">Zapłać</div></div>
+    <div class="stat-box appeal"><div class="stat-num" id="statAppeal">0</div><div class="stat-lbl">Odwołaj</div></div>
+    <div class="stat-box ask"><div class="stat-num" id="statAsk">0</div><div class="stat-lbl">Zapytaj</div></div>
+  </div>
+  <div class="vocab-box">
+    <div class="vb-title">Słownik — Lekcja 20</div>
+    <div class="vb-grid">
+      <div class="vb-row"><div class="vb-dot" style="background:var(--red)"></div><div class="vb-en">fine / penalty</div><div class="vb-pl">mandat / kara</div></div>
+      <div class="vb-row"><div class="vb-dot"></div><div class="vb-en">receipt</div><div class="vb-pl">pokwitowanie</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:var(--appeal)"></div><div class="vb-en">appeal</div><div class="vb-pl">odwołanie</div></div>
+      <div class="vb-row"><div class="vb-dot"></div><div class="vb-en">regulation</div><div class="vb-pl">przepis</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:var(--ask)"></div><div class="vb-en">translator</div><div class="vb-pl">tłumacz</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:var(--red)"></div><div class="vb-en">I disagree</div><div class="vb-pl">nie zgadzam się</div></div>
+      <div class="vb-row"><div class="vb-dot"></div><div class="vb-en">contact my company</div><div class="vb-pl">kontakt z firmą</div></div>
+      <div class="vb-row"><div class="vb-dot" style="background:var(--pay)"></div><div class="vb-en">pay by card</div><div class="vb-pl">zapłacić kartą</div></div>
+    </div>
+  </div>
+  <button class="btn-restart" onclick="restart()">↺ Zagraj jeszcze raz</button>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d on"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div>
+<script>
+/* ════════════════════════
+   6 SYTUACJI — każda z 3 frazami
+════════════════════════ */
+const SCENES = [
+  {
+    loc:'📍 Autostrada A4 — Niemcy',
+    sit:'Policjant zatrzymuje Mareczka i informuje o mandacie za przekroczenie prędkości.',
+    cop:{en:'"You were driving at 95 km/h in a 80 zone. Here is your fine — €120."', pl:'Jechał Pan 95 km/h w strefie 80. Oto Pana mandat — 120 euro.'},
+    pay:{
+      phrase:'"I will pay by card. Can I have a receipt please?"',
+      pl:'Zapłacę kartą. Czy mogę prosić o pokwitowanie?',
+      tip:'Pay by card = zapłacić kartą. Receipt = pokwitowanie. Zawsze proś o pokwitowanie — to Twój dowód zapłaty.',
+    },
+    appeal:{
+      phrase:'"I disagree with this fine. I would like to appeal."',
+      pl:'Nie zgadzam się z tym mandatem. Chciałbym się odwołać.',
+      tip:'I disagree = nie zgadzam się. Appeal = odwołanie. Masz prawo się odwołać — firma może pomóc.',
+    },
+    ask:{
+      phrase:'"I need a translator. I do not understand."',
+      pl:'Potrzebuję tłumacza. Nie rozumiem.',
+      tip:'Translator = tłumacz. Masz prawo do tłumacza w każdym kraju EU. Nie podpisuj niczego bez zrozumienia!',
+    },
+  },
+  {
+    loc:'📍 Punkt kontrolny — Holandia',
+    sit:'Inspektor informuje Mareczka o naruszeniu czasu jazdy i wystawia karę.',
+    cop:{en:'"Your driving time exceeds the limit. The penalty is €250."', pl:'Pana czas jazdy przekracza limit. Kara wynosi 250 euro.'},
+    pay:{
+      phrase:'"I will pay. Can I have a receipt for my company?"',
+      pl:'Zapłacę. Czy mogę dostać pokwitowanie dla mojej firmy?',
+      tip:'Receipt for my company = pokwitowanie dla firmy. Zawsze bierz pokwitowanie — firma musi je mieć do rozliczenia.',
+    },
+    appeal:{
+      phrase:'"I was not aware of this regulation. I would like to appeal this fine."',
+      pl:'Nie byłem świadomy tego przepisu. Chciałbym odwołać się od tego mandatu.',
+      tip:'Regulation = przepis / regulacja. I was not aware = nie byłem świadomy. Argument przy pierwszym naruszeniu.',
+    },
+    ask:{
+      phrase:'"Can I contact my company before I sign anything?"',
+      pl:'Czy mogę skontaktować się z firmą zanim cokolwiek podpiszę?',
+      tip:'Contact my company = skontaktować się z firmą. Zawsze masz prawo zadzwonić do dyspozytora przed podpisaniem.',
+    },
+  },
+  {
+    loc:'📍 Granica — Belgia',
+    sit:'Celnik wystawia mandat za niekompletne dokumenty ADR.',
+    cop:{en:'"Your ADR documents are incomplete. Fine: €180."', pl:'Pana dokumenty ADR są niekompletne. Mandat: 180 euro.'},
+    pay:{
+      phrase:'"I understand. I will pay by card and request a receipt."',
+      pl:'Rozumiem. Zapłacę kartą i proszę o pokwitowanie.',
+      tip:'Request a receipt = prosić o pokwitowanie. Przy płaceniu zawsze proś o dowód zapłaty.',
+    },
+    appeal:{
+      phrase:'"I disagree. The documents were complete at loading. I want to appeal."',
+      pl:'Nie zgadzam się. Dokumenty były kompletne przy załadunku. Chcę się odwołać.',
+      tip:'Were complete at loading = były kompletne przy załadunku. Odwołanie ma sens jeśli masz dowody.',
+    },
+    ask:{
+      phrase:'"I was not aware of this regulation. Can I contact my company?"',
+      pl:'Nie byłem świadomy tego przepisu. Czy mogę skontaktować się z moją firmą?',
+      tip:'I was not aware = nie byłem świadomy. Połączenie dwóch fraz — pytasz i tłumaczysz jednocześnie.',
+    },
+  },
+  {
+    loc:'📍 Centrum miasta — Francja',
+    sit:'Policja zatrzymuje Mareczka za wjazd do strefy ograniczonej dla ciężarówek.',
+    cop:{en:'"This zone is restricted for trucks. The fine is €350."', pl:'Ta strefa jest ograniczona dla ciężarówek. Mandat wynosi 350 euro.'},
+    pay:{
+      phrase:'"I understand. I will pay. Can I have a receipt please?"',
+      pl:'Rozumiem. Zapłacę. Czy mogę prosić o pokwitowanie?',
+      tip:'Wysoka kara — jeśli wina jest oczywista, płacenie i prośba o pokwitowanie to najszybsze wyjście.',
+    },
+    appeal:{
+      phrase:'"I disagree. My GPS directed me here. I was not aware of this regulation."',
+      pl:'Nie zgadzam się. GPS mnie tu skierował. Nie byłem świadomy tego przepisu.',
+      tip:'My GPS directed me here = GPS mnie tu skierował. Argument przy wjeździe przez pomyłkę nawigacji.',
+    },
+    ask:{
+      phrase:'"I need a translator. Can I contact my company first?"',
+      pl:'Potrzebuję tłumacza. Czy mogę najpierw skontaktować się z firmą?',
+      tip:'Łączysz dwa prawa — prawo do tłumacza i prawo do kontaktu z firmą. Daje to czas na konsultację.',
+    },
+  },
+  {
+    loc:'📍 Stacja ważenia — Polska',
+    sit:'Inspektor ITD stwierdza przeciążenie pojazdu i wystawia karę.',
+    cop:{en:'"The vehicle is overloaded by 800 kg. Penalty: 1500 PLN."', pl:'Pojazd jest przeciążony o 800 kg. Kara: 1500 zł.'},
+    pay:{
+      phrase:'"I will pay by card. Please give me a receipt for the penalty."',
+      pl:'Zapłacę kartą. Proszę o pokwitowanie kary.',
+      tip:'Receipt for the penalty = pokwitowanie kary. Przy mandacie ITD zawsze bierz pokwitowanie — firma musi je rozliczyć.',
+    },
+    appeal:{
+      phrase:'"I disagree. The load was weighed at the sender. I want to appeal this fine."',
+      pl:'Nie zgadzam się. Ładunek był ważony u nadawcy. Chcę odwołać się od tego mandatu.',
+      tip:'Was weighed at the sender = był ważony u nadawcy. Jeśli masz kwit wagowy z załadunku, masz podstawę do odwołania.',
+    },
+    ask:{
+      phrase:'"Can I contact my company? They need to know about this penalty."',
+      pl:'Czy mogę skontaktować się z firmą? Muszą wiedzieć o tej karze.',
+      tip:'They need to know = muszą wiedzieć. Dyspozytor może zadecydować o strategii i doradzić co robić.',
+    },
+  },
+  {
+    loc:'📍 Parking TIR — Niemcy',
+    sit:'Policja mandatuje Mareczka za parkowanie w niedozwolonym miejscu.',
+    cop:{en:'"You are parked in a no-parking zone. Fine: €80."', pl:'Stoi Pan w strefie zakazu parkowania. Mandat: 80 euro.'},
+    pay:{
+      phrase:'"My mistake. I will pay by card. Can I have a receipt?"',
+      pl:'Mój błąd. Zapłacę kartą. Czy mogę dostać pokwitowanie?',
+      tip:'My mistake = mój błąd. Przy małej kwocie i oczywistej winie — przyznanie się i szybka zapłata to najlepsze wyjście.',
+    },
+    appeal:{
+      phrase:'"I disagree. There was no sign visible. I would like to appeal."',
+      pl:'Nie zgadzam się. Nie było widocznego znaku. Chciałbym się odwołać.',
+      tip:'No sign visible = brak widocznego znaku. Jeśli zakaz był niewidoczny lub niejasny — masz podstawę do odwołania.',
+    },
+    ask:{
+      phrase:'"I was not aware this was a restricted area. Can I contact my company?"',
+      pl:'Nie wiedziałem, że to strefa ograniczona. Czy mogę skontaktować się z firmą?',
+      tip:'I was not aware = nie wiedziałem. Pytanie o kontakt z firmą daje czas i wsparcie przy decyzji.',
+    },
+    last:true,
+  },
+];
+
+let cur = 0;
+let chosen = null;
+let stats = {pay:0, appeal:0, ask:0};
+
+/* ════════════════
+   RENDER
+════════════════ */
+function render() {
+  const s = SCENES[cur];
+  chosen = null;
+
+  document.getElementById('scNum').textContent = `SYTUACJA ${cur+1} / ${SCENES.length}`;
+  document.getElementById('scLoc').textContent = s.loc;
+  document.getElementById('scSit').textContent = s.sit;
+  document.getElementById('scCopEn').textContent = s.cop.en;
+  document.getElementById('scCopPl').textContent = s.cop.pl;
+  document.getElementById('scCopSnd').className = 'sc-cop-snd';
+  document.getElementById('scCopSnd').textContent = '🔊 Wymowa';
+
+  // Reset strategii
+  document.querySelectorAll('.str-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('phrasePanel').className = 'phrase-panel';
+  document.getElementById('btnNext').className = 'btn-next';
+
+  // Progress
+  document.getElementById('progFill').style.width = ((cur/SCENES.length)*100)+'%';
+  document.getElementById('progTxt').textContent = `Sytuacja ${cur+1} / ${SCENES.length}`;
+}
+
+/* ════════════════
+   WYBÓR STRATEGII
+════════════════ */
+function choose(type) {
+  // Jeśli użytkownik klika w tę samą opcję, zignoruj
+  if(chosen === type) return; 
+
+  // Jeśli użytkownik zmienia zdanie (wybrał coś wcześniej), odejmujemy punkt z poprzedniej statystyki
+  if(chosen !== null) {
+    stats[chosen]--;
+  }
+
+  // Zapisujemy nowy wybór i dodajemy punkt
+  chosen = type;
+  stats[type]++;
+
+  const s = SCENES[cur];
+  const data = s[type];
+
+  // Podświetl wybrany przycisk
+  document.querySelectorAll('.str-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelector(`.str-btn.${type}`).classList.add('selected');
+
+  // Pokaż panel fraz
+  const panel = document.getElementById('phrasePanel');
+  panel.className = `phrase-panel show ${type}`;
+
+  const labels = {
+    pay:'💳 Strategia: Zapłać',
+    appeal:'✋ Strategia: Odwołaj się',
+    ask:'❓ Strategia: Zapytaj',
+  };
+  document.getElementById('ppLabel').textContent = labels[type];
+  document.getElementById('ppPhrase').textContent = data.phrase;
+  document.getElementById('ppPl').textContent = data.pl;
+  document.getElementById('ppTip').textContent = '💡 ' + data.tip;
+  document.getElementById('ppSnd').className = 'pp-snd';
+  document.getElementById('ppSnd').textContent = '🔊 Posłuchaj wymowy';
+
+  // Pokaż przycisk dalej
+  const nb = document.getElementById('btnNext');
+  nb.className = 'btn-next show';
+  nb.textContent = SCENES[cur].last ? 'WYNIKI →' : 'NASTĘPNA SYTUACJA →';
+}
+
+function nextScene() {
+  if(!chosen) return;
+  cur++;
+  if(cur >= SCENES.length) {
+    showEnd();
+    return;
+  }
+  const card = document.getElementById('scCard');
+  card.style.opacity = '0';
+  card.style.transition = 'opacity 0.2s';
+  setTimeout(()=>{
+    render();
+    card.style.opacity = '1';
+  }, 200);
+}
+
+/* ════════════════
+   KONIEC
+════════════════ */
+function showEnd() {
+  document.getElementById('scCard').style.display = 'none';
+  document.getElementById('endCard').classList.add('show');
+  document.getElementById('progFill').style.width = '100%';
+  document.getElementById('progTxt').textContent = 'Ukończono!';
+  document.getElementById('statPay').textContent = stats.pay;
+  document.getElementById('statAppeal').textContent = stats.appeal;
+  document.getElementById('statAsk').textContent = stats.ask;
+}
+
+function restart() {
+  cur=0; chosen=null; stats={pay:0,appeal:0,ask:0};
+  document.getElementById('scCard').style.display = 'block';
+  document.getElementById('scCard').style.opacity = '1';
+  document.getElementById('endCard').classList.remove('show');
+  document.getElementById('progFill').style.width = '0%';
+  render();
+}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  // Sytuacja 1
+  'You were driving at 95 km/h in a 80 zone. Here is your fine — €120.': 'audio/L20/you_were_driving_at_95_l20.mp3',
+  'I will pay by card. Can I have a receipt please?': 'audio/L20/i_will_pay_by_card_can_i_have_l20.mp3',
+  'I disagree with this fine. I would like to appeal.': 'audio/L20/i_disagree_with_this_fine_i_would_like_l20.mp3',
+  'I need a translator. I do not understand.': 'audio/L20/i_need_a_translator_i_do_not_understand_l20.mp3',
+
+  // Sytuacja 2
+  'Your driving time exceeds the limit. The penalty is €250.': 'audio/L20/your_driving_time_exceeds_l20.mp3',
+  'I will pay. Can I have a receipt for my company?': 'audio/L20/i_will_pay_can_i_have_l20.mp3',
+  'I was not aware of this regulation. I would like to appeal this fine.': 'audio/L20/i_was_not_aware_of_this_regulation_i_would_like_l20.mp3',
+  'Can I contact my company before I sign anything?': 'audio/L20/can_i_contact_my_company_before_l20.mp3',
+
+  // Sytuacja 3
+  'Your ADR documents are incomplete. Fine: €180.': 'audio/L20/your_adr_documents_are_incomplete_l20.mp3',
+  'I understand. I will pay by card and request a receipt.': 'audio/L20/i_understand_i_will_pay_by_card_and_request_l20.mp3',
+  'I disagree. The documents were complete at loading. I want to appeal.': 'audio/L20/i_disagree_the_documents_were_complete_l20.mp3',
+  'I was not aware of this regulation. Can I contact my company?': 'audio/L20/i_was_not_aware_of_this_regulation_can_i_l20.mp3',
+
+  // Sytuacja 4
+  'This zone is restricted for trucks. The fine is €350.': 'audio/L20/this_zone_is_restricted_l20.mp3',
+  'I understand. I will pay. Can I have a receipt please?': 'audio/L20/i_understand_i_will_pay_can_i_l20.mp3',
+  'I disagree. My GPS directed me here. I was not aware of this regulation.': 'audio/L20/i_disagree_my_gps_directed_me_here_l20.mp3',
+  'I need a translator. Can I contact my company first?': 'audio/L20/i_need_a_translator_can_i_contact_l20.mp3',
+
+  // Sytuacja 5
+  'The vehicle is overloaded by 800 kg. Penalty: 1500 PLN.': 'audio/L20/the_vehicle_is_overloaded_by_800_kg_l20.mp3',
+  'I will pay by card. Please give me a receipt for the penalty.': 'audio/L20/i_will_pay_by_card_please_give_me_l20.mp3',
+  'I disagree. The load was weighed at the sender. I want to appeal this fine.': 'audio/L20/i_disagree_the_load_was_weighed_l20.mp3',
+  'Can I contact my company? They need to know about this penalty.': 'audio/L20/can_i_contact_my_company_they_need_to_know_l20.mp3',
+
+  // Sytuacja 6
+  'You are parked in a no-parking zone. Fine: €80.': 'audio/L20/you_are_parked_in_a_no_parking_zone_l20.mp3',
+  'My mistake. I will pay by card. Can I have a receipt?': 'audio/L20/my_mistake_i_will_pay_by_card_l20.mp3',
+  'I disagree. There was no sign visible. I would like to appeal.': 'audio/L20/i_disagree_there_was_no_sign_visible_l20.mp3',
+  'I was not aware this was a restricted area. Can I contact my company?': 'audio/L20/i_was_not_aware_this_was_a_restricted_area_l20.mp3',
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  // Czyszczenie tekstu z cudzysłowów
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  
+  if(_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '🔊 Posłuchaj';
+
+  if (btn) {
+    btn.classList.add('playing');
+    btn.textContent = '⌛ Ładowanie...';
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("playing")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('playing');
+        btn.textContent = lbl;
+      }
+    }
+
+    _ap.onplay = () => { if (btn) btn.textContent = '🔊 Odtwarzam...'; };
+    _ap.onended = resetBtn;
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak pliku MP3 dla tekstu:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const lbl = label || '🔊 Posłuchaj';
+  if(btn){ btn.classList.add('playing'); btn.textContent='🔊 Odtwarzam (Bot)...'; }
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    u.onerror = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+// Funkcje wywoływane w HTML lekcji 20
+function speakCop() {
+  const text = document.getElementById('scCopEn').textContent;
+  const btn  = document.getElementById('scCopSnd');
+  _playAudio(text, btn, '🔊 Wymowa');
+}
+
+function speakPhrase() {
+  const text = document.getElementById('ppPhrase').textContent;
+  const btn  = document.getElementById('ppSnd');
+  _playAudio(text, btn, '🔊 Posłuchaj wymowy');
+}
+
+function speakWord(word) {
+  _playAudio(word, null, null);
+}
+
+// Obsługa kliknięć słowniczka po załadowaniu
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".vocab-box .vb-row").forEach(row => {
+        let enWord = row.querySelector(".vb-en");
+        if(enWord) {
+            row.style.cursor = "pointer";
+            row.addEventListener('mouseover', () => row.style.background = 'rgba(26,46,74,0.05)');
+            row.addEventListener('mouseout', () => row.style.background = 'transparent');
+        }
+    });
+});
+
+/* INIT */
+render();
+</script>
+</body>
+</html>

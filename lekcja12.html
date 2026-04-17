@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 12 — Uszkodzenia ładunku</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --orange:#e07820;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:900px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--red),var(--orange));border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* MAIN LAYOUT */
+.main{display:grid;grid-template-columns:1fr 290px;gap:14px;margin-bottom:14px;}
+
+/* KATALOG KART */
+.catalog{display:flex;flex-direction:column;gap:10px;}
+
+.damage-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+
+.dmg-card{
+  background:var(--white);
+  border:1.5px solid var(--border);
+  border-radius:10px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:all 0.15s;
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+}
+.dmg-card:hover{border-color:var(--navy);transform:translateY(-2px);box-shadow:0 4px 14px rgba(26,46,74,0.1);}
+.dmg-card.active{border-color:var(--red);box-shadow:0 4px 14px rgba(214,53,40,0.15);}
+.dmg-card.seen{border-color:#c8f0c8;}
+
+.dmg-illo{
+  width:100%;
+  display:block;
+  background:#faf8f4;
+  border-bottom:1px solid var(--border);
+}
+
+.dmg-foot{padding:8px 10px;}
+.dmg-en{
+  font-family:'Courier Prime',monospace;
+  font-size:0.72rem;font-weight:700;
+  color:var(--navy);margin-bottom:2px;
+  line-height:1.3;
+}
+.dmg-card.active .dmg-en{color:var(--red);}
+.dmg-pl{font-size:0.6rem;font-weight:700;color:var(--muted);}
+.dmg-check{font-size:0.6rem;color:var(--green);margin-top:2px;display:none;}
+.dmg-card.seen .dmg-check{display:block;}
+
+/* PRAWY PANEL */
+.right-col{display:flex;flex-direction:column;gap:12px;}
+
+/* Aktywna karta */
+.active-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.ac-head{background:var(--red);padding:8px 14px;font-size:0.6rem;font-weight:900;color:#fff;letter-spacing:1.5px;text-transform:uppercase;}
+.ac-body{padding:14px 15px;}
+.ac-empty{font-size:0.78rem;color:var(--muted);font-weight:700;text-align:center;padding:14px 0;line-height:1.7;}
+.ac-num{display:inline-block;background:rgba(214,53,40,0.1);color:var(--red);font-size:0.58rem;font-weight:900;padding:2px 9px;border-radius:99px;letter-spacing:1px;margin-bottom:8px;}
+.ac-en{font-family:'Courier Prime',monospace;font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:3px;line-height:1.4;}
+.ac-pl{font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:10px;}
+.ac-phrase-label{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px;}
+.ac-phrase{
+  font-family:'Courier Prime',monospace;font-size:0.82rem;font-weight:700;
+  color:var(--navy);padding:8px 11px;
+  background:var(--bg);border-radius:7px;
+  border-left:2.5px solid var(--navy);
+  line-height:1.5;margin-bottom:4px;
+}
+.ac-phrase-pl{font-size:0.65rem;color:var(--muted);font-style:italic;padding:0 2px;margin-bottom:8px;}
+.ac-sound{width:100%;background:none;border:1.5px solid var(--border);border-radius:7px;padding:7px;font-family:'Nunito',sans-serif;font-size:0.72rem;font-weight:700;color:var(--navy);cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.ac-sound:hover{border-color:var(--navy);background:var(--bg);}
+.ac-sound.pl{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+/* Tip box */
+
+
+
+.tb-item:last-child{margin-bottom:0;}
+
+
+
+/* DRAG AND DROP */
+.dnd-section{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+  margin-bottom:14px;
+}
+.dnd-head{background:var(--navy);padding:8px 16px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;}
+.dnd-body{padding:14px 16px;}
+.dnd-instr{font-size:0.72rem;font-weight:700;color:var(--muted);margin-bottom:12px;}
+
+.dnd-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+/* Etykiety do przeciągania */
+.drag-pool{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;}
+.drag-tag{
+  background:var(--navy);color:#fff;
+  font-family:'Courier Prime',monospace;
+  font-size:0.72rem;font-weight:700;
+  padding:6px 12px;border-radius:7px;
+  cursor:grab;user-select:none;
+  transition:all 0.15s;
+  border:1.5px solid var(--navy);
+}
+.drag-tag:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(26,46,74,0.25);}
+.drag-tag.dragging{opacity:0.35;cursor:grabbing;}
+.drag-tag.matched{background:var(--green);border-color:var(--green);cursor:default;transform:none;}
+
+/* Strefy upuszczania */
+.drop-zones{display:flex;flex-direction:column;gap:6px;}
+.drop-zone{
+  background:var(--bg);border:1.5px dashed var(--border);
+  border-radius:8px;padding:8px 12px;
+  min-height:42px;
+  display:flex;align-items:center;gap:8px;
+  transition:all 0.15s;
+}
+.drop-zone.over{border-color:var(--navy);background:#f0f4f8;border-style:solid;}
+.drop-zone.correct{border-color:var(--green);background:#f0fdf4;border-style:solid;}
+.drop-zone.wrong{border-color:var(--red);background:#fef2f2;animation:shake 0.3s;border-style:solid;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.dz-pl{font-size:0.75rem;font-weight:700;color:var(--navy);flex:1;}
+.dz-answer{font-family:'Courier Prime',monospace;font-size:0.7rem;font-weight:700;color:var(--green);opacity:0;transition:opacity 0.3s;}
+.drop-zone.correct .dz-answer{opacity:1;}
+.dz-placeholder{font-size:0.65rem;color:#bbb;font-style:italic;margin-left:auto;}
+.drop-zone.correct .dz-placeholder{display:none;}
+
+.dnd-result{
+  margin-top:10px;font-size:0.75rem;font-weight:700;
+  text-align:center;padding:8px;border-radius:7px;display:none;
+}
+.dnd-result.show{display:block;}
+.dnd-result.ok{background:#f0fdf4;color:var(--green);border:1px solid #86efac;}
+
+/* QUIZ */
+.quiz-section{margin-bottom:14px;}
+.quiz-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.qc-head{background:var(--red);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;}
+.qc-title{font-size:0.65rem;font-weight:900;color:#fff;letter-spacing:1.5px;text-transform:uppercase;}
+.qc-prog{font-size:0.62rem;color:rgba(255,255,255,0.6);font-weight:700;}
+.qc-body{padding:13px 14px;}
+.q-q{font-size:0.82rem;font-weight:700;line-height:1.5;margin-bottom:10px;padding:8px 11px;background:var(--bg);border-radius:7px;border-left:2.5px solid var(--navy);}
+.q-opt{background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.78rem;font-weight:700;cursor:pointer;margin-bottom:6px;width:100%;text-align:left;color:var(--navy);display:flex;align-items:center;gap:9px;transition:all 0.13s;font-family:'Nunito',sans-serif;}
+.q-opt:last-child{margin-bottom:0;}
+.q-opt:hover:not(:disabled){border-color:var(--navy);background:var(--white);}
+.q-opt.ok{background:#f0fdf4;border-color:var(--green);color:var(--green);}
+.q-opt.no{background:#fef2f2;border-color:var(--red);color:var(--red);}
+.q-opt:disabled{cursor:default;}
+.q-ltr{width:20px;height:20px;border-radius:50%;background:rgba(26,46,74,0.1);display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:900;color:var(--navy);flex-shrink:0;transition:all 0.13s;}
+.q-opt.ok .q-ltr{background:var(--green);color:#fff;}
+.q-opt.no .q-ltr{background:var(--red);color:#fff;}
+.q-fb{font-size:0.72rem;font-weight:700;margin-top:8px;padding:7px 10px;border-radius:7px;display:none;line-height:1.5;}
+.q-fb.show{display:block;}
+.q-fb.ok{background:#f0fdf4;border:1px solid #86efac;color:var(--green);}
+.q-fb.no{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);}
+.q-next{margin-top:8px;width:100%;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:10px;font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:900;cursor:pointer;display:none;transition:all 0.15s;}
+.q-next:hover{background:#2a4a6a;}
+.q-next.show{display:block;}
+.q-done{background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:12px;text-align:center;font-size:0.8rem;font-weight:700;color:var(--green);display:none;}
+.q-done.show{display:block;}
+
+/* FOOTER */
+.footer{display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+
+@media(max-width:660px){
+  .main{grid-template-columns:1fr;}
+  .damage-grid{grid-template-columns:1fr 1fr;}
+  .dnd-layout{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Uszkodzenia ładunku</div>
+    <div class="h-sub">Lekcja 12 · Moduł 2 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">12 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">0 / 8 odkrytych</div>
+</div>
+
+<div class="main">
+
+  <!-- KATALOG -->
+  <div class="catalog">
+    <div style="font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:2px;">Kliknij typ uszkodzenia — poznaj frazę</div>
+    <div class="damage-grid" id="dmgGrid"></div>
+  </div>
+
+  <!-- PRAWY PANEL -->
+  <div class="right-col">
+    <div class="active-card">
+      <div class="ac-head">Aktywne uszkodzenie</div>
+      <div class="ac-body" id="acBody">
+        <div class="ac-empty">← Kliknij kartę<br>z typem uszkodzenia</div>
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+<!-- DRAG AND DROP -->
+<div class="dnd-section">
+  <div class="dnd-head">Dopasuj — przeciągnij angielską frazę do polskiego opisu</div>
+  <div class="dnd-body">
+    <div class="dnd-instr">Przeciągnij frazę po angielsku do odpowiedniego opisu po polsku.</div>
+    <div class="dnd-layout">
+      <div>
+        <div style="font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Frazy angielskie</div>
+        <div class="drag-pool" id="dragPool"></div>
+      </div>
+      <div>
+        <div style="font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Opisy polskie</div>
+        <div class="drop-zones" id="dropZones"></div>
+      </div>
+    </div>
+    <div class="dnd-result" id="dndResult">✅ Wszystkie dopasowane! Znasz frazy reklamacyjne.</div>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="quiz-section">
+  <div class="quiz-card">
+    <div class="qc-head">
+      <div class="qc-title">Quiz</div>
+      <div class="qc-prog" id="qprog">1 / 5</div>
+    </div>
+    <div class="qc-body">
+      <div class="q-q" id="qq"></div>
+      <div id="qopts"></div>
+      <div class="q-fb" id="qfb"></div>
+      <button class="q-next" id="qnext" onclick="nextQ()">DALEJ →</button>
+      <div class="q-done" id="qdone">✅ Lekcja 12 ukończona! Wiesz jak reagować na uszkodzenia.</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d"></div><div class="f-d on"></div><div class="f-d"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ════════════════════
+   8 TYPÓW USZKODZEŃ
+════════════════════ */
+const damages = [
+  {
+    id:1,
+    en:'Wet damage',
+    pl:'Zamoczony towar',
+    phrase:'"The goods are wet damaged."',
+    phrasePl:'Towar jest uszkodzony przez wilgoć.',
+    tip:'Wet damage = uszkodzenie przez wodę/wilgoć. Sprawdź czy naczepa nie przecieka.',
+    color:'#3b82f6',
+    svg:`<svg viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
+      <rect width="120" height="90" fill="#f0f8ff"/>
+      <rect x="20" y="22" width="80" height="52" rx="3" fill="#d4c890" stroke="#a8a060" stroke-width="2"/>
+      <rect x="24" y="26" width="72" height="20" rx="1" fill="#c8bc80"/>
+      <rect x="24" y="48" width="72" height="22" rx="1" fill="#c0b478"/>
+      <line x1="60" y1="22" x2="60" y2="74" stroke="#a8a060" stroke-width="1.5"/>
+      <ellipse cx="38" cy="58" rx="12" ry="8" fill="rgba(59,130,246,0.25)" stroke="rgba(59,130,246,0.5)" stroke-width="1"/>
+      <ellipse cx="72" cy="48" rx="10" ry="6" fill="rgba(59,130,246,0.2)" stroke="rgba(59,130,246,0.4)" stroke-width="1"/>
+      <ellipse cx="55" cy="65" rx="8" ry="5" fill="rgba(59,130,246,0.2)" stroke="rgba(59,130,246,0.4)" stroke-width="1"/>
+      <ellipse cx="30" cy="20" rx="2" ry="3" fill="rgba(59,130,246,0.6)"/>
+      <ellipse cx="50" cy="18" rx="2" ry="3" fill="rgba(59,130,246,0.5)"/>
+      <ellipse cx="75" cy="20" rx="2" ry="3" fill="rgba(59,130,246,0.55)"/>
+      <ellipse cx="90" cy="17" rx="1.5" ry="2.5" fill="rgba(59,130,246,0.4)"/>
+    </svg>`
+  },
+  {
+    id:2,
+    en:'Crushed / dented',
+    pl:'Zgnieciony / wgnieciony',
+    phrase:'"The packaging is crushed."',
+    phrasePl:'Opakowanie jest zgniecione.',
+    tip:'Crushed = zgnieciony. Dented = wgnieciony (metal). Najczęstsze przy złym załadunku.',
+    color:'#ef4444',
+    svg:`<svg viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
+      <rect width="120" height="90" fill="#fff8f5"/>
+      <rect x="20" y="20" width="80" height="54" rx="3" fill="#f0d888" stroke="#c8b060" stroke-width="2"/>
+      <rect x="24" y="24" width="72" height="22" rx="1" fill="#e8cc78"/>
+      <rect x="24" y="48" width="72" height="22" rx="1" fill="#e0c470"/>
+      <line x1="60" y1="20" x2="60" y2="74" stroke="#c8b060" stroke-width="1.5"/>
+      <path d="M20,35 L38,30 L45,38 L38,42 L20,50" fill="none" stroke="#c8a060" stroke-width="1" stroke-dasharray="3,2" opacity="0.5"/>
+      <path d="M20,35 Q28,28 38,30 Q48,33 45,38 Q48,44 38,42 Q28,46 20,50 Z" fill="rgba(214,53,40,0.15)" stroke="#d63528" stroke-width="1.5"/>
+      <line x1="22" y1="36" x2="40" y2="31" stroke="#a03010" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="40" y1="31" x2="44" y2="38" stroke="#a03010" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="44" y1="38" x2="39" y2="42" stroke="#a03010" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="39" y1="42" x2="22" y2="48" stroke="#a03010" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>`
+  },
+  {
+    id:3,
+    en:'Torn packaging',
+    pl:'Rozerwane opakowanie',
+    phrase:'"The packaging is torn."',
+    phrasePl:'Opakowanie jest rozerwane.',
+    tip:'Torn = rozerwany/podarty. Packaging = opakowanie. Sprawdź czy towar wewnątrz jest OK.',
+    color:'#f97316',
+    svg:`<svg viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
+      <rect width="120" height="90" fill="#fff8f0"/>
+      <rect x="22" y="18" width="76" height="54" rx="3" fill="#f0d888" stroke="#c8b060" stroke-width="2"/>
+      <rect x="26" y="22" width="68" height="22" rx="1" fill="#e8cc78"/>
+      <rect x="26" y="46" width="68" height="22" rx="1" fill="#e0c470"/>
+      <line x1="60" y1="18" x2="60" y2="72" stroke="#c8b060" stroke-width="1.5"/>
+      <path d="M52,28 L58,18 L66,24 L62,30 L70,26 L74,34 L66,38 L72,44 L64,48 L60,40 L54,46 L50,38 L56,34 Z" fill="rgba(249,115,22,0.15)" stroke="#f97316" stroke-width="1.5"/>
+      <path d="M52,28 L55,22 L58,28 L62,20 L66,26" fill="none" stroke="#c07010" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M66,38 L70,32 L74,38" fill="none" stroke="#c07010" stroke-width="1.5" stroke-linecap="round"/>
+      <ellipse cx="61" cy="36" rx="5" ry="6" fill="rgba(180,140,80,0.3)"/>
+    </svg>`
+  },
+  {
+    id:4,
+    en:'Missing items',
+    pl:'Brakujące sztuki',
+    phrase:'"Items are missing from the load."',
+    phrasePl:'W ładunku brakuje sztuk.',
+    tip:'Missing items = brakujące sztuki. Policz przed podpisaniem! Count before you sign.',
+    color:'#8b5cf6',
+    svg:`<svg viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
+      <rect width="120" height="90" fill="#faf8ff"/>
+      <rect x="14" y="20" width="28" height="28" rx="2" fill="#f0d888" stroke="#c8b060" stroke-width="1.5"/>
+      <rect x="46" y="20" width="28" height="28" rx="2" fill="#f0d888" stroke="#c8b060" stroke-width="1.5"/>
+      <rect x="78" y="20" width="28" height="28" rx="2" fill="#f0d888" stroke="#c8b060" stroke-width="1.5"/>
+      <rect x="14" y="52" width="28" height="28" rx="2" fill="#f0d888" stroke="#c8b060" stroke-width="1.5"/>
+      <rect x="46" y="52" width="28" height="28" rx="2" fill="#f0d888" stroke="#c8b060" stroke-width="1.5"/>
+      <rect x="78" y="52" width="28" height="28" rx="2" fill="rgba(139,92,246,0.06)" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="92" y="63" text-anchor="middle" fill="#8b5cf6" font-size="9" font-family="Arial">?</text>
+      <text x="92" y="74" text-anchor="middle" fill="#8b5cf6" font-size="6" font-family="Arial">MISSING</text>
+    </svg>`
+  },
+  {
+    id:5,
+    en:'Contaminated goods',
+    pl:'Towar zanieczyszczony',
+    phrase:'"The goods are contaminated."',
+    phrasePl:'Towar jest zanieczyszczony.',
+    tip:'Contaminated = zanieczyszczony. Może wynikać z poprzedniego ładunku w naczepie.',
+    color:'#84cc16',
+    svg:`<svg viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
+      <rect width="120" height="90" fill="#f8fff0"/>
+      <rect x="20" y="18" width="80" height="54" rx="3" fill="#f0d888" stroke="#c8b060" stroke-width="2"/>
+      <rect x="24" y="22" width="72" height="22" rx="1" fill="#e8cc78"/>
+      <rect x="24" y="46" width="72" height="22" rx="1" fill="#e0c470"/>
+      <line x1="60" y1="18" x2="60" y2="72" stroke="#c8b060" stroke-width="1.5"/>
+      <ellipse cx="35" cy="35" rx="10" ry="7" fill="rgba(100,60,20,0.25)" stroke="rgba(100,60,20,0.4)" stroke-width="1"/>
+      <ellipse cx="75" cy="55" rx="12" ry="8" fill="rgba(100,60,20,0.2)" stroke="rgba(100,60,20,0.35)" stroke-width="1"/>
+      <ellipse cx="55" cy="62" rx="8" ry="5" fill="rgba(100,60,20,0.18)" stroke="rgba(100,60,20,0.3)" stroke-width="1"/>
+      <ellipse cx="88" cy="30" rx="7" ry="5" fill="rgba(100,60,20,0.2)" stroke="rgba(100,60,20,0.35)" stroke-width="1"/>
+      <circle cx="93" cy="22" r="8" fill="none" stroke="#84cc16" stroke-width="2"/>
+      <line x1="87" y1="16" x2="99" y2="28" stroke="#84cc16" stroke-width="2"/>
+    </svg>`
+  },
+  {
+    id:6,
+    en:'Leaking goods',
+    pl:'Wyciekający towar',
+    phrase:'"There is a leakage from the goods."',
+    phrasePl:'Z towaru wycieka substancja.',
+    tip:'Leaking/Leakage = wyciek. Szczególnie groźne przy ADR! Natychmiast powiadom służby.',
+    color:'#06b6d4',
+    svg:`<svg viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
+      <rect width="120" height="90" fill="#f0feff"/>
+      <rect x="35" y="15" width="50" height="55" rx="6" fill="#c8d8e8" stroke="#8098b8" stroke-width="2"/>
+      <rect x="38" y="18" width="44" height="8" rx="2" fill="#b8c8d8" stroke="#8098b8" stroke-width="1"/>
+      <rect x="38" y="58" width="44" height="8" rx="2" fill="#b8c8d8" stroke="#8098b8" stroke-width="1"/>
+      <text x="60" y="44" text-anchor="middle" fill="#5070a0" font-size="8" font-weight="bold" font-family="Arial">LIQUID</text>
+      <text x="60" y="54" text-anchor="middle" fill="#5070a0" font-size="7" font-family="Arial">CARGO</text>
+      <path d="M85,40 Q92,45 90,52 Q95,55 92,62 Q88,68 86,72" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round"/>
+      <ellipse cx="86" cy="73" rx="5" ry="3" fill="rgba(6,182,212,0.4)" stroke="#06b6d4" stroke-width="1"/>
+      <ellipse cx="84" cy="78" rx="8" ry="4" fill="rgba(6,182,212,0.25)" stroke="#06b6d4" stroke-width="1"/>
+      <ellipse cx="88" cy="82" rx="6" ry="3" fill="rgba(6,182,212,0.2)"/>
+      <ellipse cx="85" cy="40" rx="4" ry="3" fill="#8098b8" stroke="#506888" stroke-width="1.5"/>
+    </svg>`
+  },
+  {
+    id:7,
+    en:'Overloaded pallet',
+    pl:'Przeładowana paleta',
+    phrase:'"This pallet is overloaded."',
+    phrasePl:'Ta paleta jest przeładowana.',
+    tip:'Overloaded = przeładowany. Max weight per EUR pallet = 1500 kg. Sprawdź wagę!',
+    color:'#f59e0b',
+    svg:`<svg viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
+      <rect width="120" height="90" fill="#fffbf0"/>
+      <rect x="14" y="70" width="92" height="6" rx="1" fill="#c8a870" stroke="#a08050" stroke-width="1.5"/>
+      <rect x="18" y="76" width="16" height="8" fill="#b09060" stroke="#906040" stroke-width="1"/>
+      <rect x="52" y="76" width="16" height="8" fill="#b09060" stroke="#906040" stroke-width="1"/>
+      <rect x="86" y="76" width="16" height="8" fill="#b09060" stroke="#906040" stroke-width="1"/>
+      <rect x="14" y="84" width="92" height="5" rx="1" fill="#c8a870" stroke="#a08050" stroke-width="1.5"/>
+      <rect x="18" y="50" width="84" height="20" rx="2" fill="#f0d888" stroke="#c8b060" stroke-width="1.5"/>
+      <rect x="22" y="32" width="76" height="20" rx="2" fill="#f0d888" stroke="#c8b060" stroke-width="1.5" transform="rotate(-2,60,42)"/>
+      <rect x="28" y="14" width="64" height="20" rx="2" fill="#f0d888" stroke="#c8b060" stroke-width="1.5" transform="rotate(3,60,24)"/>
+      <rect x="36" y="0" width="50" height="16" rx="2" fill="#fffacc" stroke="#d8c860" stroke-width="1.5" transform="rotate(-4,61,8)"/>
+      <text x="100" y="20" text-anchor="middle" fill="#f59e0b" font-size="16" font-weight="bold" font-family="Arial">!</text>
+      <text x="60" y="62" text-anchor="middle" fill="#a03010" font-size="8" font-weight="bold" font-family="Arial">MAX EXCEEDED</text>
+    </svg>`
+  },
+  {
+    id:8,
+    en:'Wrong delivery',
+    pl:'Błędna dostawa',
+    phrase:'"This is not my delivery."',
+    phrasePl:'To nie jest moja dostawa.',
+    tip:'Wrong delivery = błędna dostawa. Sprawdź number referencyjny zanim otworzysz naczepę!',
+    color:'#ec4899',
+    svg:`<svg viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
+      <rect width="120" height="90" fill="#fff0f8"/>
+      <rect x="15" y="10" width="42" height="54" rx="3" fill="#fff" stroke="#e0dbd0" stroke-width="1.5"/>
+      <rect x="19" y="16" width="34" height="4" rx="1" fill="#e0dbd0"/>
+      <rect x="19" y="23" width="28" height="3" rx="1" fill="#e8e4dc"/>
+      <rect x="19" y="29" width="32" height="3" rx="1" fill="#e8e4dc"/>
+      <rect x="19" y="35" width="24" height="3" rx="1" fill="#e8e4dc"/>
+      <text x="36" y="52" text-anchor="middle" fill="#1a2e4a" font-size="7" font-weight="bold" font-family="Arial">REF: 4521</text>
+      <rect x="63" y="22" width="44" height="42" rx="3" fill="#f0d888" stroke="#c8b060" stroke-width="1.5"/>
+      <rect x="67" y="28" width="36" height="12" rx="2" fill="#fff" stroke="#e0dbd0" stroke-width="1"/>
+      <text x="85" y="38" text-anchor="middle" fill="#d63528" font-size="8" font-weight="bold" font-family="Arial">REF: 9987</text>
+      <line x1="57" y1="45" x2="63" y2="45" stroke="#e0dbd0" stroke-width="2"/>
+      <line x1="50" y1="56" x2="70" y2="76" stroke="#d63528" stroke-width="3" stroke-linecap="round"/>
+      <line x1="70" y1="56" x2="50" y2="76" stroke="#d63528" stroke-width="3" stroke-linecap="round"/>
+    </svg>`
+  },
+];
+
+/* DND dane */
+const dndPairs = [
+  { en:'wet damaged',     pl:'zamoczony towar' },
+  { en:'crushed',         pl:'zgnieciony towar' },
+  { en:'torn packaging',  pl:'rozerwane opakowanie' },
+  { en:'missing items',   pl:'brakujące sztuki' },
+  { en:'contaminated',    pl:'zanieczyszczony' },
+  { en:'leakage',         pl:'wyciek z towaru' },
+];
+
+let seen = new Set();
+let currentId = null;
+let dndMatched = 0;
+let dragged = null;
+
+/* ── Buduj katalog ── */
+function buildCatalog() {
+  const g = document.getElementById('dmgGrid');
+  g.innerHTML = damages.map(d => `
+    <div class="dmg-card" id="dc${d.id}" onclick="activateDmg(${d.id})">
+      <div class="dmg-illo">${d.svg}</div>
+      <div class="dmg-foot">
+        <div class="dmg-en">${d.en}</div>
+        <div class="dmg-pl">${d.pl}</div>
+        <div class="dmg-check">✓ odkryte</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ── Aktywuj uszkodzenie ── */
+function activateDmg(id) {
+  if(currentId) document.getElementById('dc'+currentId)?.classList.remove('active');
+  currentId = id;
+  document.getElementById('dc'+id).classList.add('active');
+  
+  if(!seen.has(id)) {
+    seen.add(id);
+    document.getElementById('dc'+id).classList.add('seen');
+    updateProgress();
+  }
+  
+  const d = damages.find(x=>x.id===id);
+  document.getElementById('acBody').innerHTML = `
+    <div class="ac-num">USZKODZENIE ${id} / 8</div>
+    <div class="ac-en">${d.en}</div>
+    <div class="ac-pl">${d.pl}</div>
+    <div class="ac-phrase-label">Co powiedzieć:</div>
+    <div class="ac-phrase">${d.phrase}</div>
+    <div class="ac-phrase-pl">${d.phrasePl}</div>
+    <div style="font-size:0.68rem;color:var(--muted);margin-bottom:8px;padding:5px 8px;background:var(--bg);border-radius:5px;line-height:1.5;">${d.tip}</div>
+    <button class="ac-sound" id="acSnd" onclick="speakDamagePhrase(${id})">🔊 Posłuchaj wymowy</button>
+  `;
+}
+
+function updateProgress() {
+  const pct = (seen.size/8)*100;
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progTxt').textContent=`${seen.size} / 8 odkrytych`;
+}
+
+/* ── Buduj DND ── */
+function buildDnd() {
+  const shuffled = [...dndPairs].sort(()=>Math.random()-0.5);
+
+  document.getElementById('dragPool').innerHTML = shuffled.map((p,i) => `
+    <div class="drag-tag" id="dt${i}" draggable="true" data-en="${p.en}"
+         ondragstart="dndStart(event,'${p.en}')" ondragend="dndEnd(event)">
+      ${p.en}
+    </div>
+  `).join('');
+
+  document.getElementById('dropZones').innerHTML = dndPairs.map((p,i) => `
+    <div class="drop-zone" id="dz${i}" data-answer="${p.en}"
+         ondragover="dndOver(event)" ondragleave="dndLeave(event)" ondrop="dndDrop(event)">
+      <div class="dz-pl">${p.pl}</div>
+      <div class="dz-answer">${p.en}</div>
+      <div class="dz-placeholder">upuść</div>
+    </div>
+  `).join('');
+
+  document.querySelectorAll('.drag-tag').forEach(t=>{
+    t.addEventListener('touchstart',tStart,{passive:false});
+    t.addEventListener('touchmove',tMove,{passive:false});
+    t.addEventListener('touchend',tEnd,{passive:false});
+  });
+}
+
+function dndStart(e,en){
+  dragged=en;
+  setTimeout(()=>e.target.classList.add('dragging'),0);
+}
+function dndEnd(e){e.target.classList.remove('dragging');}
+function dndOver(e){e.preventDefault();e.currentTarget.classList.add('over');}
+function dndLeave(e){e.currentTarget.classList.remove('over');}
+function dndDrop(e){
+  e.preventDefault();
+  const zone=e.currentTarget;
+  zone.classList.remove('over');
+  if(!dragged||zone.classList.contains('correct'))return;
+  if(dragged===zone.dataset.answer){
+    zone.classList.add('correct');
+    document.querySelectorAll('.drag-tag').forEach(t=>{
+      if(t.dataset.en===dragged)t.classList.add('matched');
+    });
+    dndMatched++;
+    if(dndMatched>=dndPairs.length)
+      setTimeout(()=>document.getElementById('dndResult').classList.add('show'),400);
+  } else {
+    zone.classList.add('wrong');
+    setTimeout(()=>zone.classList.remove('wrong'),500);
+  }
+  dragged=null;
+}
+
+/* Touch DnD */
+let tClone=null,tDragged=null;
+function tStart(e){
+  if(this.classList.contains('matched'))return;
+  e.preventDefault();
+  tDragged=this.dataset.en;
+  tClone=this.cloneNode(true);
+  tClone.style.cssText=`position:fixed;pointer-events:none;z-index:9999;opacity:0.85;
+    padding:6px 12px;background:#1a2e4a;color:#fff;border-radius:7px;
+    font-family:'Courier Prime',monospace;font-size:0.72rem;font-weight:700;`;
+  document.body.appendChild(tClone);
+  const t=e.touches[0];
+  tClone.style.left=(t.clientX-40)+'px';
+  tClone.style.top=(t.clientY-20)+'px';
+}
+function tMove(e){
+  e.preventDefault();
+  if(!tClone)return;
+  const t=e.touches[0];
+  tClone.style.left=(t.clientX-40)+'px';
+  tClone.style.top=(t.clientY-20)+'px';
+  document.querySelectorAll('.drop-zone').forEach(z=>z.classList.remove('over'));
+  const el=document.elementFromPoint(t.clientX,t.clientY);
+  el?.closest('.drop-zone')?.classList.add('over');
+}
+function tEnd(e){
+  e.preventDefault();
+  if(tClone){tClone.remove();tClone=null;}
+  document.querySelectorAll('.drop-zone').forEach(z=>z.classList.remove('over'));
+  if(!tDragged)return;
+  const t=e.changedTouches[0];
+  const el=document.elementFromPoint(t.clientX,t.clientY);
+  const zone=el?.closest('.drop-zone');
+  if(zone && !zone.classList.contains('correct')){
+    dragged=tDragged;
+    dndDrop({preventDefault:()=>{},currentTarget:zone});
+  }
+  tDragged=null;
+}
+
+/* ── QUIZ ── */
+const qs=[
+  {q:'Towar jest mokry. Co mówisz?',
+   opts:['The goods are contaminated.','The goods are wet damaged.','The goods are missing.','The goods are crushed.'],
+   and:1,tip:'Wet damaged = uszkodzony przez wilgoć/wodę. Sprawdź czy naczepa nie przecieka!'},
+  {q:'W ładunku brakuje 3 sztuk. Co wpisujesz na CMR?',
+   opts:['The goods are torn.','Overloaded pallet.','Items are missing from the load.','The packaging is crushed.'],
+   and:2,tip:'Items are missing = brakujące sztuki. Zawsze licz przed podpisaniem!'},
+  {q:'Co to znaczy "overloaded pallet"?',
+   opts:['Paleta bez etykiety','Paleta przeładowana / za ciężka','Paleta odwrócona','Paleta mokra'],
+   and:1,tip:'Overloaded = przeładowany. Max EUR pallet = 1500 kg. Sprawdź wagę!'},
+  {q:'Numer referencyjny na kartonie nie zgadza się z CMR. Co mówisz?',
+   opts:['"The goods are leaking."','"This is not my delivery."','"The packaging is torn."','"Items are missing."'],
+   and:1,tip:'This is not my delivery = to nie jest moja dostawa. Sprawdzaj REF przed rozładunkiem!'},
+  {q:'Jak zgłosisz zastrzeżenie na liście przewozowym?',
+   opts:['I sign the CMR.','I refuse everything.','I make a reservation on the CMR.','I take a photo.'],
+   and:2,tip:'I make a reservation on the CMR = zgłaszam zastrzeżenie. Kluczowa fraza przy każdym uszkodzeniu!'},
+];
+let qi=0;
+
+function renderQ(){
+  if(qi>=qs.length){
+    document.getElementById('qq').style.display='none';
+    document.getElementById('qopts').innerHTML='';
+    document.getElementById('qfb').className='q-fb';
+    document.getElementById('qnext').classList.remove('show');
+    document.getElementById('qprog').textContent='';
+    document.getElementById('qdone').classList.add('show');
+    return;
+  }
+  const q=qs[qi];
+  document.getElementById('qprog').textContent=`${qi+1} / ${qs.length}`;
+  document.getElementById('qq').textContent=q.q;
+  document.getElementById('qfb').className='q-fb';
+  document.getElementById('qnext').classList.remove('show');
+  document.getElementById('qopts').innerHTML=q.opts.map((o,i)=>`
+    <button class="q-opt" onclick="qa(this,${i===q.and})">
+      <div class="q-ltr">${['A','B','C','D'][i]}</div>${o}
+    </button>
+  `).join('');
+}
+function qa(btn,c){
+  document.querySelectorAll('.q-opt').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('qfb');
+  if(c){btn.classList.add('ok');fb.className='q-fb show ok';fb.textContent='✅ '+qs[qi].tip;}
+  else{btn.classList.add('no');document.querySelectorAll('.q-opt')[qs[qi].and].classList.add('ok');fb.className='q-fb show no';fb.textContent='❌ '+qs[qi].tip;}
+  qi++;document.getElementById('qnext').classList.add('show');
+}
+function nextQ(){renderQ();}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+const AUDIO_MAP = {
+  // Frazy uszkodzeń
+  'The goods are wet damaged.': 'audio/L12/the_goods_are_wet_damaged_l12.mp3',
+  'The packaging is crushed.': 'audio/L12/the_packaging_is_crushed_l12.mp3',
+  'The packaging is torn.': 'audio/L12/the_packaging_is_torn_l12.mp3',
+  'Items are missing from the load.': 'audio/L12/items_are_missing_from_the_load_l12.mp3',
+  'The goods are contaminated.': 'audio/L12/the_goods_are_contaminated_l12.mp3',
+  'There is a leakage from the goods.': 'audio/L12/there_is_a_leakage_from_the_goods_l12.mp3',
+  'This pallet is overloaded.': 'audio/L12/this_pallet_is_overloaded_l12.mp3',
+  'This is not my delivery.': 'audio/L12/this_is_not_my_delivery_l12.mp3',
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  
+  if(_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '🔊 Posłuchaj wymowy';
+
+  if (btn) {
+    btn.classList.add('pl');
+    btn.textContent = '⌛ Ładowanie...';
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("pl")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('pl');
+        btn.textContent = lbl;
+      }
+    }
+
+    _ap.onplay = () => {
+      if (btn) btn.textContent = '🔊 Odtwarzam...';
+    };
+
+    _ap.onended = resetBtn;
+
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak pliku MP3 dla:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label){
+  if(!('speechSynthesis' in window)) {
+      if(btn) { btn.classList.remove('pl'); btn.textContent = "❌ Brak audio"; }
+      return;
+  }
+  window.speechSynthesis.cancel();
+  const lbl = label || '🔊 Posłuchaj wymowy';
+  if(btn){ 
+    btn.classList.add('pl'); 
+    btn.textContent = '🔊 Odtwarzam (Bot)...'; 
+  }
+  
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend  = ()=>{ if(btn){ btn.classList.remove('pl'); btn.textContent = lbl; } };
+    u.onerror= ()=>{ if(btn){ btn.classList.remove('pl'); btn.textContent = lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+// Zamiast podawać text, przekazujemy ID do funkcji
+function speakDamagePhrase(id) {
+  const text = damages.find(x => x.id === id).phrase;
+  const btn = document.getElementById('acSnd');
+  _playAudio(text, btn, '🔊 Posłuchaj wymowy');
+}
+
+/* INIT */
+buildCatalog();
+buildDnd();
+renderQ();
+</script>
+</body>
+</html>

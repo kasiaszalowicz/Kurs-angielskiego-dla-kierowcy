@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 17 — Nocna jazda i pogoda</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--gold:#c8a040;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;
+  --green:#15803d;--muted:#888;
+}
+
+.conditions-bar{background:#0f1f35;border:1.5px solid #1e3a5a;border-radius:10px;padding:12px 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.cond-item{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.cond-label{font-size:0.58rem;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:1px;}
+.cond-value{font-size:0.85rem;font-weight:900;color:rgba(255,255,255,0.5);font-family:'Courier Prime',monospace;transition:color 0.4s;}
+.cond-value.danger{color:#f87171;}
+.cond-value.warn{color:#fbbf24;}
+.cond-value.ok{color:#4ade80;}
+.cond-bar-wrap{width:100%;height:4px;background:rgba(255,255,255,0.1);border-radius:99px;overflow:hidden;margin-top:2px;}
+.cond-bar-fill{height:100%;border-radius:99px;transition:width 0.6s, background 0.4s;}
+
+body{font-family:'Nunito',sans-serif;background:var(--bg);padding:14px;min-height:100vh;}
+.wrap{max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:10px;padding-bottom:20px;}
+
+.header{background:var(--navy);border-radius:10px;padding:11px 18px;display:flex;justify-content:space-between;align-items:center;}
+.h-title{font-size:0.95rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.6rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.62rem;font-weight:700;padding:3px 10px;border-radius:20px;}
+
+.prog-row{display:flex;align-items:center;gap:8px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--navy);border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.62rem;font-weight:900;color:var(--muted);white-space:nowrap;}
+
+.road-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.rc-head{background:var(--navy);padding:8px 16px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.4);letter-spacing:2px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;}
+.rc-found{color:rgba(255,255,255,0.75);font-size:0.65rem;}
+.road-wrap{padding:10px;background:#0a1628;}
+
+.hotspot{cursor:pointer;transition:transform 0.15s;}
+.hotspot:hover{opacity:0.85;}
+.hotspot.found circle{fill:var(--green);}
+.hotspot.active circle{fill:var(--gold);}
+
+.word-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);display:none;}
+.word-card.show{display:block;}
+.wc-bar{height:4px;background:var(--red);}
+.wc-body{padding:14px 18px;display:flex;align-items:center;gap:14px;}
+.wc-icon{width:42px;height:42px;border-radius:9px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+.wc-content{flex:1;}
+.wc-en{font-family:'Courier Prime',monospace;font-size:1.05rem;font-weight:700;color:var(--navy);margin-bottom:3px;}
+.wc-pl{font-size:0.72rem;color:var(--muted);font-weight:700;}
+.wc-ex{font-size:0.68rem;color:#555;font-style:italic;margin-top:5px;line-height:1.5;font-family:'Courier Prime',monospace;}
+.wc-snd{background:var(--navy);border:1.5px solid var(--navy);border-radius:8px;padding:7px 14px;font-size:0.72rem;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0;font-family:'Nunito',sans-serif;}
+.wc-snd:hover{background:#2a4a6a;}
+
+.quiz-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);display:none;}
+.quiz-card.show{display:block;}
+.qc-head{background:var(--red);padding:8px 16px;display:flex;justify-content:space-between;align-items:center;}
+.qc-title{font-size:0.65rem;font-weight:900;color:#fff;letter-spacing:1.5px;text-transform:uppercase;}
+.qc-prog{font-size:0.62rem;color:rgba(255,255,255,0.65);font-weight:700;}
+.qc-body{padding:14px 16px;}
+.q-q{font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:10px;padding:9px 12px;background:var(--bg);border-radius:7px;border-left:2.5px solid var(--navy);line-height:1.5;}
+.q-opt{background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.78rem;font-weight:700;cursor:pointer;margin-bottom:6px;width:100%;text-align:left;color:var(--navy);display:flex;align-items:center;gap:9px;transition:all 0.13s;font-family:'Nunito',sans-serif;}
+.q-opt:last-child{margin-bottom:0;}
+.q-opt:hover:not(:disabled){border-color:var(--navy);background:var(--white);}
+.q-opt.ok{background:#f0fdf4;border-color:var(--green);color:var(--green);}
+.q-opt.no{background:#fef2f2;border-color:var(--red);color:var(--red);}
+.q-opt:disabled{cursor:default;}
+.q-ltr{width:20px;height:20px;border-radius:50%;background:rgba(26,46,74,0.1);display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:900;color:var(--navy);flex-shrink:0;}
+.q-opt.ok .q-ltr{background:var(--green);color:#fff;}
+.q-opt.no .q-ltr{background:var(--red);color:#fff;}
+.q-fb{font-size:0.72rem;font-weight:700;margin-top:8px;padding:7px 10px;border-radius:7px;display:none;line-height:1.5;}
+.q-fb.show{display:block;}
+.q-fb.ok{background:#f0fdf4;border:1px solid #86efac;color:var(--green);}
+.q-fb.no{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);}
+.q-next{margin-top:8px;width:100%;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:10px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:900;cursor:pointer;display:none;transition:all 0.15s;}
+.q-next.show{display:block;}
+.q-next:hover{background:#2a4a6a;}
+
+.end-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:24px 20px;text-align:center;display:none;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.end-card.show{display:block;}
+.end-icon{font-size:2.5rem;margin-bottom:8px;}
+.end-title{font-size:1.2rem;font-weight:900;color:var(--navy);margin-bottom:4px;}
+.end-sub{font-size:0.78rem;color:var(--muted);margin-bottom:16px;}
+.score-box{background:var(--bg);border-radius:10px;padding:12px 24px;display:inline-block;margin-bottom:18px;border:1.5px solid var(--border);}
+.sc-num{font-size:2rem;font-weight:900;color:var(--navy);}
+.sc-lbl{font-size:0.6rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.btn-restart{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:11px 28px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:900;cursor:pointer;}
+.btn-restart:hover{background:#2a4a6a;}
+
+.vocab-box{background:var(--bg);border-radius:10px;padding:13px 15px;text-align:left;margin-bottom:16px;}
+.vb-title{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:9px;}
+.vb-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.vb-row{display:flex;align-items:center;gap:5px;font-size:0.7rem;padding:3px 4px;border-radius:5px;}
+.vb-dot{width:6px;height:6px;border-radius:50%;background:var(--navy);flex-shrink:0;}
+.vb-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);}
+
+.footer{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Nocna jazda i pogoda</div>
+    <div class="h-sub">Lekcja 17 · Moduł 3 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">17 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+  <div class="prog-txt" id="progTxt">0 / 9 odkrytych</div>
+</div>
+
+<div class="road-card">
+  <div class="rc-head">
+    <span>Kliknij ikonę — poznaj słówko</span>
+    <span class="rc-found" id="rcFound">0 / 9</span>
+  </div>
+  <div class="road-wrap">
+    <svg id="roadSvg" viewBox="0 0 560 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;"></svg>
+  </div>
+</div>
+
+<div class="conditions-bar" id="condBar">
+  <div class="cond-item">
+    <div class="cond-label">Widoczność</div>
+    <div class="cond-value ok" id="condVis">500 m</div>
+    <div class="cond-bar-wrap"><div class="cond-bar-fill" id="condVisBar" style="width:100%;background:#4ade80;"></div></div>
+  </div>
+  <div class="cond-item">
+    <div class="cond-label">Prędkość max</div>
+    <div class="cond-value ok" id="condSpeed">90 km/h</div>
+    <div class="cond-bar-wrap"><div class="cond-bar-fill" id="condSpeedBar" style="width:90%;background:#4ade80;"></div></div>
+  </div>
+</div>
+
+
+<div class="word-card" id="wordCard">
+  <div class="wc-bar"></div>
+  <div class="wc-body">
+    <div class="wc-icon" id="wcIcon"></div>
+    <div class="wc-content">
+      <div class="wc-en" id="wcEn"></div>
+      <div class="wc-pl" id="wcPl"></div>
+      <div class="wc-ex" id="wcEx"></div>
+    </div>
+    <button class="wc-snd" id="wcSnd" onclick="speakWord()">&#9654; Posłuchaj</button>
+  </div>
+</div>
+
+<div class="quiz-card" id="quizCard">
+  <div class="qc-head">
+    <div class="qc-title">Quiz</div>
+    <div class="qc-prog" id="qProg">1 / 5</div>
+  </div>
+  <div class="qc-body">
+    <div class="q-q" id="qQ"></div>
+    <div id="qOpts"></div>
+    <div class="q-fb" id="qFb"></div>
+    <button class="q-next" id="qNext" onclick="nextQ()">DALEJ &#8594;</button>
+  </div>
+</div>
+
+<div class="end-card" id="endCard">
+  <div class="end-icon" id="endIcon"></div>
+  <div class="end-title" id="endTitle">Świetna robota!</div>
+  <div class="end-sub" id="endSub">Znasz słownictwo nocnej jazdy.</div>
+  <div class="score-box">
+    <div class="sc-num" id="scNum">0/5</div>
+    <div class="sc-lbl">poprawnych odpowiedzi</div>
+  </div>
+  <div class="vocab-box">
+    <div class="vb-title">Słownik — Lekcja 17</div>
+    <div class="vb-grid" id="vocabGrid"></div>
+  </div>
+  <button class="btn-restart" onclick="restart()">&#8635; Zagraj jeszcze raz</button>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d on"></div><div class="f-d on"></div>
+    <div class="f-d"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ════════════════
+   DANE: Słownictwo nocnej jazdy
+════════════════ */
+const items = [
+  {
+    id: 1, x: 280, y: 150, // Oznakowanie drogi (reflektory drogowe)
+    en: "High beams", pl: "Światła drogowe (długie)",
+    ex: "Turn off your high beams when a car is approaching.",
+    tip: "High beams oślepiają (blind) innych kierowców. Używaj ich (Turn them on) tylko na pustej drodze."
+  },
+  {
+    id: 2, x: 120, y: 220, // Krawędź jezdni
+    en: "Hard shoulder", pl: "Pobocze",
+    ex: "Do not stop on the hard shoulder unless it's an emergency.",
+    tip: "Hard shoulder to pas awaryjny / pobocze. Zatrzymuj się tam tylko w razie awarii (emergency)."
+  },
+  {
+    id: 3, x: 420, y: 240, // Linia na drodze
+    en: "White line", pl: "Biała linia",
+    ex: "Follow the solid white line on the right side.",
+    tip: "W nocy biała linia (white line) pomaga utrzymać ciężarówkę na pasie ruchu. Solid = ciągła, Broken = przerywana."
+  },
+  {
+    id: 4, x: 350, y: 60, // Deszcz / warunki
+    en: "Heavy rain", pl: "Ulewny deszcz",
+    ex: "Slow down, there is heavy rain and poor visibility.",
+    tip: "Heavy rain = ulewa. Poor visibility = słaba widoczność. W takich warunkach zredukuj prędkość (Slow down)."
+  },
+  {
+    id: 5, x: 180, y: 100, // Znak ostrzegawczy z mgłą (lub samo tło z mgłą)
+    en: "Fog", pl: "Mgła",
+    ex: "Turn on your fog lights.",
+    tip: "Fog = mgła. Fog lights = światła przeciwmgielne. Zwiększ dystans do poprzedzającego pojazdu (Keep your distance)."
+  },
+  {
+    id: 6, x: 480, y: 140, // Odblaski na barierkach
+    en: "Reflectors", pl: "Odblaski",
+    ex: "The road reflectors help you see the curves at night.",
+    tip: "Reflectors to elementy odblaskowe. Warto też mieć zawsze na sobie kamizelkę odblaskową (reflective vest)."
+  },
+  {
+    id: 7, x: 220, y: 260, // Kałuża/lód na drodze
+    en: "Black ice", pl: "Gołoledź / czarny lód",
+    ex: "Be careful on the bridge, there might be black ice.",
+    tip: "Black ice jest niewidoczny nocą. Jeśli temperatura (temperature) spada blisko zera, zachowaj szczególną ostrożność."
+  },
+  {
+    id: 8, x: 80, y: 140, // Zmęczenie / kawa (np. na znaku lub po prostu jako pojęcie)
+    en: "Fatigue", pl: "Zmęczenie",
+    ex: "Fatigue is dangerous at night. Take a rest.",
+    tip: "Fatigue = zmęczenie. Drowsy driving = jazda senna. Jeśli czujesz zmęczenie, zjedź na najbliższy parking (parking lot)."
+  },
+  {
+    id: 9, x: 300, y: 110, // Śliska droga
+    en: "Slippery road", pl: "Śliska droga",
+    ex: "The road is slippery when wet.",
+    tip: "Slippery = śliski. Wydłuża się droga hamowania (braking distance)."
+  }
+];
+
+let foundItems = new Set();
+let currentItemId = null;
+let quizScore = 0;
+
+/* ════════════════
+   SCENA SVG
+════════════════ */
+function initScene() {
+  const svg = document.getElementById('roadSvg');
+  // Rysujemy tło nocy
+  let svgContent = `
+    <rect width="560" height="300" fill="#0f1f35" />
+    
+    <circle cx="50" cy="40" r="1" fill="#fff" opacity="0.8"/>
+    <circle cx="120" cy="20" r="1.5" fill="#fff" opacity="0.6"/>
+    <circle cx="280" cy="50" r="1" fill="#fff" opacity="0.7"/>
+    <circle cx="450" cy="30" r="2" fill="#fff" opacity="0.5"/>
+    <circle cx="520" cy="70" r="1" fill="#fff" opacity="0.9"/>
+    
+    <circle cx="400" cy="60" r="25" fill="#fff" opacity="0.2"/>
+    
+    <path d="M -20 80 Q 50 40 120 70 T 300 50 T 450 80 T 580 60 L 580 120 L -20 120 Z" fill="#1e3a5a" opacity="0.6"/>
+    <path d="M -20 100 Q 100 70 200 100 T 400 80 T 580 110 L 580 150 L -20 150 Z" fill="#2a4a6a" opacity="0.4"/>
+    
+    <path d="M 0 160 L 80 110 L 160 160 L 250 90 L 380 160 L 480 120 L 560 160 Z" fill="#0a1628"/>
+    
+    <rect y="160" width="560" height="140" fill="#0d2416"/>
+    
+    <path d="M 240 160 L 320 160 L 500 300 L 60 300 Z" fill="#1a1c23"/>
+    
+    <path d="M 245 160 L 70 300" stroke="#fff" stroke-width="3" opacity="0.8"/>
+    <path d="M 315 160 L 490 300" stroke="#fff" stroke-width="3" opacity="0.8"/>
+    <path d="M 280 160 L 280 300" stroke="#fff" stroke-width="4" stroke-dasharray="15,20" opacity="0.6"/>
+
+    <g stroke="#ffffff" stroke-width="1" opacity="0.2">
+      <line x1="100" y1="40" x2="90" y2="70" />
+      <line x1="200" y1="20" x2="190" y2="50" />
+      <line x1="300" y1="60" x2="290" y2="90" />
+      <line x1="450" y1="30" x2="440" y2="60" />
+      <line x1="500" y1="80" x2="490" y2="110" />
+      <line x1="150" y1="90" x2="140" y2="120" />
+      <line x1="350" y1="40" x2="340" y2="70" />
+      <line x1="80" y1="120" x2="70" y2="150" />
+    </g>
+    
+    <path d="M 240 180 L -20 300 L 200 300 Z" fill="url(#beamGrad)" opacity="0.3"/>
+    <path d="M 320 180 L 360 300 L 580 300 Z" fill="url(#beamGrad)" opacity="0.3"/>
+    
+    <defs>
+      <linearGradient id="beamGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#fff" stop-opacity="1" />
+        <stop offset="100%" stop-color="#fff" stop-opacity="0" />
+      </linearGradient>
+    </defs>
+  `;
+
+  // Rysowanie Hotspotów
+  items.forEach(item => {
+    svgContent += `
+      <g class="hotspot" id="hs-${item.id}" transform="translate(${item.x}, ${item.y})" onclick="openWordCard(${item.id})">
+        <circle cx="0" cy="0" r="14" fill="#d63528" stroke="#fff" stroke-width="2"/>
+        <text x="0" y="4" font-family="Nunito" font-weight="900" font-size="12" fill="#fff" text-anchor="middle">${item.id}</text>
+      </g>
+    `;
+  });
+
+  svg.innerHTML = svgContent;
+}
+
+/* ════════════════
+   INTERAKCJA
+════════════════ */
+function openWordCard(id) {
+  // Usuń aktywność z poprzedniego
+  if (currentItemId !== null) {
+    document.getElementById(`hs-${currentItemId}`).classList.remove('active');
+  }
+
+  currentItemId = id;
+  const hs = document.getElementById(`hs-${id}`);
+  hs.classList.add('active');
+
+  if (!foundItems.has(id)) {
+    foundItems.add(id);
+    hs.classList.add('found');
+    updateProgress();
+  }
+
+  const item = items.find(i => i.id === id);
+  const card = document.getElementById('wordCard');
+  
+  document.getElementById('wcIcon').textContent = '🔍'; // Można przypisać różne ikony w obiekcie items
+  document.getElementById('wcEn').textContent = item.en;
+  document.getElementById('wcPl').textContent = item.pl;
+  // Pokazujemy przykład i wskazówkę razem
+  document.getElementById('wcEx').innerHTML = `<strong>Ex:</strong> ${item.ex}<br><br><span style="color:var(--navy);font-style:normal;">💡 <strong>Tip:</strong> ${item.tip}</span>`;
+
+  // Zmieniamy wywołanie na używające ID zamiast czystego tekstu
+  const sndBtn = document.getElementById('wcSnd');
+  sndBtn.setAttribute('onclick', `speakPhrase(${item.id})`);
+  sndBtn.textContent = '▶ Posłuchaj';
+  sndBtn.classList.remove('pl'); // Reset koloru
+
+  card.classList.add('show');
+}
+
+function updateProgress() {
+  const total = items.length;
+  const found = foundItems.size;
+  const pct = (found / total) * 100;
+  
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progTxt').textContent = `${found} / ${total} odkrytych`;
+  document.getElementById('rcFound').textContent = `${found} / ${total}`;
+
+  if (found === total) {
+    setTimeout(() => {
+      document.getElementById('quizCard').classList.add('show');
+    }, 1000);
+  }
+}
+
+/* ════════════════
+   QUIZ
+════════════════ */
+const qs = [
+  {
+    q: 'Jak powiesz "ulewny deszcz"?',
+    opts: ['Hard shoulder', 'Heavy rain', 'Black ice', 'Slippery road'],
+    and: 1, tip: 'Heavy rain = ulewny deszcz. Wymaga zmniejszenia prędkości i włączenia wycieraczek (wipers).'
+  },
+  {
+    q: 'Co to jest "hard shoulder"?',
+    opts: ['Pas awaryjny / pobocze', 'Trudny zakręt', 'Biała linia ciągła', 'Mgła na drodze'],
+    and: 0, tip: 'Hard shoulder to pobocze. Służy tylko do awaryjnego zatrzymania.'
+  },
+  {
+    q: 'Jak nazwiesz niewidoczny lód na drodze?',
+    opts: ['Dark ice', 'Night ice', 'Black ice', 'Cold road'],
+    and: 2, tip: 'Black ice = gołoledź / czarny lód. Jest bardzo niebezpieczny, bo wygląda jak zwykły mokry asfalt.'
+  },
+  {
+    q: 'Co oznacza "fatigue"?',
+    opts: ['Mgła', 'Wypadek', 'Zmęczenie', 'Odblaski'],
+    and: 2, tip: 'Fatigue = zmęczenie. Największy wróg kierowcy podczas nocnych tras. Take a rest!'
+  },
+  {
+    q: 'Których świateł używasz tylko gdy z naprzeciwka nic nie jedzie?',
+    opts: ['Fog lights', 'High beams', 'Brake lights', 'Indicators'],
+    and: 1, tip: 'High beams = światła drogowe (długie). Mogą oślepić innych kierowców.'
+  }
+];
+
+let qi = 0;
+
+function renderQ() {
+  if (qi >= qs.length) {
+    showEndCard();
+    return;
+  }
+
+  const q = qs[qi];
+  document.getElementById('qProg').textContent = `${qi + 1} / ${qs.length}`;
+  document.getElementById('qQ').textContent = q.q;
+  
+  document.getElementById('qFb').className = 'q-fb';
+  document.getElementById('qNext').classList.remove('show');
+
+  const optsHtml = q.opts.map((opt, i) => `
+    <button class="q-opt" onclick="answerQ(this, ${i === q.and})">
+      <div class="q-ltr">${['A', 'B', 'C', 'D'][i]}</div>${opt}
+    </button>
+  `).join('');
+  
+  document.getElementById('qOpts').innerHTML = optsHtml;
+}
+
+function answerQ(btn, isCorrect) {
+  document.querySelectorAll('.q-opt').forEach(b => b.disabled = true);
+  const fb = document.getElementById('qFb');
+  
+  if (isCorrect) {
+    btn.classList.add('ok');
+    fb.className = 'q-fb show ok';
+    fb.textContent = '✅ ' + qs[qi].tip;
+    quizScore++;
+  } else {
+    btn.classList.add('no');
+    document.querySelectorAll('.q-opt')[qs[qi].and].classList.add('ok');
+    fb.className = 'q-fb show no';
+    fb.textContent = '❌ ' + qs[qi].tip;
+  }
+  
+  qi++;
+  document.getElementById('qNext').classList.add('show');
+}
+
+function nextQ() {
+  renderQ();
+}
+
+function showEndCard() {
+  document.getElementById('quizCard').classList.remove('show');
+  document.getElementById('wordCard').classList.remove('show');
+  const endCard = document.getElementById('endCard');
+  
+  document.getElementById('scNum').textContent = `${quizScore}/${qs.length}`;
+  
+  if (quizScore === qs.length) {
+    document.getElementById('endIcon').textContent = '🏆';
+    document.getElementById('endTitle').textContent = 'Znakomicie!';
+    document.getElementById('endSub').textContent = 'Znasz wszystkie pojęcia. Jesteś gotów na nocną trasę!';
+  } else if (quizScore >= 3) {
+    document.getElementById('endIcon').textContent = '👍';
+    document.getElementById('endTitle').textContent = 'Dobra robota!';
+    document.getElementById('endSub').textContent = 'Znasz większość pojęć, ale warto jeszcze poćwiczyć.';
+  } else {
+    document.getElementById('endIcon').textContent = '🌧️';
+    document.getElementById('endTitle').textContent = 'Zachowaj ostrożność!';
+    document.getElementById('endSub').textContent = 'Nocna jazda bywa trudna. Zagraj jeszcze raz, żeby utrwalić wiedzę.';
+  }
+
+  // Wypełniamy słowniczek
+  const vGrid = document.getElementById('vocabGrid');
+  vGrid.innerHTML = items.map(item => `
+    <div class="vb-row" style="cursor:pointer;">
+      <div class="vb-dot"></div>
+      <div class="vb-en">${item.en}</div>
+      <div style="font-size:0.6rem; color:var(--muted); margin-left:4px;">- ${item.pl}</div>
+    </div>
+  `).join('');
+
+  endCard.classList.add('show');
+}
+
+function restart() {
+  foundItems.clear();
+  currentItemId = null;
+  quizScore = 0;
+  qi = 0;
+
+  document.getElementById('endCard').classList.remove('show');
+  
+  document.querySelectorAll('.hotspot').forEach(hs => {
+    hs.classList.remove('found', 'active');
+  });
+
+  updateProgress();
+  renderQ();
+  
+  // Przewiń do góry
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ════════════════════════════════════════════════════════════
+   NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
+════════════════════════════════════════════════════════════ */
+
+const AUDIO_MAP = {
+  'Turn off your high beams when a car is approaching.': 'audio/L17/turn_off_your_high_beams_when_a_car_is_approaching_l17.mp3',
+  'Do not stop on the hard shoulder unless it\'s an emergency.': 'audio/L17/do_not_stop_on_the_hard_shoulder_unless_its_an_emergency_l17.mp3',
+  'Follow the solid white line on the right side.': 'follow_the_solid_white_line_on_the_right_side_l17.mp3',
+  'Slow down, there is heavy rain and poor visibility.': 'audio/L17/slow_down_there_is_heavy_rain_and_poor_visibility_l17.mp3',
+  'Turn on your fog lights.': 'audio/L17/turn_on_your_fog_lights_l17.mp3',
+  'The road reflectors help you see the curves at night.': 'audio/L17/the_road_reflectors_help_you_see_the_curves_at_night_l17.mp3',
+  'Be careful on the bridge, there might be black ice.': 'audio/L17/be_careful_on_the_bridge_there_might_be_black_ice_l17.mp3',
+  'Fatigue is dangerous at night. Take a rest.': 'audio/L17/fatigue_is_dangerous_at_night_take_a_rest_l17.mp3',
+  'The road is slippery when wet.': 'audio/L17/the_road_is_slippery_when_wet_l17.mp3',
+};
+
+let _ap = null;
+
+function _playAudio(text, btn, label) {
+  // Czyszczenie tekstu z niepotrzebnych znaków dla pewności
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
+  
+  if (_ap) { 
+    _ap.pause(); 
+    _ap.currentTime = 0;
+    _ap = null; 
+  }
+  
+  const mp3 = AUDIO_MAP[clean];
+  const lbl = label || '▶ Posłuchaj';
+
+  if (btn) {
+    btn.classList.add('pl');
+    btn.textContent = '⌛ Ładowanie...';
+  }
+
+  if (mp3) {
+    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const timestamp = new Date().getTime(); 
+    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+
+    _ap = new Audio(audioUrl);
+
+    const watchdog = setTimeout(() => {
+      if (btn && btn.classList.contains("pl")) {
+        resetBtn();
+      }
+    }, 4000);
+
+    function resetBtn() {
+      clearTimeout(watchdog);
+      if (btn) {
+        btn.classList.remove('pl');
+        btn.textContent = lbl;
+      }
+    }
+
+    _ap.onplay = () => { if (btn) btn.textContent = '🔊 Odtwarzam...'; };
+    _ap.onended = resetBtn;
+    _ap.onerror = () => {
+      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
+      clearTimeout(watchdog);
+      _webSpeech(clean, btn, lbl); 
+    };
+    _ap.play().catch((err) => {
+      console.warn("Autoplay zablokowany:", err);
+      _webSpeech(clean, btn, lbl);
+    });
+
+  } else {
+    console.warn("Brak pliku MP3 w mapie dla tekstu:", clean);
+    _webSpeech(clean, btn, lbl);
+  }
+}
+
+function _webSpeech(text, btn, label) {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const lbl = label || '▶ Posłuchaj';
+  if (btn) { btn.classList.add('pl'); btn.textContent = '🔊 Odtwarzam (Bot)...'; }
+  setTimeout(() => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-GB'; u.rate = 0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x => x.name === 'Google UK English Female')
+      || voices.find(x => x.lang === 'en-GB')
+      || voices.find(x => x.lang.startsWith('en'));
+    if (v) u.voice = v;
+    u.onend = () => { if (btn) { btn.classList.remove('pl'); btn.textContent = lbl; } };
+    u.onerror = () => { if (btn) { btn.classList.remove('pl'); btn.textContent = lbl; } };
+    window.speechSynthesis.speak(u);
+  }, 300);
+}
+
+// Funkcja wywoływana po kliknięciu przycisku w Karcie Słówka (przekazujemy ID)
+function speakPhrase(id) {
+  const item = items.find(i => i.id === id);
+  const text = item.ex;
+  const btn = document.getElementById('wcSnd');
+  _playAudio(text, btn, '▶ Posłuchaj');
+}
+
+// Funkcja dla Słowniczka (przekazujemy ID)
+function speakVocab(id) {
+  const item = items.find(i => i.id === id);
+  const text = item.en;
+  _playAudio(text, null, null);
+}
+
+/* Start */
+initScene();
+renderQ();
+
+// Inicjalizacja wizualnego bajeru pogodowego (tylko demo)
+setTimeout(() => {
+  document.getElementById('condVis').classList.remove('ok');
+  document.getElementById('condVis').classList.add('warn');
+  document.getElementById('condVis').textContent = '200 m (Mgła)';
+  document.getElementById('condVisBar').style.width = '40%';
+  document.getElementById('condVisBar').style.background = '#fbbf24';
+  
+  document.getElementById('condSpeed').classList.remove('ok');
+  document.getElementById('condSpeed').classList.add('warn');
+  document.getElementById('condSpeed').textContent = '70 km/h';
+  document.getElementById('condSpeedBar').style.width = '70%';
+  document.getElementById('condSpeedBar').style.background = '#fbbf24';
+}, 3000);
+
+</script>
+</body>
+</html>
