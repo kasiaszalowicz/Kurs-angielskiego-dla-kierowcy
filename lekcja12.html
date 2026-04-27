@@ -242,24 +242,6 @@ body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;paddi
   </div>
 </div>
 
-<!-- DRAG AND DROP -->
-<div class="dnd-section">
-  <div class="dnd-head">Dopasuj — przeciągnij angielską frazę do polskiego opisu</div>
-  <div class="dnd-body">
-    <div class="dnd-instr">Przeciągnij frazę po angielsku do odpowiedniego opisu po polsku.</div>
-    <div class="dnd-layout">
-      <div>
-        <div style="font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Frazy angielskie</div>
-        <div class="drag-pool" id="dragPool"></div>
-      </div>
-      <div>
-        <div style="font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Opisy polskie</div>
-        <div class="drop-zones" id="dropZones"></div>
-      </div>
-    </div>
-    <div class="dnd-result" id="dndResult">✅ Wszystkie dopasowane! Znasz frazy reklamacyjne.</div>
-  </div>
-</div>
 
 <!-- QUIZ -->
 <div class="quiz-section">
@@ -286,7 +268,6 @@ body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;paddi
 </div>
 
 </div>
-
 <script>
 /* ════════════════════
    8 TYPÓW USZKODZEŃ
@@ -448,7 +429,7 @@ const damages = [
     id:8,
     en:'Wrong delivery',
     pl:'Błędna dostawa',
-    phrase:'"This is not my delivery."',
+    phrase:'"This is a wrong delivery."',
     phrasePl:'To nie jest moja dostawa.',
     tip:'Wrong delivery = błędna dostawa. Sprawdź number referencyjny zanim otworzysz naczepę!',
     color:'#ec4899',
@@ -631,7 +612,7 @@ const qs=[
    opts:['The goods are contaminated.','The goods are wet damaged.','The goods are missing.','The goods are crushed.'],
    and:1,tip:'Wet damaged = uszkodzony przez wilgoć/wodę. Sprawdź czy naczepa nie przecieka!'},
   {q:'W ładunku brakuje 3 sztuk. Co wpisujesz na CMR?',
-   opts:['The goods are torn.','Overloaded pallet.','Items are missing from the load.','The packaging is crushed.'],
+   opts:['The goods are torn.','Overloaded pallet.','Items are missing from the delivery.','The packaging is crushed.'],
    and:2,tip:'Items are missing = brakujące sztuki. Zawsze licz przed podpisaniem!'},
   {q:'Co to znaczy "overloaded pallet"?',
    opts:['Paleta bez etykiety','Paleta przeładowana / za ciężka','Paleta odwrócona','Paleta mokra'],
@@ -788,7 +769,6 @@ function speakDamagePhrase(id) {
 
 /* INIT */
 buildCatalog();
-buildDnd();
 renderQ();
 </script>
 </body>

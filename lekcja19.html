@@ -257,7 +257,7 @@ function showEnd() {
   var h = "";
   for (var i = 0; i < VOCAB.length; i++) {
     // Słowniczek klikalny + delikatny efekt hover
-    h += "<div class='vb-row' onclick=\"speakVocab('"+VOCAB[i].en.replace(/'/g, "\\'")+"')\" style=\"cursor:pointer;\" onmouseover=\"this.style.background='rgba(26,46,74,0.05)'\" onmouseout=\"this.style.background='transparent'\">";
+    h += "<div class='vb-row' style=\"cursor:pointer;\" onmouseover=\"this.style.background='rgba(26,46,74,0.05)'\" onmouseout=\"this.style.background='transparent'\">";
     h += "<div class='vb-dot'></div><div class='vb-en'>"+VOCAB[i].en+"</div><div class='vb-pl'>&#8212; "+VOCAB[i].pl+"</div></div>";
   }
   document.getElementById("vocabGrid").innerHTML = h;

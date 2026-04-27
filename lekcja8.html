@@ -570,16 +570,6 @@ function speakWord(word){
   _playAudio(word, null, null);
 }
 
-// Podpięcie kliknięć do słownika na ekranie końcowym (delegacja zdarzeń)
-document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll(".vocab-box .vb-row").forEach(row => {
-        let enWord = row.querySelector(".vb-en").textContent;
-        row.style.cursor = "pointer";
-        row.onclick = () => speakWord(enWord);
-        row.addEventListener('mouseover', () => row.style.background = 'rgba(26,46,74,0.05)');
-        row.addEventListener('mouseout', () => row.style.background = 'transparent');
-    });
-});
 
 buildDnd();
 </script>

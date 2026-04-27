@@ -143,20 +143,74 @@ body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;paddi
 .bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
 
 /* Słownik */
-.vocab-card{
-  background:var(--white);border:1.5px solid var(--border);
-  border-radius:12px;overflow:hidden;
-  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+/* Kontener główny karty */
+.vocab-card {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
-.vc-head{background:var(--navy);padding:8px 14px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;}
-.vc-body{padding:8px 12px;display:grid;grid-template-columns:1fr 1fr;gap:2px;}
-.v-row{display:flex;align-items:center;gap:6px;padding:4px 5px;border-radius:5px;font-size:0.72rem;cursor:pointer;transition:all 0.13s;}
-.v-row:hover{background:var(--bg);}
-.v-dot{width:5px;height:5px;border-radius:50%;background:var(--navy);flex-shrink:0;}
-.v-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);font-size:0.7rem;}
-.v-pl{font-size:0.62rem;color:var(--muted);margin-left:2px;}
 
-/* Quiz */
+.vc-head {
+  background: var(--navy);
+  padding: 8px 14px;
+  font-size: 0.6rem;
+  font-weight: 900;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Siatka dwóch kolumn */
+.vc-body {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px 20px; /* Większy odstęp między wierszami i kolumnami */
+}
+
+/* Wiersz słownika */
+.v-row {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 15px; /* <--- KLUCZ: robi miejsce na kropkę */
+  cursor: pointer;
+  transition: all 0.13s;
+}
+
+.v-row:hover {
+  background: var(--bg);
+  border-radius: 5%;
+}
+
+/* Kropka */
+.v-dot {
+  position: absolute;
+  left: 0;
+  top: 6px; /* Ustawienie kropki na wysokości pierwszej linii (angielskiego) */
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--navy);
+}
+
+/* Text angielski */
+.v-en {
+  font-family: 'Courier Prime', monospace;
+  font-weight: 700;
+  color: var(--navy);
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+/* Text polski pod spodem */
+.v-pl {
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-top: 2px; /* Odstęp między angielskim a polskim */
+}/* Quiz */
 .quiz-card{
   background:var(--white);border:1.5px solid var(--border);
   border-radius:12px;overflow:hidden;

@@ -361,12 +361,7 @@ function activate(id) {
   // ZMIANA: Klikalne główne słówko (ac-en) i wywołanie speakPhrase(id) dla zdania
   document.getElementById('acBody').innerHTML = `
     <div class="ac-num" style="background:${c.tagColor};color:${c.tagText};">KARTA ${c.id} / 8</div>
-    <div class="ac-en" style="cursor:pointer;" onclick="speakVocab(${c.id})" title="Posłuchaj wymowy słówka">${c.en} 🔊</div>
     <div class="ac-pl">${c.pl}</div>
-    <div class="ac-section">
-      <div class="ac-section-label">Co to jest</div>
-      <div class="ac-desc">${c.desc}</div>
-    </div>
     <div class="ac-section">
       <div class="ac-section-label">Co powiedzieć inspektorowi</div>
       <div class="ac-phrase">${c.phrase}</div>
