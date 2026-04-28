@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 29 — Rozmowy na trasie</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --orange:#e07820;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:720px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:var(--navy);border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* KONTEKST SCENY */
+.scene-ctx{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:10px;padding:10px 16px;
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+  font-size:0.75rem;font-weight:700;color:var(--muted);
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+}
+
+/* CHAT */
+.chat-wrap{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+  margin-bottom:14px;
+}
+.chat-top{background:var(--navy);padding:8px 16px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;}
+.chat-body{padding:16px;display:flex;flex-direction:column;gap:10px;min-height:200px;}
+
+/* Wiadomość — inny kierowca (lewo) */
+.msg-other{display:flex;gap:10px;align-items:flex-end;}
+.msg-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(26,46,74,0.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.65rem;font-weight:900;color:var(--navy);
+  flex-shrink:0;border:1.5px solid var(--border);
+}
+.bubble-other{
+  background:#f0f4f8;border:1.5px solid var(--border);
+  border-radius:12px 12px 12px 2px;
+  padding:10px 13px;max-width:80%;
+}
+.bo-name{font-size:0.58rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.bo-en{font-family:'Courier Prime',monospace;font-size:0.88rem;font-weight:700;color:var(--navy);line-height:1.5;}
+.bo-pl{font-size:0.65rem;color:var(--muted);font-style:italic;margin-top:3px;}
+.bo-snd{
+  display:inline-flex;align-items:center;gap:4px;
+  margin-top:6px;background:none;border:1px solid var(--border);
+  border-radius:6px;padding:3px 9px;
+  font-family:'Nunito',sans-serif;font-size:0.65rem;font-weight:700;
+  color:var(--muted);cursor:pointer;transition:all 0.15s;
+}
+.bo-snd:hover{border-color:var(--navy);color:var(--navy);}
+.bo-snd.playing{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+/* Wiadomość — Mareczek (prawo) */
+.msg-me{display:flex;gap:10px;align-items:flex-end;flex-direction:row-reverse;}
+.bubble-me{
+  background:var(--navy);border:1.5px solid var(--navy);
+  border-radius:12px 12px 2px 12px;
+  padding:10px 13px;max-width:80%;
+}
+.bm-label{font-size:0.58rem;font-weight:900;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.bm-en{font-family:'Courier Prime',monospace;font-size:0.88rem;font-weight:700;color:#fff;line-height:1.5;}
+.bm-pl{font-size:0.65rem;color:rgba(255,255,255,0.45);font-style:italic;margin-top:3px;}
+
+/* Typing indicator */
+.typing{display:flex;gap:10px;align-items:flex-end;}
+.typing-dots{
+  background:#f0f4f8;border:1.5px solid var(--border);
+  border-radius:12px 12px 12px 2px;
+  padding:12px 16px;display:flex;gap:5px;align-items:center;
+}
+.dot{width:7px;height:7px;border-radius:50%;background:#bbb;animation:bounce 1.2s infinite;}
+.dot:nth-child(2){animation-delay:0.2s;}
+.dot:nth-child(3){animation-delay:0.4s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+/* INPUT SEKCJA */
+.input-section{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;padding:16px;
+  margin-bottom:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.is-hint{
+  font-size:0.72rem;font-weight:700;color:var(--muted);
+  margin-bottom:10px;line-height:1.5;
+}
+.is-keyword{
+  display:inline-block;
+  background:rgba(26,46,74,0.08);color:var(--navy);
+  font-family:'Courier Prime',monospace;font-weight:700;
+  font-size:0.75rem;padding:2px 8px;border-radius:5px;
+  margin:0 2px;
+}
+.is-input-row{display:flex;gap:8px;}
+.is-input{
+  flex:1;border:1.5px solid var(--border);border-radius:9px;
+  padding:10px 14px;font-family:'Courier Prime',monospace;
+  font-size:0.9rem;font-weight:700;color:var(--navy);
+  background:var(--bg);outline:none;transition:all 0.15s;
+  text-transform:uppercase;
+}
+.is-input:focus{border-color:var(--navy);background:var(--white);}
+.is-input.ok{border-color:var(--green);background:#f0fdf4;}
+.is-input.error{border-color:var(--red);background:#fef2f2;animation:shake 0.3s;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.is-btn{
+  background:var(--navy);color:#fff;border:none;border-radius:9px;
+  padding:10px 18px;font-family:'Nunito',sans-serif;font-size:0.82rem;
+  font-weight:900;cursor:pointer;transition:all 0.15s;white-space:nowrap;
+}
+.is-btn:hover{background:#2a4a6a;}
+.is-feedback{font-size:0.72rem;font-weight:700;margin-top:8px;padding:6px 10px;border-radius:7px;display:none;line-height:1.5;}
+.is-feedback.show{display:block;}
+.is-feedback.ok{background:#f0fdf4;border:1px solid #86efac;color:var(--green);}
+.is-feedback.no{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);}
+
+/* EKRAN KOŃCOWY */
+.end-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:12px;padding:24px;text-align:center;
+  display:none;margin-bottom:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.end-card.show{display:block;}
+.end-icon{font-size:2.5rem;margin-bottom:10px;}
+.end-title{font-size:1.1rem;font-weight:900;color:var(--navy);margin-bottom:5px;}
+.end-sub{font-size:0.78rem;color:var(--muted);margin-bottom:16px;}
+.vocab-end{background:var(--bg);border-radius:10px;padding:14px;text-align:left;margin-bottom:16px;}
+.ve-title{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:9px;}
+.ve-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.ve-row{display:flex;align-items:center;gap:6px;font-size:0.73rem;padding:3px 5px;border-radius:5px;transition:all 0.13s;}
+
+.ve-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.ve-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);}
+.ve-pl{font-size:0.63rem;color:var(--muted);}
+.btn-restart{background:var(--navy);color:#fff;border:none;border-radius:10px;padding:11px 28px;font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:900;cursor:pointer;transition:all 0.15s;}
+.btn-restart:hover{background:#2a4a6a;}
+
+/* FOOTER */
+.footer{display:flex;align-items:center;justify-content:space-between;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Rozmowy na trasie</div>
+    <div class="h-sub">Lekcja 29 · Moduł 5 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">29 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">0 / 8 słówek odblokowanych</div>
+</div>
+
+<div class="scene-ctx">
+  <span>☀️</span>
+  <span id="sceneCtx">Parking przy autostradzie A2 · popołudnie · Mareczek pije kawę przy ciężarówce</span>
+</div>
+
+<!-- CHAT -->
+<div class="chat-wrap">
+  <div class="chat-top">Rozmowa na parkingu</div>
+  <div class="chat-body" id="chatBody"></div>
+</div>
+
+<!-- INPUT -->
+<div class="input-section" id="inputSection">
+  <div class="is-hint" id="isHint">Wpisz słowo kluczowe żeby odpowiedzieć:</div>
+  <div class="is-input-row">
+    <input class="is-input" type="text" id="isInput" placeholder="wpisz słówko..." autocomplete="off" onkeydown="if(event.key==='Enter')checkWord()">
+    <button class="is-btn" onclick="checkWord()">WYŚLIJ</button>
+  </div>
+  <div class="is-feedback" id="isFeedback"></div>
+</div>
+
+<!-- KONIEC -->
+<div class="end-card" id="endCard">
+  <div class="end-icon">🤝</div>
+  <div class="end-title">Świetna rozmowa!</div>
+  <div class="end-sub">Mareczek dogadał się z Johnem jak zawodowiec. Znasz wszystkie 8 słówek!</div>
+  <div class="vocab-end">
+    <div class="ve-title">Słownik — Lekcja 29</div>
+    <div class="ve-grid" id="vocabGrid"></div>
+  </div>
+  <button class="btn-restart" onclick="restart()">↺ Zagraj jeszcze raz</button>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div>
+<script>
+/* ════════════════════════════
+   SCENARIUSZ — 8 kroków
+   Każdy krok odblokowany przez wpisanie słowa kluczowego
+════════════════════════════ */
+const STEPS = [
+  {
+    // John zaczyna rozmowę
+    other: {
+      name: 'JOHN — GB',
+      en: '"What\'s up mate? How was your day?"',
+      pl: 'Co tam kolego? Jak ci minął dzień?',
+    },
+    hint: 'Odpowiedz na powitanie — wpisz słowo kluczowe:',
+    keyword: "WHAT'S UP",
+    keywordHint: "what's up",
+    myReply: {
+      en: '"What\'s up! Not bad, long drive from Warsaw."',
+      pl: 'Co tam! Nieźle, długa trasa z Warszawy.',
+    },
+    tip: '"What\'s up" = Co tam / Cześć (nieformalne). Typowe powitanie między kierowcami na parkingu.',
+    vocab: { en:"what's up", pl:'co tam / cześć' },
+  },
+  {
+    other: {
+      name: 'JOHN — GB',
+      en: '"Where are you heading?"',
+      pl: 'Dokąd jedziesz?',
+    },
+    hint: 'John pyta dokąd jedziesz. Wpisz kluczowe słowo z jego pytania:',
+    keyword: 'HEADING',
+    keywordHint: 'heading',
+    myReply: {
+      en: '"Heading to Rotterdam. Drop-off tomorrow morning."',
+      pl: 'Jadę do Rotterdamu. Rozładunek jutro rano.',
+    },
+    tip: '"Heading to..." = zmierzać w kierunku / jechać do. Where are you heading? = Dokąd jedziesz?',
+    vocab: { en:'heading', pl:'kierować się / zmierzać' },
+  },
+  {
+    other: {
+      name: 'JOHN — GB',
+      en: '"How was the border today? Any queues?"',
+      pl: 'Jak dzisiaj było na granicy? Były kolejki?',
+    },
+    hint: 'Wpisz kluczowe słowo z pytania o granicę:',
+    keyword: 'BORDER',
+    keywordHint: 'border',
+    myReply: {
+      en: '"How was the border? Not bad actually. The crossing took about 40 minutes."',
+      pl: 'Jak było na granicy? Całkiem nieźle. Przekroczenie zajęło około 40 minut.',
+    },
+    tip: '"How was the border?" = Jak było na granicy? Crossing = przekroczenie granicy. Crossing took 40 minutes = przekroczenie zajęło 40 minut.',
+    vocab: { en:'how was the border?', pl:'jak było na granicy?' },
+  },
+  {
+    other: {
+      name: 'JOHN — GB',
+      en: '"Any traffic jams ahead on the A2?"',
+      pl: 'Czy są korki przed nami na A2?',
+    },
+    hint: 'Wpisz angielskie słowo na "korek drogowy":',
+    keyword: 'TRAFFIC JAM',
+    keywordHint: 'traffic jam',
+    myReply: {
+      en: '"No traffic jams ahead as far as I know. Clear road."',
+      pl: 'Nie ma korków przed nami o ile wiem. Droga wolna.',
+    },
+    tip: '"Traffic jam" = korek drogowy. Any traffic jams ahead? = Czy są korki przed nami? As far as I know = o ile wiem.',
+    vocab: { en:'traffic jam', pl:'korek drogowy' },
+  },
+  {
+    other: {
+      name: 'JOHN — GB',
+      en: '"I need fuel. Which route do you recommend to avoid the city?"',
+      pl: 'Potrzebuję paliwa. Którą trasę polecasz żeby ominąć miasto?',
+    },
+    hint: 'Wpisz angielskie słowo na "polecać":',
+    keyword: 'RECOMMEND',
+    keywordHint: 'recommend',
+    myReply: {
+      en: '"I recommend the ring road — exit 18. Faster and no traffic."',
+      pl: 'Polecam obwodnicę — zjazd 18. Szybciej i bez korków.',
+    },
+    tip: '"Recommend" = polecać. Which route do you recommend? = Którą trasę polecasz? Ring road = obwodnica.',
+    vocab: { en:'recommend', pl:'polecać' },
+  },
+  {
+    other: {
+      name: 'JOHN — GB',
+      en: '"Good tip! Is there a good truck stop near here?"',
+      pl: 'Dobra rada! Czy jest tu gdzieś dobry truck stop?',
+    },
+    hint: 'Wpisz angielskie wyrażenie na "na trasie":',
+    keyword: 'ON THE ROAD',
+    keywordHint: 'on the road',
+    myReply: {
+      en: '"Yes — Autohof 12 km ahead. Good food, showers. Every trucker on the road knows it."',
+      pl: 'Tak — Autohof 12 km stąd. Dobre jedzenie, prysznice. Każdy kierowca na trasie go zna.',
+    },
+    tip: '"On the road" = na trasie / w drodze. Every trucker on the road = każdy kierowca na trasie.',
+    vocab: { en:'on the road', pl:'na trasie' },
+  },
+  {
+    other: {
+      name: 'JOHN — GB',
+      en: '"Perfect! I\'ll check it out. See you on the road mate!"',
+      pl: 'Świetnie! Sprawdzę to. Do zobaczenia na trasie kolego!',
+    },
+    hint: 'Wpisz zwrot pożegnalny który John powiedział:',
+    keyword: 'SEE YOU ON THE ROAD',
+    keywordHint: 'see you on the road',
+    myReply: {
+      en: '"See you on the road! Safe travels."',
+      pl: 'Do zobaczenia na trasie! Dobrej drogi.',
+    },
+    tip: '"See you on the road!" = Do zobaczenia na trasie! Typowe pożegnanie między kierowcami.',
+    vocab: { en:'see you on the road', pl:'do zobaczenia na trasie' },
+  },
+  {
+    other: {
+      name: 'JOHN — GB',
+      en: '"Thanks for the tips! Stay safe out there!"',
+      pl: 'Dzięki za wskazówki! Jedź bezpiecznie!',
+    },
+    hint: 'Wpisz angielski zwrot "jedź bezpiecznie":',
+    keyword: 'STAY SAFE',
+    keywordHint: 'stay safe',
+    myReply: {
+      en: '"You too! Stay safe John. Good trip!"',
+      pl: 'Nawzajem! Jedź bezpiecznie John. Dobrej trasy!',
+    },
+    tip: '"Stay safe!" = Jedź bezpiecznie! Jedno z najważniejszych pożegnań na trasie. Good trip! = Dobrej trasy!',
+    vocab: { en:'stay safe', pl:'jedź bezpiecznie' },
+    last: true,
+  },
+];
+
+let step = 0;
+let unlocked = 0;
+
+/* ════════════════
+   BUDUJ CHAT
+════════════════ */
+function init() {
+  const body = document.getElementById('chatBody');
+  body.innerHTML = '';
+  // Pokaż pierwszą wiadomość od Johna
+  addOtherMsg(STEPS[0]);
+  showInput(0);
+}
+
+function addOtherMsg(s, delay=0) {
+  const body = document.getElementById('chatBody');
+
+  // Typing indicator
+  const typing = document.createElement('div');
+  typing.className = 'typing';
+  typing.id = 'typing';
+  typing.innerHTML = `
+    <div class="msg-avatar">JN</div>
+    <div class="typing-dots">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>`;
+  body.appendChild(typing);
+  scrollDown();
+
+  setTimeout(()=>{
+    typing.remove();
+    const div = document.createElement('div');
+    div.className = 'msg-other';
+    div.innerHTML = `
+      <div class="msg-avatar">JN</div>
+      <div class="bubble-other">
+        <div class="bo-name">${s.other.name}</div>
+        <div class="bo-en">${s.other.en}</div>
+        <div class="bo-pl">${s.other.pl}</div>
+        <button class="bo-snd" onclick="speakText('${s.other.en.replace(/["""„']/g,'').replace(/'/g,"\\'")}',this)">🔊 Wymowa</button>
+      </div>`;
+    body.appendChild(div);
+    scrollDown();
+  }, delay || 800);
+}
+
+function addMyMsg(s) {
+  const body = document.getElementById('chatBody');
+  const div = document.createElement('div');
+  div.className = 'msg-me';
+  div.innerHTML = `
+    <div class="msg-avatar" style="background:rgba(26,46,74,0.15);color:var(--navy);">MR</div>
+    <div class="bubble-me">
+      <div class="bm-label">MARECZEK</div>
+      <div class="bm-en">${s.myReply.en}</div>
+      <div class="bm-pl">${s.myReply.pl}</div>
+    </div>`;
+  body.appendChild(div);
+  scrollDown();
+}
+
+function scrollDown() {
+  const body = document.getElementById('chatBody');
+  body.scrollTop = body.scrollHeight;
+}
+
+/* ════════════════
+   INPUT
+════════════════ */
+function showInput(i) {
+  const s = STEPS[i];
+  document.getElementById('isHint').innerHTML =
+    `Wpisz słowo kluczowe żeby odpowiedzieć: <span class="is-keyword">${s.keywordHint}</span>`;
+  document.getElementById('isInput').value = '';
+  document.getElementById('isInput').className = 'is-input';
+  document.getElementById('isFeedback').className = 'is-feedback';
+  document.getElementById('isInput').focus();
+}
+
+function checkWord() {
+  const val = document.getElementById('isInput').value.trim().toUpperCase();
+  const s   = STEPS[step];
+  const inp = document.getElementById('isInput');
+  const fb  = document.getElementById('isFeedback');
+
+  // Akceptuj jeśli wartość zawiera słowo kluczowe
+  const key = s.keyword.toUpperCase();
+  const isOk = val === key || val.includes(key.split(' ')[0]);
+
+  if(isOk) {
+    inp.className = 'is-input ok';
+    fb.className  = 'is-feedback show ok';
+    fb.textContent = '✅ ' + s.tip;
+    unlocked++;
+    updateProgress();
+
+    // Dodaj odpowiedź Mareczka
+    setTimeout(()=>{ addMyMsg(s); }, 300);
+
+    if(s.last) {
+      // Koniec rozmowy
+      setTimeout(()=>{
+        document.getElementById('inputSection').style.display = 'none';
+        showEnd();
+      }, 1800);
+    } else {
+      // Następny krok
+      step++;
+      setTimeout(()=>{
+        addOtherMsg(STEPS[step]);
+        setTimeout(()=>showInput(step), 1000);
+      }, 1200);
+    }
+  } else {
+    inp.className = 'is-input error';
+    fb.className  = 'is-feedback show no';
+    fb.innerHTML  = `❌ Spróbuj wpisać: <span style="font-family:'Courier Prime',monospace;font-weight:700;">${s.keywordHint}</span>`;
+    setTimeout(()=>{ inp.className='is-input'; inp.value=''; inp.focus(); }, 800);
+  }
+}
+
+function updateProgress() {
+  const pct = (unlocked / STEPS.length) * 100;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progTxt').textContent  = `${unlocked} / ${STEPS.length} słówek odblokowanych`;
+}
+
+/* ════════════════
+   KONIEC
+════════════════ */
+function showEnd() {
+  document.getElementById('endCard').classList.add('show');
+  const grid = document.getElementById('vocabGrid');
+  const colors = ['#1a2e4a','#e07820','#d63528','#15803d','#7c3aed','#0891b2','#c8a040','#888'];
+  grid.innerHTML = STEPS.map((s,i)=>`
+    <div class="ve-row">
+      <div class="ve-dot" style="background:${colors[i]}"></div>
+      <div class="ve-en">${s.vocab.en}</div>
+      <div class="ve-pl">— ${s.vocab.pl}</div>
+    </div>
+  `).join('');
+}
+
+function restart() {
+  step=0; unlocked=0;
+  document.getElementById('endCard').classList.remove('show');
+  document.getElementById('inputSection').style.display='block';
+  document.getElementById('progFill').style.width='0%';
+  document.getElementById('progTxt').textContent='0 / 8 słówek odblokowanych';
+  init();
+}
+
+/* ════════════════
+   DŹWIĘK
+════════════════ */
+function speakText(text, btn) {
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const clean = text.replace(/["""„]/g,'').replace(/\\'/g,"'").trim();
+  if(btn){ btn.classList.add('playing'); btn.textContent='🔊 Odtwarzam...'; }
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(clean);
+    u.lang='en-GB'; u.rate=0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+      || voices.find(x=>x.lang==='en-GB')
+      || voices.find(x=>x.lang.startsWith('en-GB'))
+      || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice=v;
+    u.onend=()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent='🔊 Wymowa'; } };
+    u.onerror=()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent='🔊 Wymowa'; } };
+    window.speechSynthesis.speak(u);
+  }, 1000);
+}
+
+/* INIT */
+init();
+</script>
+</body>
+</html>
