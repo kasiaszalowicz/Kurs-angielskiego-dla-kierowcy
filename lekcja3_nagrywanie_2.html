@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lekcja 3 — Liczby, wagi i wymiary</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Courier+Prime:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --navy:#1a2e4a;--red:#d63528;--green:#15803d;
+  --bg:#f5f2ec;--white:#fff;--border:#e0dbd0;--muted:#888;
+  --yellow:#ffe566;--orange:#e07820;
+}
+body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;padding:20px 16px;color:var(--navy);}
+.wrap{max-width:900px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--navy);border-radius:12px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;}
+.h-sub{font-size:0.67rem;color:rgba(255,255,255,0.4);font-weight:700;margin-top:2px;}
+.h-badge{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:0.65rem;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:1px;}
+
+/* PROGRESS */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.prog-bar{flex:1;height:4px;background:rgba(26,46,74,0.1);border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;width:0%;background:var(--navy);border-radius:99px;transition:width 0.5s;}
+.prog-txt{font-size:0.65rem;font-weight:900;color:var(--muted);letter-spacing:1px;white-space:nowrap;}
+
+/* INTRO */
+.intro{background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:11px 16px;margin-bottom:16px;font-size:0.75rem;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:8px;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+
+/* MAIN LAYOUT */
+.main{display:grid;grid-template-columns:1fr 280px;gap:14px;margin-bottom:14px;}
+
+/* KARTY PÓL */
+.calc-wrap{display:flex;flex-direction:column;gap:10px;}
+.section-label{font-size:0.6rem;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;}
+.calc-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.cc-head{background:var(--navy);padding:8px 14px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;}
+.cc-body{padding:14px;}
+
+/* POLE — nowy układ statyczny */
+.calc-field{
+  display:grid;grid-template-columns:160px 1fr;
+  gap:10px;align-items:center;
+  margin-bottom:12px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.calc-field:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+.cf-label{font-size:0.72rem;font-weight:700;color:var(--navy);}
+.cf-unit{font-size:0.62rem;color:var(--muted);margin-top:2px;}
+.cf-right{display:flex;flex-direction:column;gap:6px;}
+
+/* Wartość statyczna (zamiast inputa) */
+.cf-static-row{display:flex;align-items:center;gap:8px;}
+.cf-static-val{
+  flex:1;
+  background:rgba(26,46,74,0.05);
+  border:1.5px solid var(--border);
+  border-radius:8px;
+  padding:9px 12px;
+  font-family:'Nunito',sans-serif;
+  font-size:0.85rem;font-weight:900;
+  color:var(--navy);
+}
+.cf-unit-tag{
+  font-size:0.7rem;font-weight:700;color:var(--muted);
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:6px;padding:5px 9px;white-space:nowrap;
+}
+
+/* Wynik angielski */
+.cf-result{
+  background:var(--navy);
+  border-radius:8px;
+  padding:9px 12px;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  min-height:40px;
+  cursor:pointer;
+  transition:all 0.15s;
+}
+.cf-result:hover{background:#2a4a6a;}
+.cf-result.highlighted{
+  background:var(--navy);
+  box-shadow:0 0 0 2px var(--yellow);
+}
+.cf-result-en{
+  font-family:'Courier Prime',monospace;
+  font-size:0.82rem;font-weight:700;
+  color:var(--yellow);flex:1;line-height:1.4;
+}
+.cf-sound{
+  background:none;border:1px solid rgba(255,229,102,0.3);
+  border-radius:50%;width:28px;height:28px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:0.75rem;color:var(--yellow);
+  transition:all 0.15s;flex-shrink:0;
+}
+.cf-sound:hover{background:rgba(255,229,102,0.15);border-color:var(--yellow);}
+.cf-sound.playing{background:rgba(255,229,102,0.2);border-color:var(--yellow);}
+
+/* Status nagrywania na przycisku */
+.rec-indicator{
+  width:8px;height:8px;border-radius:50%;background:var(--red);
+  display:none;animation:pulse-rec 1s infinite;
+}
+.cf-result.is-recording .rec-indicator{display:block;}
+
+/* Wymiary */
+.dims-static-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+.dim-field{}
+.df-label{font-size:0.65rem;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;}
+.df-static{
+  width:100%;background:rgba(26,46,74,0.05);
+  border:1.5px solid var(--border);border-radius:8px;
+  padding:9px 10px;font-family:'Nunito',sans-serif;
+  font-size:0.85rem;font-weight:900;color:var(--navy);
+}
+.dims-result{
+  background:var(--navy);border-radius:8px;padding:9px 12px;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  min-height:40px;cursor:pointer;transition:all 0.15s;
+}
+.dims-result:hover{background:#2a4a6a;}
+
+/* PRAWY PANEL */
+.right-col{display:flex;flex-direction:column;gap:12px;}
+.active-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.ac-head{background:var(--orange);padding:8px 14px;font-size:0.6rem;font-weight:900;color:#fff;letter-spacing:1.5px;text-transform:uppercase;}
+.ac-body{padding:13px 15px;}
+.ac-empty{font-size:0.75rem;color:var(--muted);font-weight:700;text-align:center;padding:10px 0;line-height:1.7;}
+.ac-tag{display:inline-block;background:rgba(224,120,32,0.1);color:var(--orange);font-size:0.58rem;font-weight:900;padding:2px 9px;border-radius:99px;letter-spacing:1px;margin-bottom:7px;}
+.ac-en{font-family:'Courier Prime',monospace;font-size:0.95rem;font-weight:700;color:var(--navy);margin-bottom:3px;line-height:1.4;}
+.ac-tip{font-size:0.72rem;line-height:1.6;color:var(--navy);padding:7px 10px;background:var(--bg);border-radius:7px;border-left:2.5px solid var(--orange);margin-top:6px;}
+
+/* Słownik */
+.vocab-card{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.vc-head{background:var(--navy);padding:8px 14px;font-size:0.6rem;font-weight:900;color:rgba(255,255,255,0.45);letter-spacing:2px;text-transform:uppercase;}
+.vc-body{padding:8px 12px;}
+.v-row{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:6px;margin-bottom:2px;}
+.v-dot{width:6px;height:6px;border-radius:50%;background:var(--navy);flex-shrink:0;}
+.v-en{font-family:'Courier Prime',monospace;font-weight:700;color:var(--navy);font-size:0.7rem;flex:1;min-width:0;}
+.v-pl{font-size:0.62rem;color:var(--muted);font-weight:700;text-align:right;white-space:nowrap;min-width:90px;}
+
+/* QUIZ */
+.quiz-wrap{background:var(--white);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.qw-head{background:var(--red);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;}
+.qw-title{font-size:0.65rem;font-weight:900;color:#fff;letter-spacing:1.5px;text-transform:uppercase;}
+.qw-prog{font-size:0.62rem;color:rgba(255,255,255,0.6);font-weight:700;}
+.qw-body{padding:13px 14px;}
+.q-q{font-size:0.82rem;font-weight:700;line-height:1.5;margin-bottom:10px;padding:8px 11px;background:var(--bg);border-radius:7px;border-left:2.5px solid var(--navy);}
+.q-opt{background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:0.78rem;font-weight:700;cursor:pointer;margin-bottom:6px;width:100%;text-align:left;color:var(--navy);display:flex;align-items:center;gap:9px;transition:all 0.13s;font-family:'Nunito',sans-serif;}
+.q-opt:last-child{margin-bottom:0;}
+.q-opt:hover:not(:disabled){border-color:var(--navy);background:var(--white);}
+.q-opt.ok{background:#f0fdf4;border-color:var(--green);color:var(--green);}
+.q-opt.no{background:#fef2f2;border-color:var(--red);color:var(--red);}
+.q-opt:disabled{cursor:default;}
+.q-ltr{width:20px;height:20px;border-radius:50%;background:rgba(26,46,74,0.1);display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:900;color:var(--navy);flex-shrink:0;transition:all 0.13s;}
+.q-opt.ok .q-ltr{background:var(--green);color:#fff;}
+.q-opt.no .q-ltr{background:var(--red);color:#fff;}
+.q-fb{font-size:0.72rem;font-weight:700;margin-top:8px;padding:7px 10px;border-radius:7px;display:none;line-height:1.5;}
+.q-fb.show{display:block;}
+.q-fb.ok{background:#f0fdf4;border:1px solid #86efac;color:var(--green);}
+.q-fb.no{background:#fef2f2;border:1px solid #fca5a5;color:var(--red);}
+.q-next{margin-top:8px;width:100%;background:var(--navy);color:#fff;border:none;border-radius:8px;padding:10px;font-family:'Nunito',sans-serif;font-size:0.8rem;font-weight:900;cursor:pointer;display:none;transition:all 0.15s;}
+.q-next:hover{background:#2a4a6a;}
+.q-next.show{display:block;}
+.q-done{background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:12px;text-align:center;font-size:0.8rem;font-weight:700;color:var(--green);display:none;}
+.q-done.show{display:block;}
+
+/* FOOTER */
+.footer{display:flex;align-items:center;justify-content:space-between;margin-top:4px;}
+.f-txt{font-size:0.58rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:4px;}
+.f-d{width:6px;height:6px;border-radius:50%;background:rgba(26,46,74,0.15);}
+.f-d.on{background:var(--navy);}
+
+@media(max-width:660px){
+  .main{grid-template-columns:1fr;}
+  .calc-field{grid-template-columns:1fr;}
+  .dims-static-row{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div>
+    <div class="h-title">Liczby, wagi i wymiary</div>
+    <div class="h-sub">Lekcja 3 · Moduł 1 · Angielski z Mareczkiem · Crosshaul</div>
+  </div>
+  <div class="h-badge">3 / 30</div>
+</div>
+
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">kliknij pole żeby odsłuchać</div>
+</div>
+
+
+
+<div class="main">
+
+  <!-- LEWA KOLUMNA — POLA STATYCZNE -->
+  <div class="calc-wrap">
+
+    <!-- WAGI -->
+    <div class="section-label">Wagi ładunku</div>
+    <div class="calc-card">
+      <div class="cc-head">Wagi — weights</div>
+      <div class="cc-body">
+
+        <!-- Gross weight — stała wartość: 24500 kg -->
+        <div class="calc-field">
+          <div>
+            <div class="cf-label">Gross weight</div>
+            <div class="cf-unit">waga brutto</div>
+          </div>
+          <div class="cf-right">
+            <div class="cf-static-row">
+              <div class="cf-static-val">24 500</div>
+              <div class="cf-unit-tag">kg</div>
+            </div>
+            <div class="cf-result" id="gross-result" onclick="selectField('gross')">
+              <div class="rec-indicator" id="gross-rec-ind"></div>
+              <div class="cf-result-en" id="gross-en">Gross weight: twenty-four point five tonnes</div>
+              <button class="cf-sound" id="gross-snd" onclick="event.stopPropagation();playAudio('gross')">🔊</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Net weight — stała wartość: 18200 kg -->
+        <div class="calc-field">
+          <div>
+            <div class="cf-label">Net weight</div>
+            <div class="cf-unit">waga netto</div>
+          </div>
+          <div class="cf-right">
+            <div class="cf-static-row">
+              <div class="cf-static-val">18 200</div>
+              <div class="cf-unit-tag">kg</div>
+            </div>
+            <div class="cf-result" id="net-result" onclick="selectField('net')">
+              <div class="rec-indicator" id="net-rec-ind"></div>
+              <div class="cf-result-en" id="net-en">Net weight: eighteen point two tonnes</div>
+              <button class="cf-sound" id="net-snd" onclick="event.stopPropagation();playAudio('net')">🔊</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tare weight — stała wartość: 8500 kg -->
+        <div class="calc-field">
+          <div>
+            <div class="cf-label">Tare weight</div>
+            <div class="cf-unit">waga tary (pojazdu)</div>
+          </div>
+          <div class="cf-right">
+            <div class="cf-static-row">
+              <div class="cf-static-val">8 500</div>
+              <div class="cf-unit-tag">kg</div>
+            </div>
+            <div class="cf-result" id="tare-result" onclick="selectField('tare')">
+              <div class="rec-indicator" id="tare-rec-ind"></div>
+              <div class="cf-result-en" id="tare-en">Tare weight: eight point five tonnes</div>
+              <button class="cf-sound" id="tare-snd" onclick="event.stopPropagation();playAudio('tare')">🔊</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- WYMIARY — stałe wartości: 13.6 × 2.4 × 4.0 m -->
+    <div class="section-label">Wymiary pojazdu</div>
+    <div class="calc-card">
+      <div class="cc-head">Wymiary — dimensions</div>
+      <div class="cc-body">
+
+        <div class="dims-static-row">
+          <div class="dim-field">
+            <div class="df-label">Length / długość</div>
+            <div class="df-static">13.6</div>
+          </div>
+          <div class="dim-field">
+            <div class="df-label">Width / szerokość</div>
+            <div class="df-static">2.4</div>
+          </div>
+          <div class="dim-field">
+            <div class="df-label">Height / wysokość</div>
+            <div class="df-static">4.0</div>
+          </div>
+        </div>
+        <div class="dims-result" id="dims-result" onclick="selectField('dims')">
+          <div class="rec-indicator" id="dims-rec-ind"></div>
+          <div class="cf-result-en" id="dims-en">thirteen point six metres long, two point four metres wide, four metres high</div>
+          <button class="cf-sound" id="dims-snd" onclick="event.stopPropagation();playAudio('dims')">🔊</button>
+        </div>
+
+        <!-- Loading metres — stała wartość: 13.6 LDM -->
+        <div class="calc-field" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+          <div>
+            <div class="cf-label">Loading metres</div>
+            <div class="cf-unit">metry ładunkowe (LDM)</div>
+          </div>
+          <div class="cf-right">
+            <div class="cf-static-row">
+              <div class="cf-static-val">13.6</div>
+              <div class="cf-unit-tag">LDM</div>
+            </div>
+            <div class="cf-result" id="ldm-result" onclick="selectField('ldm')">
+              <div class="rec-indicator" id="ldm-rec-ind"></div>
+              <div class="cf-result-en" id="ldm-en">thirteen point six metres loading metres</div>
+              <button class="cf-sound" id="ldm-snd" onclick="event.stopPropagation();playAudio('ldm')">🔊</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PALETY — stała wartość: 22 palety -->
+    <div class="section-label">Liczba palet i paczek</div>
+    <div class="calc-card">
+      <div class="cc-head">Ilości — quantities</div>
+      <div class="cc-body">
+        <div class="calc-field">
+          <div>
+            <div class="cf-label">Number of pallets</div>
+            <div class="cf-unit">liczba palet</div>
+          </div>
+          <div class="cf-right">
+            <div class="cf-static-row">
+              <div class="cf-static-val">22</div>
+              <div class="cf-unit-tag">EUR</div>
+            </div>
+            <div class="cf-result" id="pallets-result" onclick="selectField('pallets')">
+              <div class="rec-indicator" id="pallets-rec-ind"></div>
+              <div class="cf-result-en" id="pallets-en">twenty-two EUR pallets</div>
+              <button class="cf-sound" id="pallets-snd" onclick="event.stopPropagation();playAudio('pallets')">🔊</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /calc-wrap -->
+
+  <!-- PRAWY PANEL -->
+  <div class="right-col">
+
+    <div class="active-card">
+      <div class="ac-head">Jak to powiedzieć</div>
+      <div class="ac-body" id="acBody">
+        <div class="ac-empty">← Kliknij żółty wynik<br>żeby wybrać pole</div>
+      </div>
+    </div>
+    <div class="vocab-card">
+      <div class="vc-head">Słownik — Lekcja 3</div>
+      <div class="vc-body">
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">gross weight</div><div class="v-pl">waga brutto</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">net weight</div><div class="v-pl">waga netto</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">tare weight</div><div class="v-pl">waga tary</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">loading metres</div><div class="v-pl">metry ładunkowe</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">dimensions</div><div class="v-pl">wymiary</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">length / width / height</div><div class="v-pl">dł. / szer. / wys.</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">tonnes</div><div class="v-pl">tony</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">kilograms</div><div class="v-pl">kilogramy</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">metres</div><div class="v-pl">metry</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">overloaded</div><div class="v-pl">przeciążony</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">axle weight</div><div class="v-pl">nacisk na oś</div></div>
+        <div class="v-row"><div class="v-dot"></div><div class="v-en">total length</div><div class="v-pl">całkowita długość</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="quiz-wrap" style="margin-bottom:14px;">
+  <div class="qw-head">
+    <div class="qw-title">Quiz</div>
+    <div class="qw-prog" id="qprog">1 / 6</div>
+  </div>
+  <div class="qw-body">
+    <div class="q-q" id="qq"></div>
+    <div id="qopts"></div>
+    <div class="q-fb" id="qfb"></div>
+    <button class="q-next" id="qnext" onclick="nextQ()">DALEJ →</button>
+    <div class="q-done" id="qdone">✅ Lekcja 3 ukończona! Znasz liczby i wagi po angielsku.</div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div><div class="f-d"></div><div class="f-d on"></div><div class="f-d"></div><div class="f-d"></div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+/* ════════════════════════════
+   DANE PÓL — STAŁE WARTOŚCI
+════════════════════════════ */
+const FIELDS = {
+  gross: {
+    text: 'Gross weight: twenty-four point five tonnes',
+    tag: 'GROSS WEIGHT',
+    tip: 'Gross weight = waga brutto = pojazd + ładunek. Max na drogach EU = 40 000 kg.',
+    audioKey: 'audio_gross'   // ← tu wkleisz base64 po nagraniu
+  },
+  net: {
+    text: 'Net weight: eighteen point two tonnes',
+    tag: 'NET WEIGHT',
+    tip: 'Net weight = waga netto = sam ładunek bez pojazdu.',
+    audioKey: 'audio_net'
+  },
+  tare: {
+    text: 'Tare weight: eight point five tonnes',
+    tag: 'TARE WEIGHT',
+    tip: 'Tare = waga pustego pojazdu. Gross - Net = Tare.',
+    audioKey: 'audio_tare'
+  },
+  dims: {
+    text: 'thirteen point six metres long, two point four metres wide, four metres high',
+    tag: 'DIMENSIONS',
+    tip: 'Length × Width × Height. Max height EU = 4.0 m. Max width = 2.55 m.',
+    audioKey: 'audio_dims'
+  },
+  ldm: {
+    text: 'thirteen point six metres loading metres',
+    tag: 'LOADING METRES',
+    tip: 'Loading metres (LDM) = metry ładunkowe. Max naczepa = 13.6 LDM.',
+    audioKey: 'audio_ldm'
+  },
+  pallets: {
+    text: 'twenty-two EUR pallets',
+    tag: 'PALLETS',
+    tip: 'Number of pallets = liczba palet. Standard EUR = 120×80 cm.',
+    audioKey: 'audio_pallets'
+  }
+};
+
+/* ═══════════════════
+   NAGRANIA AUDIO
+   Wklej base64 po nagraniu — format:
+   'data:audio/webm;base64,AAAAA...'
+═══════════════════ */
+const AUDIO = {
+  audio_gross:   null,   // ← tu wklej po nagraniu
+  audio_net:     null,
+  audio_tare:    null,
+  audio_dims:    null,
+  audio_ldm:     null,
+  audio_pallets: null,
+};
+
+/* ═════════════
+   STAN
+═════════════ */
+let selectedField = null;
+let mediaRecorder = null;
+let recordedChunks = [];
+let isRecording = false;
+let listened = new Set();
+
+/* ═════════════
+   WYBÓR POLA
+═════════════ */
+function selectField(field) {
+  // Odznacz poprzednie
+  if(selectedField) {
+    const prev = document.getElementById(selectedField + '-result');
+    if(prev) prev.classList.remove('highlighted');
+  }
+  selectedField = field;
+  const el = document.getElementById(field + '-result');
+  if(el) el.classList.add('highlighted');
+
+  // Pokaż info w panelu "Jak to powiedzieć"
+  const f = FIELDS[field];
+  document.getElementById('acBody').innerHTML = `
+    <div class="ac-tag">${f.tag}</div>
+    <div class="ac-en">${f.text}</div>
+    <div class="ac-tip">${f.tip}</div>
+  `;
+}
+
+/* ═════════════
+   ODTWARZANIE
+═════════════ */
+function playAudio(field) {
+  const f = FIELDS[field];
+  const audioData = AUDIO[f.audioKey];
+
+  if(audioData) {
+    // Odtwórz nagrane audio
+    const audio = new Audio(audioData);
+    const btn = document.getElementById(field + '-snd');
+    if(btn) { btn.classList.add('playing'); btn.textContent = '⏸'; }
+    audio.onended = () => { if(btn) { btn.classList.remove('playing'); btn.textContent = '🔊'; } };
+    audio.play();
+  } else {
+    // Fallback: Web Speech API
+    if(!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const btn = document.getElementById(field + '-snd');
+    if(btn) { btn.classList.add('playing'); btn.textContent = '⏸'; }
+    setTimeout(() => {
+      const u = new SpeechSynthesisUtterance(f.text);
+      u.lang = 'en-GB'; u.rate = 0.75;
+      const voices = window.speechSynthesis.getVoices();
+      const v = voices.find(x=>x.lang==='en-GB') || voices.find(x=>x.lang.startsWith('en-GB')) || voices.find(x=>x.lang.startsWith('en'));
+      if(v) u.voice = v;
+      u.onend = () => { if(btn) { btn.classList.remove('playing'); btn.textContent = '🔊'; } };
+      window.speechSynthesis.speak(u);
+    }, 200);
+  }
+
+  // Zaznacz jako odsłuchane
+  listened.add(field);
+  updateProgress();
+
+  // Zaznacz pole
+  selectField(field);
+}
+
+function updateProgress() {
+  const pct = (listened.size / Object.keys(FIELDS).length) * 100;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progTxt').textContent = listened.size + ' / ' + Object.keys(FIELDS).length + ' odsłuchanych';
+}
+
+/* ═════════════
+   QUIZ
+═════════════ */
+const qs = [
+  { q:'Jak powiedzieć "waga brutto" po angielsku?',
+    opts:['Net weight','Tare weight','Gross weight','Dead weight'],
+    ans:2, tip:'Gross weight = waga brutto = pojazd + ładunek łącznie.' },
+  { q:'Celnik pyta: "What is the tare weight?" O co pyta?',
+    opts:['O wagę ładunku','O wagę pustego pojazdu','O całkowitą wagę','O liczbę palet'],
+    ans:1, tip:'Tare weight = waga tary = waga pustego pojazdu bez ładunku.' },
+  { q:'Jak powiedzieć 24 500 kg po angielsku?',
+    opts:['Twenty-four thousand and five hundred kilograms','Twenty-four point five tonnes','Two four five zero zero kilograms','Twenty four tonnes five hundred'],
+    ans:1, tip:'24 500 kg = 24.5 tonnes. Używamy ton (tonnes) dla dużych wag!' },
+  { q:'Co to są "loading metres"?',
+    opts:['Metry długości drogi','Metry ładunkowe naczepy','Metry wysokości ładunku','Metry szerokości'],
+    ans:1, tip:'Loading metres (LDM) = metry ładunkowe. Max naczepa standardowa = 13.6 LDM.' },
+  { q:'Jak zapytać o wymiary ładunku?',
+    opts:['What is the weight?','What are the dimensions?','How many pallets?','What is the tare?'],
+    ans:1, tip:'What are the dimensions? = Jakie są wymiary? Length × Width × Height.' },
+  { q:'Pojazd jest overloaded. Co to znaczy?',
+    opts:['Pojazd jest pusty','Pojazd jest przeciążony','Pojazd jest zbyt szeroki','Pojazd jest uszkodzony'],
+    ans:1, tip:'Overloaded = przeciążony. The vehicle is overloaded = pojazd jest przeciążony.' },
+];
+let qi = 0;
+
+function renderQ() {
+  if(qi >= qs.length) {
+    document.getElementById('qq').style.display='none';
+    document.getElementById('qopts').innerHTML='';
+    document.getElementById('qfb').className='q-fb';
+    document.getElementById('qnext').classList.remove('show');
+    document.getElementById('qprog').textContent='';
+    document.getElementById('qdone').classList.add('show');
+    return;
+  }
+  const q = qs[qi];
+  document.getElementById('qprog').textContent = (qi+1)+' / '+qs.length;
+  document.getElementById('qq').textContent = q.q;
+  document.getElementById('qfb').className = 'q-fb';
+  document.getElementById('qnext').classList.remove('show');
+  document.getElementById('qopts').innerHTML = q.opts.map((o,i) => `
+    <button class="q-opt" onclick="qa(this,${i===q.ans})">
+      <div class="q-ltr">${['A','B','C','D'][i]}</div>${o}
+    </button>
+  `).join('');
+}
+
+function qa(btn, correct) {
+  document.querySelectorAll('.q-opt').forEach(b=>b.disabled=true);
+  const fb = document.getElementById('qfb');
+  if(correct) { btn.classList.add('ok'); fb.className='q-fb show ok'; fb.textContent='✅ '+qs[qi].tip; }
+  else { btn.classList.add('no'); document.querySelectorAll('.q-opt')[qs[qi].ans].classList.add('ok'); fb.className='q-fb show no'; fb.textContent='❌ '+qs[qi].tip; }
+  qi++;
+  document.getElementById('qnext').classList.add('show');
+}
+function nextQ() { renderQ(); }
+
+/* INIT */
+renderQ();
+setTimeout(()=>window.speechSynthesis.getVoices(), 300);
+</script>
+</body>
+</html>
