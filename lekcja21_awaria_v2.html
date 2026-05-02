@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lekcja 21 — Awaria na trasie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+
+:root{
+  --navy:#1a2e4a;
+  --navy-light:#2a4a6a;
+  --red:#d63528;
+  --green:#15803d;
+  --green-light:#f0fdf4;
+  --green-border:#86efac;
+  --red-light:#fef2f2;
+  --red-border:#fca5a5;
+  --orange:#e07820;
+  --bg:#f5f2ec;
+  --white:#ffffff;
+  --border:#e0dbd0;
+  --border-dark:#c8c2b6;
+  --muted:#7a7570;
+  --text:#1a2e4a;
+  --selected-bg:#eff6ff;
+  --selected-border:#3b82f6;
+}
+
+html{font-size:16px;}
+body{
+  background:var(--bg);
+  font-family:'Nunito',sans-serif;
+  min-height:100vh;
+  color:var(--text);
+  padding:0;
+}
+
+.wrap{
+  max-width:600px;
+  margin:0 auto;
+  padding:16px 14px 32px;
+}
+
+/* ── HEADER ── */
+.header{
+  background:var(--navy);
+  border-radius:16px;
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:12px;
+  gap:12px;
+}
+.h-left{display:flex;align-items:center;gap:11px;min-width:0;}
+.h-logo{
+  width:36px;height:36px;
+  background:rgba(255,255,255,0.12);
+  border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  font-size:1.1rem;font-weight:900;color:#fff;
+  letter-spacing:-1px;overflow:hidden;
+}
+.h-logo img{width:100%;height:100%;object-fit:contain;padding:4px;}
+.h-text{min-width:0;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.h-sub{font-size:0.65rem;color:rgba(255,255,255,0.45);font-weight:600;margin-top:1px;}
+.h-badge{
+  background:rgba(255,255,255,0.1);
+  border:1px solid rgba(255,255,255,0.2);
+  color:#fff;font-size:0.65rem;font-weight:900;
+  padding:5px 12px;border-radius:20px;
+  letter-spacing:0.5px;white-space:nowrap;flex-shrink:0;
+}
+
+/* ── PROGRESS ── */
+.prog-row{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:20px;
+}
+.prog-bar{
+  flex:1;height:8px;
+  background:rgba(26,46,74,0.1);
+  border-radius:99px;overflow:hidden;
+}
+.prog-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--navy),var(--orange));
+  border-radius:99px;
+  transition:width 0.5s ease;
+}
+.prog-txt{
+  font-size:0.65rem;font-weight:900;
+  color:var(--muted);letter-spacing:0.5px;white-space:nowrap;
+}
+
+/* ── ROUND INFO ── */
+.round-info{text-align:center;margin-bottom:20px;}
+.round-tag{
+  display:inline-block;background:var(--navy);color:#fff;
+  font-size:0.58rem;font-weight:900;
+  letter-spacing:2px;padding:4px 14px;
+  border-radius:99px;text-transform:uppercase;margin-bottom:8px;
+}
+.round-title{font-size:1.15rem;font-weight:900;color:var(--navy);line-height:1.3;}
+.round-sub{font-size:0.75rem;color:var(--muted);font-weight:600;margin-top:4px;line-height:1.4;}
+
+/* ── INSTRUKCJA ── */
+.steps-hint{
+  display:flex;gap:8px;margin-bottom:18px;
+  padding:11px 14px;
+  background:var(--white);
+  border:1.5px solid var(--border);
+  border-radius:12px;
+}
+.step-item{flex:1;text-align:center;font-size:0.62rem;font-weight:700;color:var(--muted);line-height:1.4;}
+.step-num{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:20px;height:20px;border-radius:50%;
+  background:var(--navy);color:#fff;
+  font-size:0.6rem;font-weight:900;margin-bottom:4px;
+}
+.step-sep{display:flex;align-items:center;color:var(--border-dark);font-size:1rem;margin-top:8px;}
+
+/* ── LABELS ── */
+.section-label{
+  font-size:0.6rem;font-weight:900;color:var(--muted);
+  text-transform:uppercase;letter-spacing:2px;
+  margin-bottom:10px;padding-left:2px;
+}
+
+/* ── SELECTED INDICATOR ── */
+.selected-indicator{
+  background:var(--selected-bg);
+  border:2px solid var(--selected-border);
+  border-radius:10px;
+  padding:9px 14px;
+  font-size:0.72rem;font-weight:700;color:#1d4ed8;
+  text-align:center;margin-bottom:10px;
+  display:none;
+  font-family:'IBM Plex Mono',monospace;
+}
+.selected-indicator.show{display:block;}
+
+/* ── FRAZY ── */
+.phrases-pool{display:flex;flex-direction:column;gap:8px;margin-bottom:22px;}
+
+.phrase-btn{
+  width:100%;background:var(--white);
+  border:2px solid var(--border);border-radius:14px;
+  padding:14px 16px;
+  display:flex;align-items:center;gap:12px;
+  cursor:pointer;transition:all 0.18s ease;
+  text-align:left;min-height:56px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.05);
+}
+.phrase-btn:active{transform:scale(0.98);}
+.phrase-btn.selected{
+  border-color:var(--selected-border);background:var(--selected-bg);
+  box-shadow:0 0 0 3px rgba(59,130,246,0.15), 0 2px 6px rgba(0,0,0,0.06);
+}
+.phrase-btn.matched{
+  border-color:var(--green);background:var(--green-light);
+  cursor:default;box-shadow:none;opacity:0.7;
+}
+.phrase-btn.matched:active{transform:none;}
+.phrase-btn:hover:not(.matched):not(.selected){
+  border-color:var(--border-dark);
+  box-shadow:0 3px 10px rgba(0,0,0,0.08);
+  transform:translateY(-1px);
+}
+
+.pb-icon{
+  width:32px;height:32px;flex-shrink:0;border-radius:8px;
+  background:rgba(26,46,74,0.07);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.75rem;transition:all 0.15s;
+}
+.phrase-btn.selected .pb-icon{background:rgba(59,130,246,0.15);color:var(--selected-border);}
+.phrase-btn.matched .pb-icon{background:rgba(21,128,61,0.15);color:var(--green);}
+
+.pb-text{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.82rem;font-weight:500;
+  color:var(--navy);flex:1;line-height:1.45;
+}
+.phrase-btn.selected .pb-text{color:#1d4ed8;}
+.phrase-btn.matched .pb-text{color:var(--green);}
+
+.pb-sound{
+  background:none;border:none;cursor:pointer;
+  font-size:0.85rem;opacity:0.3;transition:opacity 0.15s;
+  padding:4px;flex-shrink:0;border-radius:6px;
+}
+.pb-sound:hover{opacity:0.9;background:rgba(0,0,0,0.05);}
+.phrase-btn.matched .pb-sound{pointer-events:none;opacity:0.3;}
+
+/* ── STREFY ── */
+.drop-zones-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+
+.zone-card{
+  background:var(--white);border:2px dashed var(--border);
+  border-radius:14px;padding:14px 16px;
+  min-height:58px;display:flex;align-items:center;gap:10px;
+  cursor:pointer;transition:all 0.18s ease;
+  box-shadow:0 1px 3px rgba(0,0,0,0.04);
+}
+.zone-card:active{transform:scale(0.98);}
+.zone-card.active-target{
+  border-color:var(--selected-border);background:var(--selected-bg);
+  border-style:solid;box-shadow:0 0 0 3px rgba(59,130,246,0.15);
+}
+.zone-card.pulse-target{animation:pulseTarget 0.25s ease;}
+@keyframes pulseTarget{0%{transform:scale(1);}50%{transform:scale(1.02);}100%{transform:scale(1);}}
+.zone-card.correct{
+  border-color:var(--green);background:var(--green-light);
+  border-style:solid;cursor:default;
+  box-shadow:0 2px 8px rgba(21,128,61,0.1);
+}
+.zone-card.wrong{
+  border-color:var(--red);background:var(--red-light);
+  border-style:solid;animation:shake 0.35s ease;
+}
+@keyframes shake{
+  0%,100%{transform:translateX(0);}
+  20%{transform:translateX(-6px);}
+  40%{transform:translateX(6px);}
+  60%{transform:translateX(-4px);}
+  80%{transform:translateX(4px);}
+}
+
+.zc-status{
+  width:28px;height:28px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.8rem;background:rgba(26,46,74,0.07);transition:all 0.2s;
+}
+.zone-card.correct .zc-status{background:var(--green);color:#fff;}
+.zone-card.wrong .zc-status{background:var(--red);color:#fff;}
+.zone-card.active-target .zc-status{background:rgba(59,130,246,0.15);color:#3b82f6;}
+
+.zc-body{flex:1;min-width:0;}
+.zc-pl{font-size:0.85rem;font-weight:700;color:var(--navy);line-height:1.4;}
+.zc-answer{
+  font-family:'IBM Plex Mono',monospace;font-size:0.72rem;font-weight:500;
+  color:var(--green);margin-top:3px;opacity:0;transition:opacity 0.3s;line-height:1.3;
+}
+.zone-card.correct .zc-answer{opacity:1;}
+.zc-hint{font-size:0.65rem;color:#b0a898;font-style:italic;margin-top:2px;line-height:1.3;}
+.zone-card.correct .zc-hint{display:none;}
+
+/* ── WYNIK ── */
+.r1-result{
+  font-size:0.78rem;font-weight:700;color:var(--muted);
+  text-align:center;padding:10px;display:block;transition:color 0.3s;
+}
+.r1-result.done{color:var(--green);}
+
+/* ── EKRAN KOŃCOWY ── */
+.end-wrap{
+  background:var(--white);border:2px solid var(--border);
+  border-radius:18px;padding:28px 20px;text-align:center;
+  display:none;margin-bottom:16px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.06);
+}
+.end-wrap.show{display:block;}
+.end-icon{font-size:3rem;margin-bottom:10px;}
+.end-title{font-size:1.3rem;font-weight:900;color:var(--navy);margin-bottom:6px;}
+.end-sub{font-size:0.8rem;color:var(--muted);margin-bottom:22px;line-height:1.5;}
+
+/* ── SŁOWNIK ── */
+.vocab-box{background:var(--bg);border-radius:12px;padding:16px;text-align:left;margin-bottom:20px;}
+.vb-title{
+  font-size:0.6rem;font-weight:900;color:var(--muted);
+  text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;
+}
+.vb-list{display:flex;flex-direction:column;gap:6px;}
+.vb-row{
+  display:flex;align-items:baseline;gap:8px;
+  padding:8px 10px;border-radius:8px;
+  background:var(--white);border:1px solid var(--border);
+}
+.vb-dot{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:3px;}
+.vb-en{font-family:'IBM Plex Mono',monospace;font-size:0.8rem;font-weight:700;color:var(--navy);}
+.vb-sep{color:var(--border-dark);font-size:0.75rem;flex-shrink:0;}
+.vb-pl{font-size:0.72rem;color:var(--muted);font-weight:600;}
+
+.btn-restart{
+  background:var(--navy);color:#fff;border:none;border-radius:12px;
+  padding:14px 32px;font-family:'Nunito',sans-serif;
+  font-size:0.88rem;font-weight:900;cursor:pointer;
+  transition:all 0.15s;letter-spacing:0.3px;
+}
+.btn-restart:hover{background:var(--navy-light);}
+.btn-restart:active{transform:scale(0.97);}
+
+/* ── FOOTER ── */
+.footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+.f-txt{font-size:0.55rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:5px;align-items:center;}
+.f-d{width:7px;height:7px;border-radius:50%;background:rgba(26,46,74,0.12);transition:background 0.2s;}
+.f-d.on{background:var(--navy);}
+
+@media(max-width:360px){
+  .pb-text{font-size:0.76rem;}
+  .zc-pl{font-size:0.8rem;}
+  .round-title{font-size:1rem;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="h-left">
+    <div class="h-logo">
+      <img src="https://raw.githubusercontent.com/crosshaul/assets/main/logo.png"
+           onerror="this.parentElement.innerHTML='CH'" alt="Crosshaul">
+    </div>
+    <div class="h-text">
+      <div class="h-title">Awaria na trasie</div>
+      <div class="h-sub">Lekcja 21 · Moduł 4 · Angielski z Mareczkiem · Crosshaul</div>
+    </div>
+  </div>
+  <div class="h-badge">21 / 30</div>
+</div>
+
+<!-- PROGRESS -->
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">0 / 8</div>
+</div>
+
+<!-- MAIN ROUND -->
+<div id="mainRound">
+  <div class="round-info">
+    <div class="round-tag">Dopasuj frazy</div>
+    <div class="round-title">Kliknij frazę, potem sytuację</div>
+    <div class="round-sub">Wybierz angielski zwrot, a następnie pasującą polską sytuację</div>
+  </div>
+
+  <div class="steps-hint">
+    <div class="step-item">
+      <div><div class="step-num">1</div></div>
+      Kliknij frazę angielską
+    </div>
+    <div class="step-sep">→</div>
+    <div class="step-item">
+      <div><div class="step-num">2</div></div>
+      Kliknij pasującą sytuację
+    </div>
+    <div class="step-sep">→</div>
+    <div class="step-item">
+      <div><div class="step-num">✓</div></div>
+      Para zielona = ok!
+    </div>
+  </div>
+
+  <div class="selected-indicator" id="selIndicator"></div>
+
+  <div class="section-label">Frazy angielskie</div>
+  <div class="phrases-pool" id="phrasesPool"></div>
+
+  <div class="section-label">Sytuacje</div>
+  <div class="drop-zones-list" id="dropZonesList"></div>
+
+  <div class="r1-result" id="r1Result">Wybierz frazę angielską, potem dopasuj sytuację</div>
+</div>
+
+<!-- EKRAN KOŃCOWY -->
+<div class="end-wrap" id="endWrap">
+  <div class="end-icon">🏆</div>
+  <div class="end-title" id="endTitle">Awaria opanowana!</div>
+  <div class="end-sub" id="endSub">Znasz wszystkie frazy awaryjne po angielsku.</div>
+
+  <div class="vocab-box">
+    <div class="vb-title">Słownik — Lekcja 21</div>
+    <div class="vb-list" id="vocabList"></div>
+  </div>
+
+  <button class="btn-restart" onclick="restart()">↺ Zagraj jeszcze raz</button>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div>
+    <div class="f-d"></div>
+    <div class="f-d"></div>
+    <div class="f-d"></div>
+    <div class="f-d on"></div>
+  </div>
+</div>
+
+</div>
+<script>
+/* ══ DANE — identyczne jak oryginał ══ */
+const dndPairs = [
+  { en:'I have a flat tyre.',           pl:'Złapałem gumę.' },
+  { en:'The engine has broken down.',    pl:'Silnik padł.' },
+  { en:'I am stuck in the mud.',         pl:'Wjechałem w błoto.' },
+  { en:'The trailer is overheating.',    pl:'Naczepa się przegrzewa.' },
+  { en:'I need a tow truck.',            pl:'Potrzebuję holownika.' },
+  { en:'The brakes are not working.',    pl:'Hamulce nie działają.' },
+  { en:'I have a fuel leak.',            pl:'Mam wyciek paliwa.' },
+  { en:'I am stranded on the motorway.', pl:'Stoję unieruchomiony na autostradzie.' },
+];
+
+const vocabData = [
+  { en:'flat tyre',        pl:'przebita opona' },
+  { en:'breakdown',        pl:'awaria / zepsuta' },
+  { en:'tow truck',        pl:'holownik' },
+  { en:'hard shoulder',    pl:'pas awaryjny' },
+  { en:'hazard lights',    pl:'światła awaryjne' },
+  { en:'warning triangle', pl:'trójkąt ostrzegawczy' },
+  { en:'fuel leak',        pl:'wyciek paliwa' },
+  { en:'axle',             pl:'oś' },
+  { en:'overheating',      pl:'przegrzewanie' },
+  { en:'stranded',         pl:'unieruchomiony' },
+  { en:'assistance',       pl:'pomoc drogowa' },
+  { en:'kilometre marker', pl:'słupek km' },
+];
+
+/* ══ STAN ══ */
+let matched = 0;
+let selectedPhrase = null;
+let shuffledPhrases = [];
+let shuffledZones = [];
+
+function shuffle(a){ return [...a].sort(()=>Math.random()-0.5); }
+function encodePhrase(s){ return encodeURIComponent(s); }
+function decodePhrase(s){ return decodeURIComponent(s); }
+function escapeQ(s){ return s.replace(/'/g,"\\'"); }
+
+/* ══ BUILD ══ */
+function build(){
+  matched = 0;
+  selectedPhrase = null;
+  shuffledPhrases = shuffle(dndPairs);
+  shuffledZones   = shuffle(dndPairs);
+
+  document.getElementById('phrasesPool').innerHTML = shuffledPhrases.map((p,i)=>`
+    <button class="phrase-btn" id="pb${i}" data-en="${encodePhrase(p.en)}" onclick="selectPhrase(${i})">
+      <div class="pb-icon">⠿</div>
+      <span class="pb-text">${p.en}</span>
+      <button class="pb-sound" onclick="event.stopPropagation();speak('${escapeQ(p.en)}')" title="Posłuchaj">🔊</button>
+    </button>`).join('');
+
+  document.getElementById('dropZonesList').innerHTML = shuffledZones.map((p,i)=>`
+    <div class="zone-card" id="zc${i}" data-answer="${encodePhrase(p.en)}" onclick="selectZone(${i})">
+      <div class="zc-status">→</div>
+      <div class="zc-body">
+        <div class="zc-pl">${p.pl}</div>
+        <div class="zc-answer">${p.en}</div>
+        <div class="zc-hint">kliknij po wybraniu frazy</div>
+      </div>
+    </div>`).join('');
+
+  updateProgress();
+  document.getElementById('r1Result').textContent = 'Wybierz frazę angielską, potem dopasuj sytuację';
+  document.getElementById('r1Result').classList.remove('done');
+  hideSelIndicator();
+}
+
+/* ══ LOGIKA ══ */
+function selectPhrase(i){
+  const btn = document.getElementById('pb'+i);
+  if(btn.classList.contains('matched')) return;
+
+  if(selectedPhrase !== null){
+    const prev = document.getElementById('pb'+selectedPhrase);
+    if(prev) prev.classList.remove('selected');
+  }
+
+  btn.classList.add('selected');
+  selectedPhrase = i;
+  const en = decodePhrase(btn.dataset.en);
+  showSelIndicator(en);
+  highlightZones(true);
+}
+
+function selectZone(i){
+  const zone = document.getElementById('zc'+i);
+  if(zone.classList.contains('correct')) return;
+
+  if(selectedPhrase === null){
+    zone.classList.add('pulse-target');
+    setTimeout(()=>zone.classList.remove('pulse-target'),300);
+    document.getElementById('r1Result').textContent = '← Najpierw wybierz frazę angielską';
+    return;
+  }
+
+  const phraseBtn = document.getElementById('pb'+selectedPhrase);
+  const phraseEn  = decodePhrase(phraseBtn.dataset.en);
+  const zoneAns   = decodePhrase(zone.dataset.answer);
+
+  highlightZones(false);
+
+  if(phraseEn === zoneAns){
+    phraseBtn.classList.remove('selected');
+    phraseBtn.classList.add('matched');
+    phraseBtn.querySelector('.pb-icon').textContent = '✓';
+
+    zone.classList.add('correct');
+    zone.querySelector('.zc-status').textContent = '✓';
+
+    selectedPhrase = null;
+    hideSelIndicator();
+    matched++;
+    updateProgress();
+
+    if(matched === dndPairs.length){
+      setTimeout(()=>{
+        document.getElementById('r1Result').textContent = '✓ Wszystkie dopasowane!';
+        document.getElementById('r1Result').classList.add('done');
+        buildVocab();
+        setTimeout(showEnd, 900);
+      }, 300);
+    } else {
+      document.getElementById('r1Result').textContent = matched + ' / ' + dndPairs.length + ' dopasowanych';
+    }
+  } else {
+    zone.classList.add('wrong');
+    zone.querySelector('.zc-status').textContent = '✗';
+    setTimeout(()=>{
+      zone.classList.remove('wrong');
+      zone.querySelector('.zc-status').textContent = '→';
+      highlightZones(true);
+    }, 500);
+    document.getElementById('r1Result').textContent = '✗ Spróbuj jeszcze raz';
+  }
+}
+
+function highlightZones(on){
+  document.querySelectorAll('.zone-card:not(.correct)').forEach(z=>{
+    if(on) z.classList.add('active-target');
+    else   z.classList.remove('active-target');
+  });
+}
+
+function showSelIndicator(en){
+  const el = document.getElementById('selIndicator');
+  el.textContent = '➜ Wybrano: "' + en + '"';
+  el.classList.add('show');
+}
+function hideSelIndicator(){
+  document.getElementById('selIndicator').classList.remove('show');
+}
+
+/* ══ PROGRESS ══ */
+function updateProgress(){
+  const pct = (matched / dndPairs.length) * 100;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progTxt').textContent = matched + ' / ' + dndPairs.length;
+}
+
+/* ══ VOCAB ══ */
+function buildVocab(){
+  document.getElementById('vocabList').innerHTML = vocabData.map(v=>`
+    <div class="vb-row">
+      <div class="vb-dot"></div>
+      <span class="vb-en">${v.en}</span>
+      <span class="vb-sep">—</span>
+      <span class="vb-pl">${v.pl}</span>
+    </div>`).join('');
+}
+
+/* ══ KONIEC ══ */
+function showEnd(){
+  document.getElementById('mainRound').style.display = 'none';
+  document.getElementById('endWrap').classList.add('show');
+  document.getElementById('progFill').style.width = '100%';
+  document.getElementById('progTxt').textContent = 'Ukończono!';
+}
+
+function restart(){
+  document.getElementById('endWrap').classList.remove('show');
+  document.getElementById('mainRound').style.display = 'block';
+  build();
+}
+
+/* ══ DŹWIĘK (tylko przy frazach) ══ */
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  setTimeout(()=>{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-GB'; u.rate = 0.78;
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(x=>x.name==='Google UK English Female')
+           || voices.find(x=>x.lang==='en-GB')
+           || voices.find(x=>x.lang.startsWith('en'));
+    if(v) u.voice = v;
+    u.onerror = ()=>{};
+    window.speechSynthesis.speak(u);
+  }, 500);
+}
+
+/* INIT */
+build();
+</script>
+</body>
+</html>
