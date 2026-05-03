@@ -540,7 +540,7 @@ const AUDIO_MAP = {
 let _ap = null;
 
 function _playAudio(text, btn, label) {
-  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').replace(/\\'/g, "'").trim();
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').replace(/\\'/g, "'").replace(/^[\s\-–—]+/, '').trim();
 
   if (_ap) { _ap.pause(); _ap.currentTime = 0; _ap = null; }
 
