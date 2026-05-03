@@ -551,7 +551,7 @@ function _playAudio(text, btn, label) {
 
   if (mp3) {
     const base = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
-    const url  = base + encodeURIComponent(mp3) + '?v=' + Date.now();
+    const url  = base + mp3 + '?v=' + Date.now();
     _ap = new Audio(url);
 
     const watchdog = setTimeout(() => { if (btn && btn.classList.contains('playing')) resetBtn(); }, 4000);
