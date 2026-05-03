@@ -226,387 +226,372 @@ body{background:var(--bg);font-family:'Nunito',sans-serif;min-height:100vh;paddi
 
 </div>
 <script>
-/* ════════════════════════════════
-   DANE CZATU (Rozmowa z Johnem)
-════════════════════════════════ */
-const CHAT_STEPS = [
+/* ════════════════════════════
+   SCENARIUSZ — 8 kroków
+   Każdy krok odblokowany przez wpisanie słowa kluczowego
+════════════════════════════ */
+const STEPS = [
   {
+    // John zaczyna rozmowę
     other: {
-      who: "JOHN",
-      en: "Hello mate! How are you doing?",
-      pl: "Cześć stary! Jak leci?",
-      snd: "hello_mate_how_are_you_l29.mp3"
+      name: 'JOHN — GB',
+      en: '"What\'s up mate? How was your day?"',
+      pl: 'Co tam kolego? Jak ci minął dzień?',
     },
-    me: {
-      en: "I am fine, thank you. And you?",
-      pl: "Mam się dobrze, dziękuję. A ty?",
-      hint: "Mam się dobrze = I am <span class='is-keyword'>____</span>",
-      keyword: "fine",
-      vocabEn: "I am fine",
-      vocabPl: "mam się dobrze"
-    }
+    hint: 'Odpowiedz na powitanie — wpisz słowo kluczowe:',
+    keyword: "WHAT'S UP",
+    keywordHint: "what's up",
+    myReply: {
+      en: '"What\'s up! Not bad, long drive from Warsaw."',
+      pl: 'Co tam! Nieźle, długa trasa z Warszawy.',
+    },
+    tip: '"What\'s up" = Co tam / Cześć (nieformalne). Typowe powitanie między kierowcami na parkingu.',
+    vocab: { en:"what's up", pl:'co tam / cześć' },
   },
   {
     other: {
-      who: "JOHN",
-      en: "I'm good. I'm John, from the UK.",
-      pl: "U mnie w porządku. Jestem John, z Wielkiej Brytanii.",
-      snd: "im_good_im_john_l29.mp3"
+      name: 'JOHN — GB',
+      en: '"Where are you heading?"',
+      pl: 'Dokąd jedziesz?',
     },
-    me: {
-      en: "Nice to meet you. I am Mareczek, from Poland.",
-      pl: "Miło cię poznać. Jestem Mareczek, z Polski.",
-      hint: "Miło cię poznać = <span class='is-keyword'>____</span> to meet you",
-      keyword: "nice",
-      vocabEn: "nice to meet you",
-      vocabPl: "miło cię poznać"
-    }
+    hint: 'John pyta dokąd jedziesz. Wpisz kluczowe słowo z jego pytania:',
+    keyword: 'HEADING',
+    keywordHint: 'heading',
+    myReply: {
+      en: '"Heading to Rotterdam. Drop-off tomorrow morning."',
+      pl: 'Jadę do Rotterdamu. Rozładunek jutro rano.',
+    },
+    tip: '"Heading to..." = zmierzać w kierunku / jechać do. Where are you heading? = Dokąd jedziesz?',
+    vocab: { en:'heading', pl:'kierować się / zmierzać' },
   },
   {
     other: {
-      who: "JOHN",
-      en: "Nice to meet you too. Are you staying here for the weekend?",
-      pl: "Ciebie również miło poznać. Zostajesz tu na weekend?",
-      snd: "nice_to_meet_you_too_weekend_l29.mp3"
+      name: 'JOHN — GB',
+      en: '"How was the border today? Any queues?"',
+      pl: 'Jak dzisiaj było na granicy? Były kolejki?',
     },
-    me: {
-      en: "Yes, I have a long pause. Have a good weekend!",
-      pl: "Tak, mam długą pauzę. Dobrego weekendu!",
-      hint: "weekend = <span class='is-keyword'>_______</span>",
-      keyword: "weekend",
-      vocabEn: "weekend",
-      vocabPl: "weekend"
-    }
+    hint: 'Wpisz kluczowe słowo z pytania o granicę:',
+    keyword: 'BORDER',
+    keywordHint: 'border',
+    myReply: {
+      en: '"How was the border? Not bad actually. The crossing took about 40 minutes."',
+      pl: 'Jak było na granicy? Całkiem nieźle. Przekroczenie zajęło około 40 minut.',
+    },
+    tip: '"How was the border?" = Jak było na granicy? Crossing = przekroczenie granicy. Crossing took 40 minutes = przekroczenie zajęło 40 minut.',
+    vocab: { en:'how was the border?', pl:'jak było na granicy?' },
   },
   {
     other: {
-      who: "JOHN",
-      en: "Thanks! By the way, do you know where the shower is?",
-      pl: "Dzięki! Przy okazji, wiesz gdzie jest prysznic?",
-      snd: "thanks_by_the_way_shower_l29.mp3"
+      name: 'JOHN — GB',
+      en: '"Any traffic jams ahead on the A2?"',
+      pl: 'Czy są korki przed nami na A2?',
     },
-    me: {
-      en: "The shower is inside the gas station.",
-      pl: "Prysznic jest wewnątrz stacji benzynowej.",
-      hint: "prysznic = <span class='is-keyword'>______</span>",
-      keyword: "shower",
-      vocabEn: "shower",
-      vocabPl: "prysznic"
-    }
+    hint: 'Wpisz angielskie słowo na "korek drogowy":',
+    keyword: 'TRAFFIC JAM',
+    keywordHint: 'traffic jam',
+    myReply: {
+      en: '"No traffic jams ahead as far as I know. Clear road."',
+      pl: 'Nie ma korków przed nami o ile wiem. Droga wolna.',
+    },
+    tip: '"Traffic jam" = korek drogowy. Any traffic jams ahead? = Czy są korki przed nami? As far as I know = o ile wiem.',
+    vocab: { en:'traffic jam', pl:'korek drogowy' },
   },
   {
     other: {
-      who: "JOHN",
-      en: "Perfect. I need to wash up.",
-      pl: "Świetnie. Muszę się umyć.",
-      snd: "perfect_i_need_to_wash_up_l29.mp3"
+      name: 'JOHN — GB',
+      en: '"I need fuel. Which route do you recommend to avoid the city?"',
+      pl: 'Potrzebuję paliwa. Którą trasę polecasz żeby ominąć miasto?',
     },
-    me: {
-      en: "No problem. Do you want some coffee later?",
-      pl: "Nie ma problemu. Chcesz później trochę kawy?",
-      hint: "kawa = <span class='is-keyword'>______</span>",
-      keyword: "coffee",
-      vocabEn: "coffee",
-      vocabPl: "kawa"
-    }
+    hint: 'Wpisz angielskie słowo na "polecać":',
+    keyword: 'RECOMMEND',
+    keywordHint: 'recommend',
+    myReply: {
+      en: '"I recommend the ring road — exit 18. Faster and no traffic."',
+      pl: 'Polecam obwodnicę — zjazd 18. Szybciej i bez korków.',
+    },
+    tip: '"Recommend" = polecać. Which route do you recommend? = Którą trasę polecasz? Ring road = obwodnica.',
+    vocab: { en:'recommend', pl:'polecać' },
   },
   {
     other: {
-      who: "JOHN",
-      en: "I'd love to, but I'm going to sleep soon.",
-      pl: "Z chęcią, ale niedługo idę spać.",
-      snd: "id_love_to_but_sleep_l29.mp3"
+      name: 'JOHN — GB',
+      en: '"Good tip! Is there a good truck stop near here?"',
+      pl: 'Dobra rada! Czy jest tu gdzieś dobry truck stop?',
     },
-    me: {
-      en: "Alright, no problem. Have a good evening!",
-      pl: "W porządku, nie ma problemu. Dobrego wieczoru!",
-      hint: "wieczór = <span class='is-keyword'>_______</span>",
-      keyword: "evening",
-      vocabEn: "evening",
-      vocabPl: "wieczór"
-    }
+    hint: 'Wpisz angielskie wyrażenie na "na trasie":',
+    keyword: 'ON THE ROAD',
+    keywordHint: 'on the road',
+    myReply: {
+      en: '"Yes — Autohof 12 km ahead. Good food, showers. Every trucker on the road knows it."',
+      pl: 'Tak — Autohof 12 km stąd. Dobre jedzenie, prysznice. Każdy kierowca na trasie go zna.',
+    },
+    tip: '"On the road" = na trasie / w drodze. Every trucker on the road = każdy kierowca na trasie.',
+    vocab: { en:'on the road', pl:'na trasie' },
   },
   {
     other: {
-      who: "JOHN",
-      en: "Thanks, you too. I'm leaving early tomorrow.",
-      pl: "Dzięki, nawzajem. Wyjeżdżam wcześnie rano jutro.",
-      snd: "thanks_you_too_leaving_tomorrow_l29.mp3"
+      name: 'JOHN — GB',
+      en: '"Perfect! I\'ll check it out. See you on the road mate!"',
+      pl: 'Świetnie! Sprawdzę to. Do zobaczenia na trasie kolego!',
     },
-    me: {
-      en: "See you tomorrow then! Good night.",
-      pl: "Do zobaczenia jutro w takim razie! Dobranoc.",
-      hint: "jutro = <span class='is-keyword'>________</span>",
-      keyword: "tomorrow",
-      vocabEn: "tomorrow",
-      vocabPl: "jutro"
-    }
+    hint: 'Wpisz zwrot pożegnalny który John powiedział:',
+    keyword: 'SEE YOU ON THE ROAD',
+    keywordHint: 'see you on the road',
+    myReply: {
+      en: '"See you on the road! Safe travels."',
+      pl: 'Do zobaczenia na trasie! Dobrej drogi.',
+    },
+    tip: '"See you on the road!" = Do zobaczenia na trasie! Typowe pożegnanie między kierowcami.',
+    vocab: { en:'see you on the road', pl:'do zobaczenia na trasie' },
   },
   {
     other: {
-      who: "JOHN",
-      en: "Good night! Have a safe trip back home.",
-      pl: "Dobranoc! Bezpiecznej drogi powrotnej do domu.",
-      snd: "good_night_safe_trip_l29.mp3"
+      name: 'JOHN — GB',
+      en: '"Thanks for the tips! Stay safe out there!"',
+      pl: 'Dzięki za wskazówki! Jedź bezpiecznie!',
     },
-    me: {
-      en: "Thank you. Have a safe trip!",
-      pl: "Dziękuję. Bezpiecznej drogi!",
-      hint: "bezpieczny = <span class='is-keyword'>____</span>",
-      keyword: "safe",
-      vocabEn: "safe trip",
-      vocabPl: "bezpieczna droga"
-    }
-  }
+    hint: 'Wpisz angielski zwrot "jedź bezpiecznie":',
+    keyword: 'STAY SAFE',
+    keywordHint: 'stay safe',
+    myReply: {
+      en: '"You too! Stay safe John. Good trip!"',
+      pl: 'Nawzajem! Jedź bezpiecznie John. Dobrej trasy!',
+    },
+    tip: '"Stay safe!" = Jedź bezpiecznie! Jedno z najważniejszych pożegnań na trasie. Good trip! = Dobrej trasy!',
+    vocab: { en:'stay safe', pl:'jedź bezpiecznie' },
+    last: true,
+  },
 ];
 
-let cur = 0;
+let step = 0;
+let unlocked = 0;
 
 /* ════════════════
-   LOGIKA INTERFEJSU
+   BUDUJ CHAT
 ════════════════ */
-function initChat() {
-  cur = 0;
-  document.getElementById('chatBody').innerHTML = '';
-  document.getElementById('progFill').style.width = '0%';
-  document.getElementById('progTxt').textContent = '0 / 8 słówek odblokowanych';
-  document.getElementById('endCard').classList.remove('show');
-  document.getElementById('inputSection').style.display = 'block';
-  document.getElementById('isInput').value = '';
-  document.getElementById('isFeedback').className = 'is-feedback';
-  
-  showJohnMsg();
+function init() {
+  const body = document.getElementById('chatBody');
+  body.innerHTML = '';
+  // Pokaż pierwszą wiadomość od Johna
+  addOtherMsg(STEPS[0]);
+  showInput(0);
 }
 
-function showJohnMsg() {
-  const chat = document.getElementById('chatBody');
-  
-  // Wstawienie wskaźnika pisania
-  const typingHtml = `
-    <div class="typing" id="typingIndicator">
-      <div class="msg-avatar">JH</div>
-      <div class="typing-dots">
-        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-      </div>
-    </div>
-  `;
-  chat.insertAdjacentHTML('beforeend', typingHtml);
-  scrollToBottom();
-  
-  // Zablokuj input na czas pisania
-  document.getElementById('isInput').disabled = true;
-  document.querySelector('.is-btn').disabled = true;
+function addOtherMsg(s, delay=0) {
+  const body = document.getElementById('chatBody');
 
-  // Po chwili pokaż wiadomość Johna
-  setTimeout(() => {
-    const ind = document.getElementById('typingIndicator');
-    if(ind) ind.remove();
+  // Typing indicator
+  const typing = document.createElement('div');
+  typing.className = 'typing';
+  typing.id = 'typing';
+  typing.innerHTML = `
+    <div class="msg-avatar">JN</div>
+    <div class="typing-dots">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>`;
+  body.appendChild(typing);
+  scrollDown();
 
-    const stepData = CHAT_STEPS[cur];
-    const msgHtml = `
-      <div class="msg-other">
-        <div class="msg-avatar">JH</div>
-        <div class="bubble-other">
-          <div class="bo-name">${stepData.other.who}</div>
-          <div class="bo-en">${stepData.other.en}</div>
-          <div class="bo-pl">${stepData.other.pl}</div>
-          <button class="bo-snd" onclick="speakAudio('${stepData.other.en.replace(/'/g,"\\'")}', this)">🔊 Wymowa</button>
-        </div>
-      </div>
-    `;
-    chat.insertAdjacentHTML('beforeend', msgHtml);
-    scrollToBottom();
-    
-    // Odblokuj input dla użytkownika
-    document.getElementById('isInput').disabled = false;
-    document.querySelector('.is-btn').disabled = false;
-    document.getElementById('isInput').value = '';
-    document.getElementById('isInput').focus();
-    
-    document.getElementById('isHint').innerHTML = `Przetłumacz i wpisz brakujące słowo:<br> ${stepData.me.hint}`;
-  }, 1500);
+  setTimeout(()=>{
+    typing.remove();
+    const div = document.createElement('div');
+    div.className = 'msg-other';
+    div.innerHTML = `
+      <div class="msg-avatar">JN</div>
+      <div class="bubble-other">
+        <div class="bo-name">${s.other.name}</div>
+        <div class="bo-en">${s.other.en}</div>
+        <div class="bo-pl">${s.other.pl}</div>
+        <button class="bo-snd" onclick="speakText('${s.other.en.replace(/["""„']/g,'').replace(/'/g,"\\'")}',this)">🔊 Wymowa</button>
+      </div>`;
+    body.appendChild(div);
+    scrollDown();
+  }, delay || 800);
+}
+
+function addMyMsg(s) {
+  const body = document.getElementById('chatBody');
+  const div = document.createElement('div');
+  div.className = 'msg-me';
+  div.innerHTML = `
+    <div class="msg-avatar" style="background:rgba(26,46,74,0.15);color:var(--navy);">MR</div>
+    <div class="bubble-me">
+      <div class="bm-label">MARECZEK</div>
+      <div class="bm-en">${s.myReply.en}</div>
+      <div class="bm-pl">${s.myReply.pl}</div>
+    </div>`;
+  body.appendChild(div);
+  scrollDown();
+}
+
+function scrollDown() {
+  const body = document.getElementById('chatBody');
+  body.scrollTop = body.scrollHeight;
+}
+
+/* ════════════════
+   INPUT
+════════════════ */
+function showInput(i) {
+  const s = STEPS[i];
+  document.getElementById('isHint').innerHTML =
+    `Wpisz słowo kluczowe żeby odpowiedzieć: <span class="is-keyword">${s.keywordHint}</span>`;
+  document.getElementById('isInput').value = '';
+  document.getElementById('isInput').className = 'is-input';
+  document.getElementById('isFeedback').className = 'is-feedback';
+  document.getElementById('isInput').focus();
 }
 
 function checkWord() {
-  const input = document.getElementById('isInput');
-  const val = input.value.trim().toLowerCase();
-  const stepData = CHAT_STEPS[cur];
-  const fb = document.getElementById('isFeedback');
-  
-  if(val === stepData.me.keyword.toLowerCase()) {
-    input.classList.remove('error');
-    input.classList.add('ok');
-    fb.className = 'is-feedback show ok';
-    fb.innerHTML = `✅ Doskonale! ${stepData.me.vocabEn} = ${stepData.me.vocabPl}`;
-    
-    // Pokaż odpowiedź Mareczka w czacie
-    const chat = document.getElementById('chatBody');
-    const msgHtml = `
-      <div class="msg-me">
-        <div class="bubble-me">
-          <div class="bm-label">TY</div>
-          <div class="bm-en">${stepData.me.en}</div>
-          <div class="bm-pl">${stepData.me.pl}</div>
-          <button class="bo-snd" style="color:rgba(255,255,255,0.8); border-color:rgba(255,255,255,0.4);" onclick="speakAudio('${stepData.me.en.replace(/'/g,"\\'")}', this)">🔊 Wymowa</button>
-        </div>
-      </div>
-    `;
-    chat.insertAdjacentHTML('beforeend', msgHtml);
-    scrollToBottom();
-    
-    cur++;
-    document.getElementById('progFill').style.width = ((cur/CHAT_STEPS.length)*100) + '%';
-    document.getElementById('progTxt').textContent = `${cur} / ${CHAT_STEPS.length} słówek odblokowanych`;
-    
-    // Przejście do kolejnego kroku
-    setTimeout(() => {
-      input.classList.remove('ok');
-      fb.className = 'is-feedback';
-      if(cur < CHAT_STEPS.length) {
-        showJohnMsg();
-      } else {
-        showEnd();
-      }
-    }, 2000);
+  const val = document.getElementById('isInput').value.trim().toUpperCase();
+  const s   = STEPS[step];
+  const inp = document.getElementById('isInput');
+  const fb  = document.getElementById('isFeedback');
 
+  // Akceptuj jeśli wartość zawiera słowo kluczowe
+  const key = s.keyword.toUpperCase();
+  const isOk = val === key || val.includes(key.split(' ')[0]);
+
+  if(isOk) {
+    inp.className = 'is-input ok';
+    fb.className  = 'is-feedback show ok';
+    fb.textContent = '✅ ' + s.tip;
+    unlocked++;
+    updateProgress();
+
+    // Dodaj odpowiedź Mareczka
+    setTimeout(()=>{ addMyMsg(s); }, 300);
+
+    if(s.last) {
+      // Koniec rozmowy
+      setTimeout(()=>{
+        document.getElementById('inputSection').style.display = 'none';
+        showEnd();
+      }, 1800);
+    } else {
+      // Następny krok
+      step++;
+      setTimeout(()=>{
+        addOtherMsg(STEPS[step]);
+        setTimeout(()=>showInput(step), 1000);
+      }, 1200);
+    }
   } else {
-    input.classList.remove('ok');
-    input.classList.add('error');
-    fb.className = 'is-feedback show no';
-    fb.innerHTML = `❌ Błąd. Spróbuj ponownie! (Podpowiedź: słowo ma ${stepData.me.keyword.length} liter)`;
-    setTimeout(() => input.classList.remove('error'), 400);
+    inp.className = 'is-input error';
+    fb.className  = 'is-feedback show no';
+    fb.innerHTML  = `❌ Spróbuj wpisać: <span style="font-family:'Courier Prime',monospace;font-weight:700;">${s.keywordHint}</span>`;
+    setTimeout(()=>{ inp.className='is-input'; inp.value=''; inp.focus(); }, 800);
   }
 }
 
-function scrollToBottom() {
-  const chat = document.getElementById('chatBody');
-  chat.scrollTop = chat.scrollHeight;
+function updateProgress() {
+  const pct = (unlocked / STEPS.length) * 100;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progTxt').textContent  = `${unlocked} / ${STEPS.length} słówek odblokowanych`;
 }
 
+/* ════════════════
+   KONIEC
+════════════════ */
 function showEnd() {
-  document.getElementById('inputSection').style.display = 'none';
   document.getElementById('endCard').classList.add('show');
-  
-  // Wypełnij słownik na końcu z funkcją klikania
   const grid = document.getElementById('vocabGrid');
-  grid.innerHTML = CHAT_STEPS.map((s) => `
-    <div class="ve-row" style="cursor:pointer;" onmouseover="this.style.background='rgba(26,46,74,0.05)'" onmouseout="this.style.background='transparent'">
-      <div class="ve-dot" style="background:var(--navy)"></div>
-      <div class="ve-en">${s.me.vocabEn}</div>
-      <div class="ve-pl">— ${s.me.vocabPl}</div>
+  const colors = ['#1a2e4a','#e07820','#d63528','#15803d','#7c3aed','#0891b2','#c8a040','#888'];
+  grid.innerHTML = STEPS.map((s,i)=>`
+    <div class="ve-row">
+      <div class="ve-dot" style="background:${colors[i]}"></div>
+      <div class="ve-en">${s.vocab.en}</div>
+      <div class="ve-pl">— ${s.vocab.pl}</div>
     </div>
   `).join('');
 }
 
 function restart() {
-  initChat();
+  step=0; unlocked=0;
+  document.getElementById('endCard').classList.remove('show');
+  document.getElementById('inputSection').style.display='block';
+  document.getElementById('progFill').style.width='0%';
+  document.getElementById('progTxt').textContent='0 / 8 słówek odblokowanych';
+  init();
 }
 
 /* ════════════════════════════════════════════════════════════
    NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
 ════════════════════════════════════════════════════════════ */
 const AUDIO_MAP = {
-  // Rozmowa w czacie (wiadomości Johna)
-  'Hello mate! How are you doing?': 'audio/L29/hello_mate_how_are_you_l29.mp3',
-  'I\'m good. I\'m John, from the UK.': 'audio/L29/im_good_im_john_l29.mp3',
-  'Nice to meet you too. Are you staying here for the weekend?': 'audio/L29/nice_to_meet_you_too_weekend_l29.mp3',
-  'Thanks! By the way, do you know where the shower is?': 'audio/L29/thanks_by_the_way_shower_l29.mp3',
-  'Perfect. I need to wash up.': 'audio/L29/perfect_i_need_to_wash_up_l29.mp3',
-  'I\'d love to, but I\'m going to sleep soon.': 'audio/L29/id_love_to_but_sleep_l29.mp3',
-  'Thanks, you too. I\'m leaving early tomorrow.': 'audio/L29/thanks_you_too_leaving_tomorrow_l29.mp3',
-  'Good night! Have a safe trip back home.': 'audio/L29/good_night_safe_trip_l29.mp3',
-
-  // Rozmowa w czacie (wiadomości Mareczka)
-  'I am fine, thank you. And you?': 'i_am_fine_thank_you_l29.mp3',
-  'Nice to meet you. I am Mareczek, from Poland.': 'audio/L29/nice_to_meet_you_l29.mp3',
-  'Yes, I have a long pause. Have a good weekend!': 'audio/L29/yes_i_have_a_long_pause_l29.mp3',
-  'The shower is inside the gas station.': 'audio/L29/the_shower_is_inside_l29.mp3',
-  'No problem. Do you want some coffee later?': 'audio/L29/no_problem_do_you_want_coffee_l29.mp3',
-  'Alright, no problem. Have a good evening!': 'audio/L29/alright_no_problem_evening_l29.mp3',
-  'See you tomorrow then! Good night.': 'audio/L29/see_you_tomorrow_then_l29.mp3',
-  'Thank you. Have a safe trip!': 'audio/L29/thank_you_have_a_safe_trip_l29.mp3',
+  "What's up mate? How was your day?":                          'audio/L29/whats_up_mate_how_was_your_day_l29.mp3',
+  "What's up! Not bad, long drive from Warsaw.":                'audio/L29/whats_up_mate_how_was_your_day_l29.mp3',
+  'Where are you heading?':                                     'audio/L29/where_are_you_heading_l29.mp3',
+  'Heading to Rotterdam. Drop-off tomorrow morning.':           'audio/L29/where_are_you_heading_l29.mp3',
+  'How was the border today? Any queues?':                      'audio/L29/how_was_the_border_today_any_queues_l29.mp3',
+  'How was the border? Not bad actually. The crossing took about 40 minutes.': 'audio/L29/how_was_the_border_today_any_queues_l29.mp3',
+  'Any traffic jams ahead on the A2?':                          'audio/L29/any_traffic_jams_ahead_on_the_a2_l29.mp3',
+  'No traffic jams ahead as far as I know. Clear road.':        'audio/L29/any_traffic_jams_ahead_on_the_a2_l29.mp3',
+  'I need fuel. Which route do you recommend to avoid the city?': 'audio/L29/i_need_fuel_which_route_do_you_recommend_l29.mp3',
+  'I recommend the ring road — exit 18. Faster and no traffic.': 'audio/L29/i_need_fuel_which_route_do_you_recommend_l29.mp3',
+  'Good tip! Is there a good truck stop near here?':            'audio/L29/good_tip_is_there_a_good_truck_stop_near_here_l29.mp3',
+  'Yes — Autohof 12 km ahead. Good food, showers. Every trucker on the road knows it.': 'audio/L29/good_tip_is_there_a_good_truck_stop_near_here_l29.mp3',
+  "Perfect! I'll check it out. See you on the road mate!":      'audio/L29/perfect_ill_check_it_out_see_you_on_the_road_l29.mp3',
+  'See you on the road! Safe travels.':                         'audio/L29/perfect_ill_check_it_out_see_you_on_the_road_l29.mp3',
+  'Thanks for the tips! Stay safe out there!':                  'audio/L29/thanks_for_the_tips_stay_safe_out_there_l29.mp3',
+  'You too! Stay safe John. Good trip!':                        'audio/L29/thanks_for_the_tips_stay_safe_out_there_l29.mp3',
 };
 
 let _ap = null;
 
-function speakAudio(text, btn, label) {
-  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').trim();
-  
-  if(_ap) { 
-    _ap.pause(); 
-    _ap.currentTime = 0;
-    _ap = null; 
-  }
-  
+function _playAudio(text, btn, label) {
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').replace(/\\'/g, "'").trim();
+
+  if (_ap) { _ap.pause(); _ap.currentTime = 0; _ap = null; }
+
   const mp3 = AUDIO_MAP[clean];
   const lbl = label || '🔊 Wymowa';
 
-  if (btn) {
-    btn.classList.add('playing');
-    btn.textContent = '⌛...';
-  }
+  if (btn) { btn.classList.add('playing'); btn.textContent = '⌛ Ładowanie...'; }
 
   if (mp3) {
-    const currentPath = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
-    const timestamp = new Date().getTime(); 
-    const audioUrl = currentPath + encodeURIComponent(mp3) + "?v=" + timestamp;
+    const base = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+    const url  = base + encodeURIComponent(mp3) + '?v=' + Date.now();
+    _ap = new Audio(url);
 
-    _ap = new Audio(audioUrl);
+    const watchdog = setTimeout(() => { if (btn && btn.classList.contains('playing')) resetBtn(); }, 4000);
+    function resetBtn() { clearTimeout(watchdog); if (btn) { btn.classList.remove('playing'); btn.textContent = lbl; } }
 
-    const watchdog = setTimeout(() => {
-      if (btn && btn.classList.contains("playing")) {
-        resetBtn();
-      }
-    }, 4000);
-
-    function resetBtn() {
-      clearTimeout(watchdog);
-      if (btn) {
-        btn.classList.remove('playing');
-        btn.textContent = lbl;
-      }
-    }
-
-    _ap.onplay = () => { if (btn) btn.textContent = '🔊 Odttwarzam...'; };
+    _ap.onplay  = () => { if (btn) btn.textContent = '🔊 Odtwarzam...'; };
     _ap.onended = resetBtn;
-    _ap.onerror = () => {
-      console.warn("Błąd ładowania MP3, powrót do WebSpeech:", audioUrl);
-      clearTimeout(watchdog);
-      _webSpeech(clean, btn, lbl); 
-    };
-
-    _ap.play().catch((err) => {
-      console.warn("Autoplay zablokowany:", err);
-      _webSpeech(clean, btn, lbl);
-    });
-
+    _ap.onerror = () => { console.warn('Błąd MP3:', url); clearTimeout(watchdog); _webSpeech(clean, btn, lbl); };
+    _ap.play().catch(() => _webSpeech(clean, btn, lbl));
   } else {
-    console.warn("Brak pliku MP3 dla tekstu:", clean);
+    console.warn('Brak pliku MP3 dla tekstu:', clean);
     _webSpeech(clean, btn, lbl);
   }
 }
 
-function _webSpeech(text, btn, label){
-  if(!('speechSynthesis' in window)) return;
+function _webSpeech(text, btn, label) {
+  if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
   const lbl = label || '🔊 Wymowa';
-  if(btn){ btn.classList.add('playing'); btn.textContent='🔊 Bot...'; }
-  setTimeout(()=>{
+  if (btn) { btn.classList.add('playing'); btn.textContent = '🔊 Odtwarzam (Bot)...'; }
+  setTimeout(() => {
     const u = new SpeechSynthesisUtterance(text);
-    u.lang='en-GB'; u.rate=0.78;
+    u.lang = 'en-GB'; u.rate = 0.78;
     const voices = window.speechSynthesis.getVoices();
-    const v = voices.find(x=>x.name==='Google UK English Female')
-      || voices.find(x=>x.lang==='en-GB')
-      || voices.find(x=>x.lang.startsWith('en'));
-    if(v) u.voice=v;
-    u.onend = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
-    u.onerror = ()=>{ if(btn){ btn.classList.remove('playing'); btn.textContent = lbl; } };
+    const v = voices.find(x => x.name === 'Google UK English Female')
+      || voices.find(x => x.lang === 'en-GB')
+      || voices.find(x => x.lang.startsWith('en'));
+    if (v) u.voice = v;
+    u.onend  = () => { if (btn) { btn.classList.remove('playing'); btn.textContent = lbl; } };
+    u.onerror = () => { if (btn) { btn.classList.remove('playing'); btn.textContent = lbl; } };
     window.speechSynthesis.speak(u);
   }, 300);
 }
 
+function speakText(text, btn) {
+  _playAudio(text, btn, '🔊 Wymowa');
+}
+
 /* INIT */
-initChat();
+init();
 </script>
 </body>
 </html>
