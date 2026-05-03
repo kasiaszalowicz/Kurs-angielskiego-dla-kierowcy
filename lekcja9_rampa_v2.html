@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lekcja 9 — Rampa i magazyn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+
+:root{
+  --navy:#1a2e4a;
+  --navy-light:#2a4a6a;
+  --red:#d63528;
+  --green:#15803d;
+  --green-light:#f0fdf4;
+  --green-border:#86efac;
+  --red-light:#fef2f2;
+  --orange:#e07820;
+  --bg:#f5f2ec;
+  --white:#ffffff;
+  --border:#e0dbd0;
+  --border-dark:#c8c2b6;
+  --muted:#7a7570;
+  --text:#1a2e4a;
+  --selected-bg:#eff6ff;
+  --selected-border:#3b82f6;
+}
+
+html{font-size:16px;}
+body{
+  background:var(--bg);
+  font-family:'Nunito',sans-serif;
+  min-height:100vh;
+  color:var(--text);
+}
+
+.wrap{
+  max-width:600px;
+  margin:0 auto;
+  padding:16px 14px 32px;
+}
+
+/* ── HEADER ── */
+.header{
+  background:var(--navy);
+  border-radius:16px;
+  padding:14px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:12px;
+  gap:12px;
+}
+.h-left{display:flex;align-items:center;gap:11px;min-width:0;}
+.h-logo{
+  width:36px;height:36px;
+  background:rgba(255,255,255,0.12);
+  border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  font-size:1.1rem;font-weight:900;color:#fff;
+  letter-spacing:-1px;overflow:hidden;
+}
+.h-logo img{width:100%;height:100%;object-fit:contain;padding:4px;}
+.h-text{min-width:0;}
+.h-title{font-size:1rem;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.h-sub{font-size:0.65rem;color:rgba(255,255,255,0.45);font-weight:600;margin-top:1px;}
+.h-badge{
+  background:rgba(255,255,255,0.1);
+  border:1px solid rgba(255,255,255,0.2);
+  color:#fff;font-size:0.65rem;font-weight:900;
+  padding:5px 12px;border-radius:20px;
+  letter-spacing:0.5px;white-space:nowrap;flex-shrink:0;
+}
+
+/* ── PROGRESS ── */
+.prog-row{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:20px;
+}
+.prog-bar{
+  flex:1;height:8px;
+  background:rgba(26,46,74,0.1);
+  border-radius:99px;overflow:hidden;
+}
+.prog-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--navy),var(--orange));
+  border-radius:99px;
+  transition:width 0.5s ease;
+}
+.prog-txt{
+  font-size:0.65rem;font-weight:900;
+  color:var(--muted);letter-spacing:0.5px;white-space:nowrap;
+}
+
+/* ── FISZKA ── */
+.flashcard-wrap{
+  margin-bottom:20px;
+}
+
+.round-tag{
+  display:inline-block;
+  background:var(--navy);color:#fff;
+  font-size:0.58rem;font-weight:900;
+  letter-spacing:2px;padding:4px 14px;
+  border-radius:99px;text-transform:uppercase;
+  margin-bottom:14px;
+}
+
+/* Karta słówka */
+.word-card{
+  background:var(--white);
+  border:2px solid var(--border);
+  border-radius:18px;
+  padding:28px 20px 22px;
+  text-align:center;
+  margin-bottom:18px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.06);
+  position:relative;
+  min-height:140px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+
+.word-number{
+  position:absolute;
+  top:14px;left:18px;
+  font-size:0.6rem;font-weight:900;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+
+.word-icon{
+  font-size:2rem;
+  line-height:1;
+}
+
+.word-en{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:1.6rem;font-weight:700;
+  color:var(--navy);
+  line-height:1.2;
+}
+
+@media(max-width:360px){
+  .word-en{font-size:1.3rem;}
+}
+
+.word-sound-btn{
+  background:var(--bg);
+  border:1.5px solid var(--border);
+  border-radius:99px;
+  padding:7px 18px;
+  font-size:0.75rem;font-weight:700;
+  color:var(--navy);
+  cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;
+  transition:all 0.15s;
+  margin-top:4px;
+}
+.word-sound-btn:hover{
+  border-color:var(--navy);
+  background:var(--white);
+}
+.word-sound-btn:active{transform:scale(0.96);}
+.word-sound-btn.playing{
+  background:var(--navy);
+  color:#fff;
+  border-color:var(--navy);
+}
+
+/* ── PYTANIE ── */
+.question-label{
+  font-size:0.72rem;font-weight:700;
+  color:var(--muted);
+  text-align:center;
+  margin-bottom:12px;
+  line-height:1.4;
+}
+
+/* ── OPCJE ── */
+.options-list{
+  display:flex;flex-direction:column;gap:9px;
+  margin-bottom:16px;
+}
+
+.opt-btn{
+  width:100%;
+  background:var(--white);
+  border:2px solid var(--border);
+  border-radius:14px;
+  padding:14px 16px;
+  display:flex;align-items:center;gap:12px;
+  cursor:pointer;
+  transition:all 0.18s ease;
+  text-align:left;
+  min-height:56px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.04);
+  font-family:'Nunito',sans-serif;
+}
+.opt-btn:active{transform:scale(0.98);}
+.opt-btn:hover:not(:disabled){
+  border-color:var(--border-dark);
+  box-shadow:0 3px 10px rgba(0,0,0,0.08);
+  transform:translateY(-1px);
+}
+.opt-btn:disabled{cursor:default;transform:none !important;}
+
+.opt-btn.correct{
+  border-color:var(--green);
+  background:var(--green-light);
+}
+.opt-btn.wrong{
+  border-color:var(--red);
+  background:var(--red-light);
+  animation:shake 0.35s ease;
+}
+.opt-btn.dimmed{
+  opacity:0.4;
+}
+
+@keyframes shake{
+  0%,100%{transform:translateX(0);}
+  20%{transform:translateX(-6px);}
+  40%{transform:translateX(6px);}
+  60%{transform:translateX(-4px);}
+  80%{transform:translateX(4px);}
+}
+
+.opt-letter{
+  width:30px;height:30px;
+  border-radius:8px;
+  background:rgba(26,46,74,0.08);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.72rem;font-weight:900;
+  color:var(--navy);
+  flex-shrink:0;
+  transition:all 0.15s;
+}
+.opt-btn.correct .opt-letter{background:var(--green);color:#fff;}
+.opt-btn.wrong .opt-letter{background:var(--red);color:#fff;}
+.opt-btn.dimmed .opt-letter{background:rgba(26,46,74,0.05);}
+
+.opt-text{
+  font-size:0.88rem;font-weight:700;
+  color:var(--navy);
+  flex:1;line-height:1.4;
+}
+.opt-btn.correct .opt-text{color:var(--green);}
+.opt-btn.wrong .opt-text{color:var(--red);}
+.opt-btn.dimmed .opt-text{color:var(--muted);}
+
+.opt-mark{
+  font-size:1rem;
+  flex-shrink:0;
+  opacity:0;
+  transition:opacity 0.2s;
+}
+.opt-btn.correct .opt-mark,
+.opt-btn.wrong .opt-mark{opacity:1;}
+
+/* ── FEEDBACK ── */
+.feedback-box{
+  border-radius:12px;
+  padding:11px 14px;
+  font-size:0.78rem;font-weight:700;
+  line-height:1.5;
+  margin-bottom:14px;
+  display:none;
+}
+.feedback-box.show{display:block;}
+.feedback-box.ok{background:var(--green-light);color:var(--green);border:1.5px solid var(--green-border);}
+.feedback-box.no{background:var(--red-light);color:var(--red);border:1.5px solid #fca5a5;}
+
+/* ── PRZYCISK DALEJ ── */
+.btn-next{
+  width:100%;
+  background:var(--navy);
+  color:#fff;border:none;
+  border-radius:13px;
+  padding:15px;
+  font-family:'Nunito',sans-serif;
+  font-size:0.92rem;font-weight:900;
+  cursor:pointer;
+  transition:all 0.15s;
+  display:none;
+  letter-spacing:0.3px;
+}
+.btn-next.show{display:block;}
+.btn-next:hover{background:var(--navy-light);}
+.btn-next:active{transform:scale(0.98);}
+
+/* ── EKRAN KOŃCOWY ── */
+.end-wrap{
+  background:var(--white);
+  border:2px solid var(--border);
+  border-radius:18px;
+  padding:28px 20px;
+  text-align:center;
+  display:none;
+  margin-bottom:16px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.06);
+}
+.end-wrap.show{display:block;}
+.end-icon{font-size:3rem;margin-bottom:10px;}
+.end-title{font-size:1.3rem;font-weight:900;color:var(--navy);margin-bottom:6px;}
+.end-sub{font-size:0.8rem;color:var(--muted);margin-bottom:8px;line-height:1.5;}
+.end-score{
+  display:inline-block;
+  background:var(--bg);
+  border:2px solid var(--border);
+  border-radius:99px;
+  padding:8px 24px;
+  font-size:1.1rem;font-weight:900;
+  color:var(--navy);
+  margin-bottom:22px;
+}
+
+/* ── SŁOWNIK ── */
+.vocab-box{
+  background:var(--bg);
+  border-radius:12px;
+  padding:16px;
+  text-align:left;
+  margin-bottom:20px;
+}
+.vb-title{
+  font-size:0.6rem;font-weight:900;color:var(--muted);
+  text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;
+}
+.vb-list{display:flex;flex-direction:column;gap:6px;}
+.vb-row{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:9px;
+  background:var(--white);border:1px solid var(--border);
+}
+.vb-icon{font-size:1rem;flex-shrink:0;}
+.vb-en{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:0.8rem;font-weight:700;color:var(--navy);
+  flex-shrink:0;
+}
+.vb-sep{color:var(--border-dark);font-size:0.75rem;flex-shrink:0;}
+.vb-pl{font-size:0.75rem;color:var(--muted);font-weight:600;flex:1;line-height:1.3;}
+
+.btn-restart{
+  background:var(--navy);color:#fff;border:none;
+  border-radius:12px;padding:14px 32px;
+  font-family:'Nunito',sans-serif;
+  font-size:0.88rem;font-weight:900;
+  cursor:pointer;transition:all 0.15s;
+  letter-spacing:0.3px;
+}
+.btn-restart:hover{background:var(--navy-light);}
+.btn-restart:active{transform:scale(0.97);}
+
+/* ── FOOTER ── */
+.footer{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:8px;
+}
+.f-txt{font-size:0.55rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.f-dots{display:flex;gap:5px;align-items:center;}
+.f-d{width:7px;height:7px;border-radius:50%;background:rgba(26,46,74,0.12);}
+.f-d.on{background:var(--navy);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="h-left">
+    <div class="h-logo">
+      <img src="https://raw.githubusercontent.com/crosshaul/assets/main/logo.png"
+           onerror="this.parentElement.innerHTML='CH'" alt="Crosshaul">
+    </div>
+    <div class="h-text">
+      <div class="h-title">Rampa i magazyn</div>
+      <div class="h-sub">Lekcja 9 · Moduł 2 · Angielski z Mareczkiem · Crosshaul</div>
+    </div>
+  </div>
+  <div class="h-badge">9 / 30</div>
+</div>
+
+<!-- PROGRESS -->
+<div class="prog-row">
+  <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+  <div class="prog-txt" id="progTxt">0 / 8</div>
+</div>
+
+<!-- QUIZ -->
+<div id="quizWrap">
+  <div class="flashcard-wrap">
+    <div class="round-tag">Słówko po angielsku</div>
+
+    <!-- Karta słówka -->
+    <div class="word-card" id="wordCard">
+      <div class="word-number" id="wordNumber">1 / 8</div>
+      <div class="word-icon" id="wordIcon">📦</div>
+      <div class="word-en" id="wordEn">loading dock</div>
+      <button class="word-sound-btn" id="soundBtn" onclick="playSound()">
+        <span>🔊</span> Posłuchaj
+      </button>
+    </div>
+
+    <!-- Pytanie -->
+    <div class="question-label">Co to znaczy po polsku?</div>
+
+    <!-- Opcje -->
+    <div class="options-list" id="optionsList"></div>
+
+    <!-- Feedback -->
+    <div class="feedback-box" id="feedbackBox"></div>
+
+    <!-- Przycisk dalej -->
+    <button class="btn-next" id="btnNext" onclick="nextWord()">Następne słówko →</button>
+  </div>
+</div>
+
+<!-- EKRAN KOŃCOWY -->
+<div class="end-wrap" id="endWrap">
+  <div class="end-icon" id="endIcon">🏆</div>
+  <div class="end-title" id="endTitle">Świetna robota!</div>
+  <div class="end-sub" id="endSub">Znasz słownictwo rampy i magazynu po angielsku.</div>
+  <div class="end-score" id="endScore">8 / 8</div>
+
+  <div class="vocab-box">
+    <div class="vb-title">Słownik — Lekcja 9</div>
+    <div class="vb-list" id="vocabList"></div>
+  </div>
+
+  <button class="btn-restart" onclick="restart()">↺ Zagraj jeszcze raz</button>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="f-txt">ANGIELSKI Z MARECZKIEM · CROSSHAUL</div>
+  <div class="f-dots">
+    <div class="f-d"></div>
+    <div class="f-d on"></div>
+    <div class="f-d"></div>
+    <div class="f-d"></div>
+    <div class="f-d"></div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+/* ══ DANE ══ */
+const AUDIO_BASE = 'https://kasiaszalowicz.github.io/Kurs-angielskiego-dla-kierowcy/audio/L9/';
+
+const words = [
+  {
+    en: 'loading dock',
+    pl: 'rampa załadunkowa',
+    def: 'Platforma przy magazynie do załadunku i rozładunku',
+    icon: '📦',
+    audio: 'loading_dock_l9.mp3',
+    wrong: ['wózek widłowy','kliny pod koła','stanowisko rozładunku']
+  },
+  {
+    en: 'forklift',
+    pl: 'wózek widłowy',
+    def: 'Pojazd z widłami do przemieszczania palet',
+    icon: '🚜',
+    audio: 'forklift_l9.mp3',
+    wrong: ['hydrauliczna winda','duży magazyn','zderzak gumowy']
+  },
+  {
+    en: 'tail lift',
+    pl: 'winda załadunkowa',
+    def: 'Hydrauliczna platforma z tyłu naczepy do załadunku',
+    icon: '⬆️',
+    audio: 'tail_lift_l9.mp3',
+    wrong: ['rampa załadunkowa','wózek widłowy','drewniana paleta']
+  },
+  {
+    en: 'pallet',
+    pl: 'paleta',
+    def: 'Drewniana platforma 120×80 cm do transportu towarów',
+    icon: '🪵',
+    audio: 'pallet_l9.mp3',
+    wrong: ['kliny pod koła','winda załadunkowa','numer stanowiska']
+  },
+  {
+    en: 'dock bumper',
+    pl: 'zderzak rampowy',
+    def: 'Gumowe zderzaki przy rampie chroniące budynek',
+    icon: '🛡️',
+    audio: 'dock_bumper_l9.mp3',
+    wrong: ['paleta','magazyn','wózek widłowy']
+  },
+  {
+    en: 'warehouse',
+    pl: 'magazyn',
+    def: 'Duży budynek gdzie przechowuje się towary',
+    icon: '🏭',
+    audio: 'warehouse_l9.mp3',
+    wrong: ['rampa załadunkowa','zderzak rampowy','winda załadunkowa']
+  },
+  {
+    en: 'wheel chocks',
+    pl: 'kliny pod koła',
+    def: 'Kliny pod koła zapobiegające toczeniu pojazdu',
+    icon: '🔺',
+    audio: 'wheel_chocks_l9.mp3',
+    wrong: ['paleta','magazyn','stanowisko rozładunku']
+  },
+  {
+    en: 'loading bay',
+    pl: 'stanowisko rozładunku',
+    def: 'Numerowane stanowisko rozładunku przy rampie',
+    icon: '🔢',
+    audio: 'loading_bay_l9.mp3',
+    wrong: ['wózek widłowy','zderzak rampowy','kliny pod koła']
+  },
+];
+
+/* ══ STAN ══ */
+let order = [];
+let current = 0;
+let score = 0;
+let answered = false;
+let currentAudio = null;
+
+/* ══ SHUFFLE ══ */
+function shuffle(a){ return [...a].sort(()=>Math.random()-0.5); }
+
+/* ══ INIT ══ */
+function build(){
+  order = shuffle([...Array(words.length).keys()]);
+  current = 0;
+  score = 0;
+  answered = false;
+  updateProgress();
+  renderWord();
+}
+
+/* ══ RENDER SŁÓWKA ══ */
+function renderWord(){
+  answered = false;
+  const w = words[order[current]];
+
+  document.getElementById('wordNumber').textContent = (current+1) + ' / ' + words.length;
+  document.getElementById('wordIcon').textContent = w.icon;
+  document.getElementById('wordEn').textContent = w.en;
+
+  const soundBtn = document.getElementById('soundBtn');
+  soundBtn.classList.remove('playing');
+  soundBtn.innerHTML = '<span>🔊</span> Posłuchaj';
+
+  /* Opcje — 1 poprawna + 3 złe przetasowane */
+  const opts = shuffle([
+    {text: w.pl, correct: true},
+    {text: w.wrong[0], correct: false},
+    {text: w.wrong[1], correct: false},
+    {text: w.wrong[2], correct: false},
+  ]);
+
+  const letters = ['A','B','C','D'];
+  document.getElementById('optionsList').innerHTML = opts.map((o,i)=>`
+    <button class="opt-btn" id="opt${i}" onclick="pickAnswer(${i}, ${o.correct}, '${o.text.replace(/'/g,"\\'")}')">
+      <div class="opt-letter">${letters[i]}</div>
+      <span class="opt-text">${o.text}</span>
+      <span class="opt-mark">${o.correct ? '✓' : '✗'}</span>
+    </button>
+  `).join('');
+
+  /* reset feedback + next */
+  const fb = document.getElementById('feedbackBox');
+  fb.className = 'feedback-box';
+  fb.textContent = '';
+  document.getElementById('btnNext').className = 'btn-next';
+}
+
+/* ══ ODPOWIEDŹ ══ */
+function pickAnswer(i, correct, text){
+  if(answered) return;
+  answered = true;
+
+  const fb = document.getElementById('feedbackBox');
+  const w = words[order[current]];
+
+  /* Zablokuj wszystkie */
+  document.querySelectorAll('.opt-btn').forEach(b=>b.disabled = true);
+
+  const btn = document.getElementById('opt'+i);
+
+  if(correct){
+    btn.classList.add('correct');
+    score++;
+    fb.className = 'feedback-box show ok';
+    fb.innerHTML = '✅ <strong>' + w.en + '</strong> = ' + w.pl + '<br><span style="font-weight:400;opacity:0.85;">' + w.def + '</span>';
+    /* przyciemnij złe */
+    document.querySelectorAll('.opt-btn:not(.correct)').forEach(b=>b.classList.add('dimmed'));
+  } else {
+    btn.classList.add('wrong');
+    fb.className = 'feedback-box show no';
+    /* pokaż poprawną */
+    document.querySelectorAll('.opt-btn').forEach(b=>{
+      if(!b.classList.contains('wrong')){
+        const t = b.querySelector('.opt-text').textContent;
+        if(t === w.pl) b.classList.add('correct');
+        else b.classList.add('dimmed');
+      }
+    });
+    fb.innerHTML = '❌ To jest <strong>' + w.pl + '</strong><br><span style="font-weight:400;opacity:0.85;">' + w.def + '</span>';
+  }
+
+  updateProgress();
+
+  /* Pokaż przycisk */
+  const btnNext = document.getElementById('btnNext');
+  if(current < words.length - 1){
+    btnNext.textContent = 'Następne słówko →';
+  } else {
+    btnNext.textContent = 'Zobacz wyniki →';
+  }
+  btnNext.className = 'btn-next show';
+}
+
+/* ══ DALEJ ══ */
+function nextWord(){
+  current++;
+  if(current >= words.length){
+    showEnd();
+  } else {
+    renderWord();
+  }
+}
+
+/* ══ PROGRESS ══ */
+function updateProgress(){
+  const done = answered ? current + 1 : current;
+  const pct = (done / words.length) * 100;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progTxt').textContent = (answered ? current+1 : current) + ' / ' + words.length;
+}
+
+/* ══ DŹWIĘK ══ */
+function playSound(){
+  const w = words[order[current]];
+  const btn = document.getElementById('soundBtn');
+  if(currentAudio){
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+  }
+  currentAudio = new Audio(AUDIO_BASE + w.audio);
+  btn.classList.add('playing');
+  btn.innerHTML = '<span>🔊</span> Odtwarzam...';
+  currentAudio.play().catch(()=>{});
+  currentAudio.onended = ()=>{
+    btn.classList.remove('playing');
+    btn.innerHTML = '<span>🔊</span> Posłuchaj';
+  };
+  currentAudio.onerror = ()=>{
+    btn.classList.remove('playing');
+    btn.innerHTML = '<span>🔊</span> Posłuchaj';
+  };
+}
+
+/* ══ KONIEC ══ */
+function showEnd(){
+  document.getElementById('quizWrap').style.display = 'none';
+  document.getElementById('endWrap').classList.add('show');
+  document.getElementById('progFill').style.width = '100%';
+  document.getElementById('progTxt').textContent = 'Ukończono!';
+
+  const pct = Math.round((score / words.length) * 100);
+  document.getElementById('endScore').textContent = score + ' / ' + words.length + ' (' + pct + '%)';
+
+  if(score === words.length){
+    document.getElementById('endIcon').textContent = '🏆';
+    document.getElementById('endTitle').textContent = 'Idealnie!';
+    document.getElementById('endSub').textContent = 'Perfekcyjnie znasz słownictwo rampy i magazynu!';
+  } else if(score >= Math.ceil(words.length * 0.75)){
+    document.getElementById('endIcon').textContent = '✅';
+    document.getElementById('endTitle').textContent = 'Świetna robota!';
+    document.getElementById('endSub').textContent = 'Prawie wszystko dobrze — spróbuj jeszcze raz!';
+  } else {
+    document.getElementById('endIcon').textContent = '💪';
+    document.getElementById('endTitle').textContent = 'Ćwicz dalej!';
+    document.getElementById('endSub').textContent = 'Powtórz lekcję żeby utrwalić słownictwo rampy.';
+  }
+
+  /* Słownik */
+  document.getElementById('vocabList').innerHTML = words.map(w=>`
+    <div class="vb-row">
+      <div class="vb-icon">${w.icon}</div>
+      <span class="vb-en">${w.en}</span>
+      <span class="vb-sep">—</span>
+      <span class="vb-pl">${w.pl}</span>
+    </div>`).join('');
+}
+
+/* ══ RESTART ══ */
+function restart(){
+  document.getElementById('endWrap').classList.remove('show');
+  document.getElementById('quizWrap').style.display = 'block';
+  build();
+}
+
+/* INIT */
+build();
+</script>
+</body>
+</html>
