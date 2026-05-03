@@ -519,28 +519,20 @@ function restart() {
    NOWY SYSTEM AUDIO (MP3 Z ZABEZPIECZENIEM CACHE, BEZ SPACJI)
 ════════════════════════════════════════════════════════════ */
 const AUDIO_MAP = {
-  "What's up mate? How was your day?":                          'audio/L29/whats_up_mate_how_was_your_day_l29.mp3',
-  "What's up! Not bad, long drive from Warsaw.":                'audio/L29/whats_up_mate_how_was_your_day_l29.mp3',
+  'Whats up mate? How was your day?':                           'audio/L29/whats_up_mate_how_was_your_day_l29.mp3',
   'Where are you heading?':                                     'audio/L29/where_are_you_heading_l29.mp3',
-  'Heading to Rotterdam. Drop-off tomorrow morning.':           'audio/L29/where_are_you_heading_l29.mp3',
   'How was the border today? Any queues?':                      'audio/L29/how_was_the_border_today_any_queues_l29.mp3',
-  'How was the border? Not bad actually. The crossing took about 40 minutes.': 'audio/L29/how_was_the_border_today_any_queues_l29.mp3',
   'Any traffic jams ahead on the A2?':                          'audio/L29/any_traffic_jams_ahead_on_the_a2_l29.mp3',
-  'No traffic jams ahead as far as I know. Clear road.':        'audio/L29/any_traffic_jams_ahead_on_the_a2_l29.mp3',
   'I need fuel. Which route do you recommend to avoid the city?': 'audio/L29/i_need_fuel_which_route_do_you_recommend_l29.mp3',
-  'I recommend the ring road — exit 18. Faster and no traffic.': 'audio/L29/i_need_fuel_which_route_do_you_recommend_l29.mp3',
   'Good tip! Is there a good truck stop near here?':            'audio/L29/good_tip_is_there_a_good_truck_stop_near_here_l29.mp3',
-  'Yes — Autohof 12 km ahead. Good food, showers. Every trucker on the road knows it.': 'audio/L29/good_tip_is_there_a_good_truck_stop_near_here_l29.mp3',
-  "Perfect! I'll check it out. See you on the road mate!":      'audio/L29/perfect_ill_check_it_out_see_you_on_the_road_l29.mp3',
-  'See you on the road! Safe travels.':                         'audio/L29/perfect_ill_check_it_out_see_you_on_the_road_l29.mp3',
+  'Perfect! Ill check it out. See you on the road mate!':       'audio/L29/perfect_ill_check_it_out_see_you_on_the_road_l29.mp3',
   'Thanks for the tips! Stay safe out there!':                  'audio/L29/thanks_for_the_tips_stay_safe_out_there_l29.mp3',
-  'You too! Stay safe John. Good trip!':                        'audio/L29/thanks_for_the_tips_stay_safe_out_there_l29.mp3',
 };
 
 let _ap = null;
 
 function _playAudio(text, btn, label) {
-  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').replace(/\\'/g, "'").replace(/^[\s\-–—]+/, '').trim();
+  const clean = text.replace(/[\u201c\u201d\u201e"]/g, '').replace(/['\u2018\u2019]/g, '').replace(/[\u2014\u2013]/g, ' ').replace(/^[\s\-–—]+/, '').trim();
 
   if (_ap) { _ap.pause(); _ap.currentTime = 0; _ap = null; }
 
