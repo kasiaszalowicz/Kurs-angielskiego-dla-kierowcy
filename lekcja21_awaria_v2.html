@@ -584,21 +584,30 @@ function restart(){
   build();
 }
 
-/* ══ DŹWIĘK (tylko przy frazach) ══ */
+/* ══ DŹWIĘK — pliki MP3 z GitHub Pages ══ */
+const AUDIO_BASE = 'https://kasiaszalowicz.github.io/Kurs-angielskiego-dla-kierowcy/audio/L21/';
+const audioMap = {
+  'I have a flat tyre.':           'i_have_a_flat_tyre_l21.mp3',
+  'The engine has broken down.':   'the_engine_has_broken_down_l21.mp3',
+  'I am stuck in the mud.':        'i_am_stuck_in_the_mud_l21.mp3',
+  'The trailer is overheating.':   'the_trailer_is_overheating_l21.mp3',
+  'I need a tow truck.':           'i_need_a_tow_truck_l21.mp3',
+  'The brakes are not working.':   'the_brakes_are_not_working_l21.mp3',
+  'I have a fuel leak.':           'i_have_a_fuel_leak_l21.mp3',
+  'I am stranded on the motorway.':'i_am_stranded_on_the_motorway_l21.mp3',
+};
+
+let currentAudio = null;
+
 function speak(text){
-  if(!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  setTimeout(()=>{
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en-GB'; u.rate = 0.78;
-    const voices = window.speechSynthesis.getVoices();
-    const v = voices.find(x=>x.name==='Google UK English Female')
-           || voices.find(x=>x.lang==='en-GB')
-           || voices.find(x=>x.lang.startsWith('en'));
-    if(v) u.voice = v;
-    u.onerror = ()=>{};
-    window.speechSynthesis.speak(u);
-  }, 500);
+  const file = audioMap[text];
+  if(!file) return;
+  if(currentAudio){
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+  }
+  currentAudio = new Audio(AUDIO_BASE + file);
+  currentAudio.play().catch(()=>{});
 }
 
 /* INIT */
