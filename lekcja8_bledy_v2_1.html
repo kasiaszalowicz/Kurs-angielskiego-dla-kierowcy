@@ -757,21 +757,30 @@ function restart(){
   build();
 }
 
-/* ══ DŹWIĘK ══ */
+/* ══ DŹWIĘK — pliki MP3 z GitHub Pages ══ */
+const AUDIO_BASE = 'https://kasiaszalowicz.github.io/Kurs-angielskiego-dla-kierowcy/audio/L8/';
+const audioMap = {
+  'There is a mistake on the document.': 'there_is_a_mistake_on_the_document_l8.mp3',
+  'Items are missing.':                  'items_are_missing_l8.mp3',
+  'I make a reservation on the CMR.':    'i_make_a_reservation_on_the_cmr_l8.mp3',
+  'Please correct the document.':        'please_correct_the_document_l8.mp3',
+  'I need to call my dispatcher.':       'i_need_to_call_my_dispatcher_l8.mp3',
+  'I have photographic evidence.':       'i_have_photographic_evidence_l8.mp3',
+  'I do not sign this.':                 'i_do_not_sign_this_l8.mp3',
+  'The cargo was complete at loading.':  'the_cargo_was_complete_at_loading_l8.mp3',
+};
+
+let currentAudio = null;
+
 function speak(text){
-  if(!('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  setTimeout(()=>{
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en-GB'; u.rate = 0.78;
-    const voices = window.speechSynthesis.getVoices();
-    const v = voices.find(x=>x.name==='Google UK English Female')
-           || voices.find(x=>x.lang==='en-GB')
-           || voices.find(x=>x.lang.startsWith('en'));
-    if(v) u.voice = v;
-    u.onerror = ()=>{};
-    window.speechSynthesis.speak(u);
-  }, 500);
+  const file = audioMap[text];
+  if(!file) return;
+  if(currentAudio){
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+  }
+  currentAudio = new Audio(AUDIO_BASE + file);
+  currentAudio.play().catch(()=>{});
 }
 
 /* INIT */
