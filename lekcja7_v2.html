@@ -407,7 +407,7 @@ function render(){
           <div class="mb-who">${m.who}</div>
           <div class="mb-en">${m.en}</div>
           <div class="mb-pl">${m.pl}</div>
-          <button class="snd-msg-btn" onclick="speakMsg(this, this.dataset.en)" data-en="${m.en}">🔊 Posłuchaj wymowy</button>
+          <button class="snd-msg-btn" onclick="speakMsg(this, this.dataset.en)" data-en="${m.en.replace(/"/g,'&quot;')}">🔊 Posłuchaj wymowy</button>
         </div>
       </div>`;
     return `
