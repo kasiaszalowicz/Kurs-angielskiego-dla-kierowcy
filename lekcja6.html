@@ -448,13 +448,15 @@ function activate(id) {
     <div class="ac-phrase-pl">${f.phrasePl}</div>
     <button class="ac-sound" id="acSnd" data-phrase="${cleanPhrase.replace(/'/g, '&#39;')}">🔊 Posłuchaj wymowy</button>
   `;
-const sndBtn = document.getElementById('acSnd');
+  // Podpięcie przycisku dźwięku - bezpieczne przez dataset
+  const sndBtn = document.getElementById('acSnd');
   if(sndBtn){
     sndBtn.addEventListener('click', function(){
       _playAudio(this.dataset.phrase, this, '🔊 Posłuchaj wymowy');
     });
-  }}
+  }
 }
+
 function updateProgress(){
   const pct=(seen.size/11)*100; // Było 10, mamy 11 pól
   document.getElementById('progFill').style.width=pct+'%';
