@@ -446,6 +446,7 @@ function activate(id) {
     <div class="ac-phrase-label">Co mówisz</div>
     <div class="ac-phrase">${f.phrase}</div>
     <div class="ac-phrase-pl">${f.phrasePl}</div>
+    <button class="ac-sound" onclick="_playAudio('${cleanPhrase}', this, '🔊 Posłuchaj wymowy')">🔊 Posłuchaj wymowy</button>
   `;
 }
 
@@ -597,6 +598,10 @@ function speak(text){
 
 function speakWord(word){
   _playAudio(word, null, null);
+}
+
+function speakPhrase(text, btn){
+  _playAudio(text, btn, '🔊 Posłuchaj wymowy');
 }
 
 /* QUIZ */
