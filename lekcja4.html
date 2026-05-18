@@ -579,7 +579,7 @@ body{background:#f0e8d8;font-family:'Nunito',sans-serif;min-height:100vh;padding
         <div class="v-row" id="v3"><div class="v-dot" style="background:#15803d"></div><div class="v-en">Delivery Note</div><div class="v-pl">dowód dostawy</div></div>
         <div class="v-row" id="v4"><div class="v-dot" style="background:#7c3aed"></div><div class="v-en">Transport Order</div><div class="v-pl">zlecenie transportowe</div></div>
         <div class="v-row" id="v5"><div class="v-dot" style="background:#0891b2"></div><div class="v-en">Customs Declaration</div><div class="v-pl">deklaracja celna</div></div>
-        <div class="v-row" id="v6"><div class="v-dot" style="background:#d97706"></div><div class="v-en">Waybill</div><div class="v-pl">list drogi</div></div>
+        <div class="v-row" id="v6"><div class="v-dot" style="background:#d97706"></div><div class="v-en">Waybill</div><div class="v-pl">list przewozowy</div></div>
         <div class="v-row" id="v7"><div class="v-dot" style="background:#dc2626"></div><div class="v-en">ADR / DGD</div><div class="v-pl">towary niebezpieczne</div></div>
       </div>
     </div>
@@ -672,8 +672,8 @@ function switchTab(tab, cat) {
 }
 
 const qs = [
-  {q:"Hans pyta: 'Do you have the CMR?' Co to jest CMR?",opts:["Faktura","List przewozowy","Deklaracja celna","Lista pakowania"],and:1,tip:"CMR = list przewozowy. Najważniejszy document w transporcie międzynarodowym!"},
-  {q:"Celnik mówi: 'I need to see the invoice.' Co chce zobaczyć?",opts:["List drogi","Dowód dostawy","Fakturę","Zlecenie transportowe"],and:2,tip:"Invoice = faktura. Celnik sprawdza wartość towaru na fakturze."},
+  {q:"Hans pyta: 'Do you have the CMR?' Co to jest CMR?",opts:["Faktura","List przewozowy","Deklaracja celna","Lista pakowania"],and:1,tip:"CMR = list przewozowy (międzynarodowy). Najważniejszy document w transporcie międzynarodowym!"},
+  {q:"Celnik mówi: 'I need to see the invoice.' Co chce zobaczyć?",opts:["List przewozowy","Dowód dostawy","Fakturę","Zlecenie transportowe"],and:2,tip:"Invoice = faktura. Celnik sprawdza wartość towaru na fakturze."},
   {q:"Magazyn prosi: 'Sign the delivery note.' Co podpisujesz?",opts:["CMR","Packing List","Transport Order","Dowód dostawy / WZ"],and:3,tip:"Delivery Note = dowód dostawy. Podpisany przez odbiorcę = dostawa potwierdzona!"},
   {q:"Hans pyta: 'Are you carrying dangerous goods?' Jaki document?",opts:["Waybill","ADR / DGD","Invoice","CMR"],and:1,tip:"ADR = dokumenty dla towarów niebezpiecznych. DGD = Dangerous Goods Declaration."},
   {q:"Dyspozytor daje Ci 'Transport Order'. Co to jest?",opts:["Faktura za transport","Customs Declaration","Zlecenie transportowe","Packing List"],and:2,tip:"Transport Order = zlecenie transportowe od firmy spedycyjnej z numerem referencyjnym."},
